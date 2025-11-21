@@ -24,6 +24,7 @@ class RecepcionController extends Controller
 
     public function index(Request $request)
     {
+        $comensal = DB::connection('mysql_third')->table('rrhh_personal')->first();
         try {
             /** se declaran las variables */
             $comensal = null;

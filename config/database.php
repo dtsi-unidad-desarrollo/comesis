@@ -99,6 +99,15 @@ return [
             'username' => env('DB_USERNAME_SECOND', 'forge'),
             'password' => env('DB_PASSWORD_SECOND', ''),
         ],
+        'mysql_third'=>[
+            'driver' => 'mysql',
+            'url' => env('DATABASE_URL'),
+            'host' => env('DB_HOST_THIRD', '127.0.0.1'),
+            'port' => env('DB_PORT_THIRD', '3306'),
+            'database' => env('DB_DATABASE_THIRD', 'forge'),
+            'username' => env('DB_USERNAME_THIRD', 'forge'),
+            'password' => env('DB_PASSWORD_THIRD', ''),
+        ],
 
     ],
 
