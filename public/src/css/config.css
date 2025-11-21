@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components{
+
+    .wrapper{
+        @apply w-[100%] mx-auto overflow-hidden ;
+    }
+
+    .contenedor{
+       
+        @apply w-[90%] mx-auto overflow-hidden max-w-screen-xl ;
+}
+ 
+    .buttom{
+
+        @apply bg-bright-red text-white block w-max py-4 px-12 rounded-full;
+    }
+    .title-h3{
+        @apply text-[20px] phone_1:text-[1.5em] tablet:text-[1.8em] laptop:text-[2em] desktop:text-[2.2em];
+    }
+     .parrafo{
+
+        @apply  text-[17px] sm:text-[18] md:text-[20px] xl:text-[22px] 2xl:text-[26px];
+     }
+   
+}
