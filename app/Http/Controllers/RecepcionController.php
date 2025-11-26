@@ -28,7 +28,7 @@ class RecepcionController extends Controller
         foreach ($comensales as $key => $comensal) {
             # code...
             $comensal['rrhh_personal_nomina'] = DB::connection('mysql_third')->table('rrhh_personal_nomina')
-            ->where('pern_codigo', $comensal->per_codigo);
+            ->where('pern_codigo', $comensal->per_codigo)->first();
         }
         return $comensales;
 
