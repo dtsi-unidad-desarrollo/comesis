@@ -28,13 +28,12 @@ class RecepcionController extends Controller
         $respuesta =  $this->data->respuesta;
 
         try {
-            return $comensal_administrativo = DB::connection('mysql_third')->table('rrhh_personal')->where('per_cedula', 24823972)->first();
-            foreach ($comensales as $key => $comensal) {
-                # code...
-                $comensal['rrhh_personal_nomina'] = DB::connection('mysql_third')->table('rrhh_personal_nomina')
-                    ->where('pern_codigo', $comensal->per_codigo)->first();
-            }
-            return $comensales;
+            $comensal_administrativo = DB::connection('mysql_third')->table('rrhh_personal')->where('per_cedula', 24823972)->first();
+
+            $comensal_administrativo['data_nomina'] = DB::connection('mysql_third')->table('rrhh_personal_nomina')
+                ->where('pern_codigo', $comensal_administrativo->per_codigo)->first();
+
+            return $comensal_administrativo;
 
             /** se declaran las variables */
             $comensal = null;
