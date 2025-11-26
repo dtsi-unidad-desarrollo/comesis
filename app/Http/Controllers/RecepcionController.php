@@ -24,7 +24,7 @@ class RecepcionController extends Controller
 
     public function index(Request $request)
     {
-        return $comensales = DB::connection('mysql_third')->table('rrhh_personal')->limit(10);
+        $comensales = DB::connection('mysql_third')->table('rrhh_personal')->limit(10)->get();
         foreach ($comensales as $key => $comensal) {
             # code...
             $comensal['rrhh_personal_nomina'] = DB::connection('mysql_third')->table('rrhh_personal_nomina')
