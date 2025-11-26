@@ -1,0 +1,14 @@
+// rrhh_personal
+{ 
+    "per_codigo": 1,
+    "per_cedula": 26806,
+    "per_nacionalidad": 1,
+    "per_nombres": "HECTOR",
+    "per_apellidos": "RIVAS",
+    "per_sexo": 2,
+    "per_fecnac": "1924-10-14",
+    "per_fecadmpub": "0000-00-00",
+    "per_status": 29,
+    "per_cumpleano": null,
+    "Impreso": 0
+}
