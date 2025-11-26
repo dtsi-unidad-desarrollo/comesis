@@ -26,8 +26,9 @@ class RecepcionController extends Controller
     {
         /** Variable global para los alertas */
         $respuesta =  $this->data->respuesta;
+        
         try {
-            $comensales = DB::connection('mysql_third')->table('rrhh_personal')->take(10)->get();
+            return $comensales = DB::connection('mysql_third')->table('rrhh_personal')->take(10)->get();
             foreach ($comensales as $key => $comensal) {
                 # code...
                 $comensal['rrhh_personal_nomina'] = DB::connection('mysql_third')->table('rrhh_personal_nomina')
