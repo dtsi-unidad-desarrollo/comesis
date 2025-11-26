@@ -1,14 +1,24 @@
-// rrhh_personal
-{ 
-    "per_codigo": 1,
-    "per_cedula": 26806,
+{
+    "per_codigo": 15230,
+    "per_cedula": 24823972,
     "per_nacionalidad": 1,
-    "per_nombres": "HECTOR",
-    "per_apellidos": "RIVAS",
-    "per_sexo": 2,
-    "per_fecnac": "1924-10-14",
+    "per_nombres": "YORDHIS JOSE ",
+    "per_apellidos": "OSUNA AGUIRRE",
+    "per_sexo": 1,
+    "per_fecnac": "1996-02-11",
     "per_fecadmpub": "0000-00-00",
-    "per_status": 29,
+    "per_status": 1,
     "per_cumpleano": null,
-    "Impreso": 0
+    "Impreso": 0,
+    "data_nomina": {
+        "pern_codigo": 21609,
+        "pern_percodigo": 15230,
+        "pern_nomcodigo": 5,
+        "pern_fecing": "2022-10-15",
+        "pern_fecasig": null,
+        "pern_fecreinc": null,
+        "pern_fecjub": null,
+        "pern_fecegreso": "2022-10-16",
+        "pern_status": 33
+    }
 }
