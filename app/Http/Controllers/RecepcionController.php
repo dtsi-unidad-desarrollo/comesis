@@ -34,7 +34,7 @@ class RecepcionController extends Controller
                 ->where('per_cedula', 24823972)
                 ->first();
 
-            $comensal_administrativo['data_nomina'] = DB::connection('mysql_third')
+            $comensal_administrativo->data_nomina = DB::connection('mysql_third')
                 ->table('rrhh_personal_nomina')
                 ->where('pern_percodigo', $comensal_administrativo->per_codigo)
                 ->first();
