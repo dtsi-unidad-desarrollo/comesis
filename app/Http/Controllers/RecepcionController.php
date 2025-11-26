@@ -24,16 +24,17 @@ class RecepcionController extends Controller
 
     public function index(Request $request)
     {
-        
+        /** Variable global para los alertas */
+        $respuesta =  $this->data->respuesta;
         try {
             $comensales = DB::connection('mysql_third')->table('rrhh_personal')->take(10)->get();
             foreach ($comensales as $key => $comensal) {
                 # code...
                 $comensal['rrhh_personal_nomina'] = DB::connection('mysql_third')->table('rrhh_personal_nomina')
-                ->where('pern_codigo', $comensal->per_codigo)->first();
+                    ->where('pern_codigo', $comensal->per_codigo)->first();
             }
             return $comensales;
-            
+
             /** se declaran las variables */
             $comensal = null;
             $mensaje_comensal = '';
@@ -66,58 +67,58 @@ class RecepcionController extends Controller
                         return back()->with(compact('mensaje', 'estatus'));
                     }
 
-                     /** En caso de no estar en dux se verifica si esta en el sistema comesis */
-                     $comensal = Comensale::where('cedula', $request->cedula)->first();
+                    /** En caso de no estar en dux se verifica si esta en el sistema comesis */
+                    $comensal = Comensale::where('cedula', $request->cedula)->first();
 
                     if (!$comensal) {
-                         /** Se consulta en dux  para los estudiantes */
+                        /** Se consulta en dux  para los estudiantes */
                         $comensal = DB::connection('mysql_second')->table('estudiantes')->where('Cedula', $request->cedula)
-                        ->select('nombres', 'apellidos', 'nacionalidad', 'Cedula as cedula', 'Sexo as sexo', 'Sede as sede')->first();
-                        if($comensal){
+                            ->select('nombres', 'apellidos', 'nacionalidad', 'Cedula as cedula', 'Sexo as sexo', 'Sede as sede')->first();
+                        if ($comensal) {
                             /** Se setea el tipo */
-                           $comensal->tipo = "ESTUDIANTE";
-   
-                           /** Consultamos todas las carreras donde el estudiante este activo */
-                           $carreras = DB::connection('mysql_second')->table('carreras_est')
-   
-                               ->join('carreras', 'carreras.CodCar', '=', 'carreras_est.CodCar')
-                               ->join('sede', 'sede.CodSede', '=', 'carreras_est.Sede')
-                               ->join('programas', 'programas.codPrograma', '=', 'carreras.codPrograma')
-   
-                               ->where('carreras_est.ConexEst',  $comensal->cedula)
-                               ->where('carreras_est.Status', 'A')
-                               ->select(
-                                   'carreras_est.Status as estatus_estudiante', // si esta activo dentro de la carrera
-                                   'carreras_est.ConexEst as dni',
-                                   'carreras_est.CodCar as codigo_carrera',
-                                   'carreras_est.Sede as sede',
-   
-                                   'carreras.codPrograma as codigo_programa',
-                                   'carreras.NombCar as nombre_carrera',
-                                   'carreras.Tipo as tipo_carrera',
-                                   'carreras.Status as estatus_carrera',
-   
-                                   'programas.codPrograma',
-                                   'programas.nombre as nombre_programa',
-   
-                                   'sede.CodSede as codigo_sede',
-                                   'sede.Sede as nombre_sede',
-                                   'sede.Tipo as tipo_sede',
-                                   'sede.TipoSede as tipo_oferta_sede',
-                                   'sede.Zona as zona_sede',
-                                   'sede.oestado as estado_sede',
-                                   'sede.Municipio as municipio_sede',
-                                   'sede.oparroquia as parroquia_sede',
-                                   'sede.osector as sector_sede',
-                                   'sede.Arse as arse',
-                               )
-                               ->get();
-   
-   
-   
-   
-                           $comensal->carreras =  $carreras;
-                           $comensal->estatus_estudiante =  count($carreras) ? $carreras[0]->estatus_estudiante : 'I';
+                            $comensal->tipo = "ESTUDIANTE";
+
+                            /** Consultamos todas las carreras donde el estudiante este activo */
+                            $carreras = DB::connection('mysql_second')->table('carreras_est')
+
+                                ->join('carreras', 'carreras.CodCar', '=', 'carreras_est.CodCar')
+                                ->join('sede', 'sede.CodSede', '=', 'carreras_est.Sede')
+                                ->join('programas', 'programas.codPrograma', '=', 'carreras.codPrograma')
+
+                                ->where('carreras_est.ConexEst',  $comensal->cedula)
+                                ->where('carreras_est.Status', 'A')
+                                ->select(
+                                    'carreras_est.Status as estatus_estudiante', // si esta activo dentro de la carrera
+                                    'carreras_est.ConexEst as dni',
+                                    'carreras_est.CodCar as codigo_carrera',
+                                    'carreras_est.Sede as sede',
+
+                                    'carreras.codPrograma as codigo_programa',
+                                    'carreras.NombCar as nombre_carrera',
+                                    'carreras.Tipo as tipo_carrera',
+                                    'carreras.Status as estatus_carrera',
+
+                                    'programas.codPrograma',
+                                    'programas.nombre as nombre_programa',
+
+                                    'sede.CodSede as codigo_sede',
+                                    'sede.Sede as nombre_sede',
+                                    'sede.Tipo as tipo_sede',
+                                    'sede.TipoSede as tipo_oferta_sede',
+                                    'sede.Zona as zona_sede',
+                                    'sede.oestado as estado_sede',
+                                    'sede.Municipio as municipio_sede',
+                                    'sede.oparroquia as parroquia_sede',
+                                    'sede.osector as sector_sede',
+                                    'sede.Arse as arse',
+                                )
+                                ->get();
+
+
+
+
+                            $comensal->carreras =  $carreras;
+                            $comensal->estatus_estudiante =  count($carreras) ? $carreras[0]->estatus_estudiante : 'I';
                         }
                     }
 
@@ -131,12 +132,12 @@ class RecepcionController extends Controller
                         /** si el comensal es del sistema se le push un elemento ficticio */
                         if ($comensal->tipo !== 'ESTUDIANTE') {
                             $comensal->carreras  = [false];
-                        } 
+                        }
 
 
                         /** Validamos si esta activo en una carrera de pregrago */
                         if (count($comensal->carreras)) {
-                          
+
                             /** variable de captura */
                             $comensalCapturado = [];
 
@@ -153,7 +154,7 @@ class RecepcionController extends Controller
                                 $mensaje_comensal = "El comensal " . $comensal->nombres . " " . $comensal->apellidos . ", Cédula: " . $comensal->cedula . ", ya consumio el servicio: " . $servicio->nombre ?? '' . ". ";
                                 $comensal = null;
                             } else {
-                               
+
                                 /** Marcar entrada automaticamente */
                                 Helpers::setEntradaComedor($comensal, $servicio);
 
@@ -170,10 +171,6 @@ class RecepcionController extends Controller
                 }
             }
 
-
-
-            /** Variable global para los alertas */
-            $respuesta =  $this->data->respuesta;
             return view('admin.recepcion.index', compact('comensal', 'respuesta', 'mensaje_comensal', 'cantidadDeEntradas', 'servicio', 'request'));
         } catch (\Throwable $th) {
             $mensaje = Helpers::getMensajeError($th, ", ¡Error interno al intentar consultar los comensal!");
