@@ -1,7 +1,0 @@
-.title{
-    background: black;
-    position: absolute;
-    width: 100%;
-    z-index: 100;
-    top: max( 15% , 100px);
-}
