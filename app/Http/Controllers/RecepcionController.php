@@ -28,7 +28,7 @@ class RecepcionController extends Controller
         $respuesta =  $this->data->respuesta;
 
         try {
-            return DB::connection('mysql_third')->table('funciones_relacionadas')
+            return DB::connection('mysql_third')->table('vista_carga_fam')
                 ->where('per_cedula', 24823972)
                 ->first();
             return $comensal_administrativo = DB::connection('mysql_third')
