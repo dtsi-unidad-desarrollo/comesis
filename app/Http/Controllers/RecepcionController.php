@@ -31,6 +31,7 @@ class RecepcionController extends Controller
             return $comensal_administrativo = DB::connection('mysql_third')
                 ->table('rrhh_personal')
                 ->join('status', 'status.st_codigo', '=', 'rrhh_personal.per_status')
+                ->join('rrhh_personal_ubica_old', 'rrhh_personal_ubica_old.peru_percodigo', '=', 'rrhh_personal.per_codigo')
                 ->where('per_cedula', 24823972)
                 ->first();
 
