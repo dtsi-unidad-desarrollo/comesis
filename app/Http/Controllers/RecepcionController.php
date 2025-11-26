@@ -28,7 +28,7 @@ class RecepcionController extends Controller
         $respuesta =  $this->data->respuesta;
 
         try {
-            return DB::connection('mysql_third')->table('asignar_departamentos_')->get();
+            return DB::connection('mysql_third')->table('asignar_departamentos_jerarquica')->get();
             return $comensal_administrativo = DB::connection('mysql_third')
                 ->table('rrhh_personal')
                 ->join('status', 'status.st_codigo', '=', 'rrhh_personal.per_status')
