@@ -28,13 +28,13 @@ class RecepcionController extends Controller
         $respuesta =  $this->data->respuesta;
 
         try {
-            return DB::connection('mysql_third')->table('vista_carga_fam')
+            $comensal_administrativo = DB::connection('mysql_third')->table('rrhh_vista_personal')
                 ->where('per_cedula', 24823972)
                 ->first();
-            return $comensal_administrativo = DB::connection('mysql_third')
+            
+            return $comensal_administrativo->data = DB::connection('mysql_third')
                 ->table('rrhh_personal')
                 ->join('status', 'status.st_codigo', '=', 'rrhh_personal.per_status')
-                ->join('rrhh_personal_ubica', 'rrhh_personal_ubica.peru_percodigo', '=', 'rrhh_personal.per_codigo')
                 ->where('per_cedula', 24823972)
                 ->first();
 
