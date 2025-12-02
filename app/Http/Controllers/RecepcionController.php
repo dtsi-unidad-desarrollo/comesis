@@ -48,17 +48,23 @@ class RecepcionController extends Controller
             //     ->first();
             $comensal_administrativo = DB::connection('mysql_third')
                 ->table('rrhh_personal as rp')
+                // buscar cargo activo del personal
+                ->leftJoin('rrhh_personal_cargo as pc', function ($join) {
+                    $join->on('pc.perc_percodigo', '=', 'rp.per_codigo')
+                        ->where('pc.perc_status', '=', 1);
+                })
+                ->leftJoin('rrhh_cargo as c', 'c.car_codigo', '=', 'pc.perc_carcodigo')
+                ->leftJoin('rrhh_cargo_tipo as rct', 'rct.cart_codigo', '=', 'c.car_tipo')
                 ->leftJoin('rrhh_personal_datosp as pd', 'pd.perdat_percodigo', '=', 'rp.per_codigo')
                 ->leftJoin('tools_sexo as ts', 'ts.sex_codigo', '=', 'pd.perdat_sexo')
-                ->leftJoin('rrhh_cargo_tipo as rct', 'rct.cart_codigo', '=', 'rp.per_tipoper')
                 ->selectRaw("
                         rp.per_nombres  AS nombre,
                         rp.per_apellidos AS apellido,
                         rp.per_cedula   AS cedula,
                         rp.per_codigo   AS per_codigo,
-                        COALESCE(ts.sex_descripcion, pd.perdat_sexo) AS sexo,
+                        COALESCE(ts.sex_descripcion, pd.perdat_sexo, rp.per_sexo) AS sexo,
                         rp.per_status   AS estatus,
-                        rct.cart_tipo AS tipo
+                        rct.cart_tipo   AS tipo
                     ")
                 ->where('rp.per_cedula', 24823972)
                 ->first();
