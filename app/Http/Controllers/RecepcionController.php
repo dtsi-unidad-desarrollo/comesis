@@ -28,9 +28,9 @@ class RecepcionController extends Controller
         $respuesta =  $this->data->respuesta;
 
         try {
-            // $comensal_administrativo = DB::connection('mysql_third')->table('rrhh_vista_personal')
-            //     ->where('per_cedula', 24823972)
-            //     ->first();
+            return $comensal_administrativo = DB::connection('mysql_third')
+                ->table('rrhh_cargo')
+                ->get();
 
             // $comensal_administrativo->estatus = DB::connection('mysql_third')
             //     ->table('rrhh_personal')
