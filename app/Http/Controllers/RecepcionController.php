@@ -30,10 +30,22 @@ class RecepcionController extends Controller
         try {
             $comensal_administrativo = null;
             if ($request->filled('cedula')) {
-               return  $comensal_administrativo = DB::connection('mysql_third')
-                    ->table('rrhh_vista_personal')
-                    ->where('per_cedula', $request->cedula)
+                return $comensal_administrativo = DB::connection('mysql_third')
+                    ->table('rrhh_vista_personal as rrhh')
+                    ->select("
+                        rrhh.per_codigo AS codigo,
+                        rrhh.per_nombres AS nombres,
+                        rrhh.per_apellidos AS apellidos,
+                        rrhh.per_cedula AS cedula,
+                        rrhh.Nombre_Completo AS vicerrectorado,
+                        rrhh.Nombre AS sede,
+                        rrhh.vicn_descripcion AS estado_sede,
+                    ")
+                    ->where('rrhh.per_cedula', $request->cedula)
                     ->first();
+
+                // obtenemos el estatus del empleado
+                // $comensal_administrativo->estatus = 
             }
 
             /** se declaran las variables */
