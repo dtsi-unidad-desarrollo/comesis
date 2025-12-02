@@ -28,48 +28,39 @@ class RecepcionController extends Controller
         $respuesta =  $this->data->respuesta;
 
         try {
-            return $comensal_administrativo = DB::connection('mysql_third')
-                ->table('rrhh_cargo')
-                ->get();
-
-            // $comensal_administrativo->estatus = DB::connection('mysql_third')
-            //     ->table('rrhh_personal')
-            //     ->join('status', 'status.st_codigo', '=', 'rrhh_personal.per_status')
-            //     ->where('per_cedula', 24823972)
-            //     ->first();
-
-            // $comensal_administrativo->mas = DB::connection('mysql_third')
-            //     ->table('vista_carga_fam')
-            //     ->where('cargt_percodigo', $comensal_administrativo->per_codigo)
-            //     ->first();
-
-            // $comensal_administrativo->cargo = DB::connection('mysql_third')
-            //     ->table('funciones_relacionadas')
-            //     ->first();
-            $comensal_administrativo = DB::connection('mysql_third')
-                ->table('rrhh_personal as rp')
-                // buscar cargo activo del personal
-                ->leftJoin('rrhh_personal_cargo as pc', function ($join) {
-                    $join->on('pc.perc_percodigo', '=', 'rp.per_codigo')
-                        ->where('pc.perc_status', '=', 1);
-                })
-                ->leftJoin('rrhh_cargo as c', 'c.car_codigo', '=', 'pc.perc_carcodigo')
-                ->leftJoin('rrhh_cargo_tipo as rct', 'rct.cart_codigo', '=', 'c.car_tipo')
-                ->leftJoin('rrhh_personal_datosp as pd', 'pd.perdat_percodigo', '=', 'rp.per_codigo')
-                ->leftJoin('tools_sexo as ts', 'ts.sex_codigo', '=', 'pd.perdat_sexo')
-                ->selectRaw("
+            $comensal_administrativo = null;
+            if ($request->filled('cedula')) {
+               return  $comensal_administrativo = DB::connection('mysql_third')
+                    ->table('rrhh_personal as rp')
+                    // buscar cargo activo del personal
+                    ->leftJoin('rrhh_personal_cargo as pc', function ($join) {
+                        $join->on('pc.perc_percodigo', '=', 'rp.per_codigo')
+                             ->where('pc.perc_status', '=', 1);
+                    })
+                    ->leftJoin('rrhh_cargo as c', 'c.car_codigo', '=', 'pc.perc_carcodigo')
+                    ->leftJoin('rrhh_cargo_tipo as rct', 'rct.cart_codigo', '=', 'c.car_tipo')
+                    ->leftJoin('rrhh_personal_datosp as pd', 'pd.perdat_percodigo', '=', 'rp.per_codigo')
+                    ->leftJoin('tools_sexo as ts', 'ts.sex_codigo', '=', 'pd.perdat_sexo')
+                    // ubicacion / nucleo
+                    ->leftJoin('rrhh_personal_ubica as rpu', 'rpu.peru_percodigo', '=', 'rp.per_codigo')
+                    ->leftJoin('vicerrectorado_nucleo as vn', 'vn.vicn_codigo', '=', 'rpu.peru_nucleo')
+                    ->selectRaw("
                         rp.per_nombres  AS nombre,
                         rp.per_apellidos AS apellido,
                         rp.per_cedula   AS cedula,
                         rp.per_codigo   AS per_codigo,
                         COALESCE(ts.sex_descripcion, pd.perdat_sexo, rp.per_sexo) AS sexo,
                         rp.per_status   AS estatus,
-                        rct.cart_tipo   AS tipo
+                        rct.cart_tipo   AS tipo,
+                        COALESCE(vn.vicn_descripcion, rpu.peru_nucleo) AS sede,
+                        vn.vicn_tipo    AS tipo_sede,
+                        rpu.peru_estado AS estado,
+                        rpu.peru_municipio AS municipio,
+                        COALESCE(rpu.peru_direccion, rp.per_direccion, '') AS direccion
                     ")
-                ->where('rp.per_cedula', 24823972)
-                ->first();
-
-            return $comensal_administrativo;
+                    ->where('rp.per_cedula', $request->cedula)
+                    ->first();
+            }
 
             /** se declaran las variables */
             $comensal = null;
