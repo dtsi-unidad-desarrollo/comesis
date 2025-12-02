@@ -32,7 +32,7 @@ class RecepcionController extends Controller
             if ($request->filled('cedula')) {
                 return $comensal_administrativo = DB::connection('mysql_third')
                     ->table('rrhh_vista_personal as rrhh')
-                    ->select("
+                    ->selectRaw("
                         rrhh.per_codigo AS codigo,
                         rrhh.per_nombres AS nombres,
                         rrhh.per_apellidos AS apellidos,
