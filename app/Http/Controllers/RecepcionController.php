@@ -32,7 +32,6 @@ class RecepcionController extends Controller
             if ($request->filled('cedula')) {
                return  $comensal_administrativo = DB::connection('mysql_third')
                     ->table('rrhh_personal as rp')
-                
                     ->leftJoin('rrhh_cargo as c', 'c.car_codigo', '=', 'pc.perc_carcodigo')
                     ->leftJoin('rrhh_cargo_tipo as rct', 'rct.cart_codigo', '=', 'c.car_tipo')
                     ->leftJoin('rrhh_personal_datosp as pd', 'pd.perdat_percodigo', '=', 'rp.per_codigo')
@@ -49,7 +48,6 @@ class RecepcionController extends Controller
                         rp.per_status   AS estatus,
                         rct.cart_tipo   AS tipo,
                         COALESCE(vn.vicn_descripcion, rpu.peru_nucleo) AS sede,
-                        vn.vicn_tipo    AS tipo_sede,
                         rpu.peru_estado AS estado,
                         rpu.peru_municipio AS municipio,
                         COALESCE(rpu.peru_direccion, rp.per_direccion, '') AS direccion
