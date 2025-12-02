@@ -38,6 +38,10 @@ class RecepcionController extends Controller
                 ->where('per_cedula', 24823972)
                 ->first();
 
+            $comensal_administrativo->mas = DB::connection('mysql_third')
+                ->table('vista_carga_fam')
+                ->where('cargt_percodigo', $comensal_administrativo->per_codigo)
+                ->first();
 
             return $comensal_administrativo;
 
