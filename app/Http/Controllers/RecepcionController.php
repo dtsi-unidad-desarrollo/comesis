@@ -60,7 +60,8 @@ class RecepcionController extends Controller
                         rp.per_status   AS estatus,
                         rct.cart_descripcion AS tipo
                     ")
-                ->where('per_cedula', '=', 24823972);
+                ->where('rp.per_cedula', $request->cedula)
+                ->first();
 
             return $comensal_administrativo;
 
