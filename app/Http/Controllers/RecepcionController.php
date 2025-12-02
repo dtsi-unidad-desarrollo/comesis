@@ -32,7 +32,7 @@ class RecepcionController extends Controller
                 ->where('per_cedula', 24823972)
                 ->first();
             
-            return $comensal_administrativo->estatus = DB::connection('mysql_third')
+            $comensal_administrativo->estatus = DB::connection('mysql_third')
                 ->table('rrhh_personal')
                 ->join('status', 'status.st_codigo', '=', 'rrhh_personal.per_status')
                 ->where('per_cedula', 24823972)
