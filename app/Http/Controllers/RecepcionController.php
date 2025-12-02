@@ -28,24 +28,20 @@ class RecepcionController extends Controller
         $respuesta =  $this->data->respuesta;
 
         try {
-            $comensal_administrativo = null;
+            $comensal = null;
             if ($request->filled('cedula')) {
-                return $comensal_administrativo = DB::connection('mysql_third')
-                    ->table('rrhh_vista_personal as rrhh')
-                    ->selectRaw("
-                        rrhh.per_codigo AS codigo,
-                        rrhh.per_nombres AS nombres,
-                        rrhh.per_apellidos AS apellidos,
-                        rrhh.per_cedula AS cedula,
-                        rrhh.Nombre_Completo AS vicerrectorado,
-                        rrhh.Nombre AS sede,
-                        rrhh.vicn_descripcion AS estado_sede,
-                    ")
-                    ->where('rrhh.per_cedula', $request->cedula)
+                $comensal = DB::connection('mysql_third')
+                    ->table('rrhh_vista_personal')
+                    ->where('per_cedula', $request->cedula)
                     ->first();
 
-                // obtenemos el estatus del empleado
-                // $comensal_administrativo->estatus = 
+                // obtenemos el estatus del empleado 1:ACTIVO
+                $comensal->estatus = DB::connection('mysql_third')
+                    ->table('rrhh_personal')
+                    ->where('per_cedula', $request->cedula)
+                    ->first()->per_status;
+
+                return $comensal;
             }
 
             /** se declaran las variables */
@@ -84,7 +80,7 @@ class RecepcionController extends Controller
                     $comensal = Comensale::where('cedula', $request->cedula)->first();
 
                     if (!$comensal) {
-                        /** Se consulta en dux  para los estudiantes */
+                        /** Se consulta en DUX  para los estudiantes */
                         $comensal = DB::connection('mysql_second')->table('estudiantes')->where('Cedula', $request->cedula)
                             ->select('nombres', 'apellidos', 'nacionalidad', 'Cedula as cedula', 'Sexo as sexo', 'Sede as sede')->first();
                         if ($comensal) {
@@ -132,6 +128,23 @@ class RecepcionController extends Controller
 
                             $comensal->carreras =  $carreras;
                             $comensal->estatus_estudiante =  count($carreras) ? $carreras[0]->estatus_estudiante : 'I';
+                        }
+                        /** Buscamos en terepaima */
+                        else {
+                            $comensal = DB::connection('mysql_third')
+                                ->table('rrhh_vista_personal')
+                                ->where('per_cedula', $request->cedula)
+                                ->first();
+
+                            // obtenemos el estatus del empleado 1:ACTIVO
+                            $comensal->estatus = DB::connection('mysql_third')
+                                ->table('rrhh_personal')
+                                ->where('per_cedula', $request->cedula)
+                                ->first()->per_status;
+
+                            if ($comensal) {
+                                $comensal->tipo = "EMPLEADO";
+                            }
                         }
                     }
 
