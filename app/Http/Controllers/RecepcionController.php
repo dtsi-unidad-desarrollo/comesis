@@ -43,6 +43,10 @@ class RecepcionController extends Controller
                 ->where('cargt_percodigo', $comensal_administrativo->per_codigo)
                 ->first();
 
+            $comensal_administrativo->cargo = DB::connection('mysql_third')
+                ->table('funciones_relacionadas')
+                ->first();
+
             return $comensal_administrativo;
 
             /** se declaran las variables */
