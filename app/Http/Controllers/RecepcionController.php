@@ -32,11 +32,7 @@ class RecepcionController extends Controller
             if ($request->filled('cedula')) {
                return  $comensal_administrativo = DB::connection('mysql_third')
                     ->table('rrhh_personal as rp')
-                    // buscar cargo activo del personal
-                    ->leftJoin('rrhh_personal_cargo as pc', function ($join) {
-                        $join->on('pc.perc_percodigo', '=', 'rp.per_codigo')
-                             ->where('pc.perc_status', '=', 1);
-                    })
+                
                     ->leftJoin('rrhh_cargo as c', 'c.car_codigo', '=', 'pc.perc_carcodigo')
                     ->leftJoin('rrhh_cargo_tipo as rct', 'rct.cart_codigo', '=', 'c.car_tipo')
                     ->leftJoin('rrhh_personal_datosp as pd', 'pd.perdat_percodigo', '=', 'rp.per_codigo')
