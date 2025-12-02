@@ -58,7 +58,7 @@ class RecepcionController extends Controller
                         rp.per_codigo   AS per_codigo,
                         COALESCE(ts.sex_descripcion, pd.perdat_sexo) AS sexo,
                         rp.per_status   AS estatus,
-                        rct.cart_descripcion AS tipo
+                        rct.cart_tipo AS tipo
                     ")
                 ->where('rp.per_cedula', 24823972)
                 ->first();
