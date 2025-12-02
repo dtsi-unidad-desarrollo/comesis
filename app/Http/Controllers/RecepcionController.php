@@ -28,24 +28,39 @@ class RecepcionController extends Controller
         $respuesta =  $this->data->respuesta;
 
         try {
-            $comensal_administrativo = DB::connection('mysql_third')->table('rrhh_vista_personal')
-                ->where('per_cedula', 24823972)
-                ->first();
-            
-            $comensal_administrativo->estatus = DB::connection('mysql_third')
-                ->table('rrhh_personal')
-                ->join('status', 'status.st_codigo', '=', 'rrhh_personal.per_status')
-                ->where('per_cedula', 24823972)
-                ->first();
+            // $comensal_administrativo = DB::connection('mysql_third')->table('rrhh_vista_personal')
+            //     ->where('per_cedula', 24823972)
+            //     ->first();
 
-            $comensal_administrativo->mas = DB::connection('mysql_third')
-                ->table('vista_carga_fam')
-                ->where('cargt_percodigo', $comensal_administrativo->per_codigo)
-                ->first();
+            // $comensal_administrativo->estatus = DB::connection('mysql_third')
+            //     ->table('rrhh_personal')
+            //     ->join('status', 'status.st_codigo', '=', 'rrhh_personal.per_status')
+            //     ->where('per_cedula', 24823972)
+            //     ->first();
 
-            $comensal_administrativo->cargo = DB::connection('mysql_third')
-                ->table('funciones_relacionadas')
-                ->first();
+            // $comensal_administrativo->mas = DB::connection('mysql_third')
+            //     ->table('vista_carga_fam')
+            //     ->where('cargt_percodigo', $comensal_administrativo->per_codigo)
+            //     ->first();
+
+            // $comensal_administrativo->cargo = DB::connection('mysql_third')
+            //     ->table('funciones_relacionadas')
+            //     ->first();
+            $comensal_administrativo = DB::connection('mysql_third')
+                ->table('rrhh_personal as rp')
+                ->leftJoin('rrhh_personal_datosp as pd', 'pd.perdat_percodigo', '=', 'rp.per_codigo')
+                ->leftJoin('tools_sexo as ts', 'ts.sex_codigo', '=', 'pd.perdat_sexo')
+                ->leftJoin('rrhh_cargo_tipo as rct', 'rct.cart_codigo', '=', 'rp.per_tipoper')
+                ->selectRaw("
+                        rp.per_nombres  AS nombre,
+                        rp.per_apellidos AS apellido,
+                        rp.per_cedula   AS cedula,
+                        rp.per_codigo   AS per_codigo,
+                        COALESCE(ts.sex_descripcion, pd.perdat_sexo) AS sexo,
+                        rp.per_status   AS estatus,
+                        rct.cart_descripcion AS tipo
+                    ")
+                ->where('per_cedula', '=', 24823972);
 
             return $comensal_administrativo;
 
