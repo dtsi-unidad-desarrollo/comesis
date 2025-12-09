@@ -54,6 +54,14 @@ Route::middleware('auth', 'validarRol')->group(function () {
     Route::resource('/users', UserController::class)->names('admin.users');
     
     /** Rutas de Comensales */
+    // Ruta para importación masiva desde Excel (registrada antes del resource para evitar conflicto con rutas parameterizadas)
+    Route::post('/comensales/import', [ComensaleController::class, 'import'])->name('admin.comensales.import');
+    // Descarga de plantilla de importación (CSV)
+    Route::get('/comensales/template', [ComensaleController::class, 'downloadTemplate'])->name('admin.comensales.template');
+    // Descarga de plantilla en formato XLSX (solo encabezados)
+    Route::get('/comensales/template.xlsx', [ComensaleController::class, 'downloadTemplateXlsx'])->name('admin.comensales.template.xlsx');
+    // Exportar comensales registrados a Excel (xlsx)
+    Route::get('/comensales/export', [ComensaleController::class, 'export'])->name('admin.comensales.export');
     Route::resource('/comensales', ComensaleController::class)->names('admin.comensales');
 
     /** Ruta para sincronizar data con dux actualmente desactivada */

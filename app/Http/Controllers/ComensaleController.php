@@ -10,6 +10,10 @@ use App\Models\Helpers;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\ComensalesImport;
+use App\Exports\ComensalesExport;
+use App\Exports\ComensalesTemplateExport;
 
 class ComensaleController extends Controller
 {
@@ -61,22 +65,15 @@ class ComensaleController extends Controller
             $datos = DB::connection('mysql_second')->table('estudiantes')->select('nombres', 'apellidos', 'nacionalidad', 'Cedula', 'Sexo')->get();
 
             foreach ($datos as $key => $comensal) {
-                $codigoCarrera = "";
                 $estatusEstudiante = 0;
                 $carreras = DB::connection('mysql_second')->table('carreras_est')->where('ConexEst',  $comensal->Cedula)->select('Status', 'CodCar')->get();
 
-                if(count($carreras)){
-                    $estatusCarrera = [];
+                if (count($carreras)) {
                     foreach ($carreras as $key => $carrera) {
                         if ($carrera->Status == "A") {
-                            array_push($estatusCarrera, $carrera);
+                            $estatusEstudiante = 1;
+                            break;
                         }
-                    }
-                    if (count($estatusCarrera)) {
-                        $codigoCarrera = $estatusCarrera[0]->CodCar;
-                        $estatusEstudiante =  1;
-                    } else {
-                        $codigoCarrera = $carreras[0]->CodCar;
                     }
                 }
 
@@ -89,7 +86,6 @@ class ComensaleController extends Controller
                         "apellidos" => $comensal->apellidos,
                         'nacionalidad' => $comensal->nacionalidad,
                         'cedula' => $comensal->Cedula,
-                        'carrera'  =>  $codigoCarrera,
                         'tipo' => 'ESTUDIANTE',
                         'estatus' => $estatusEstudiante
                     ]);
@@ -100,7 +96,6 @@ class ComensaleController extends Controller
                         "apellidos" => $comensal->apellidos,
                         'nacionalidad' => $comensal->nacionalidad,
                         'cedula' => $comensal->Cedula,
-                        'carrera'  => $codigoCarrera,
                         'tipo' => 'ESTUDIANTE',
                         'estatus' => $estatusEstudiante
                     ]);
@@ -112,6 +107,91 @@ class ComensaleController extends Controller
             return back()->with(compact('mensaje', 'estatus'));
         } catch (\Throwable $th) {
             $mensaje = Helpers::getMensajeError($th, ", ¡Error interno al intentar sincronizar los comensales!");
+            $estatus = Response::HTTP_INTERNAL_SERVER_ERROR;
+            return back()->with(compact('mensaje', 'estatus'));
+        }
+    }
+
+    /**
+     * Importar comensales desde un archivo Excel (xlsx, xls, csv)
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function import(Request $request)
+    {
+        // Validación del archivo: fuera del try para que Laravel maneje redirección/errores de validación
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv,txt'
+        ]);
+
+        try {
+            $file = $request->file('file');
+
+            $import = new ComensalesImport();
+            Excel::import($import, $file);
+
+            $errors = $import->getErrors();
+            if (count($errors)) {
+                $mensaje = "Importación finalizada con errores. Filas omitidas: " . count($errors);
+                $estatus = Response::HTTP_OK;
+                return back()->with(compact('mensaje', 'estatus'))->with('import_errores', $errors);
+            }
+
+            $mensaje = "Importación finalizada correctamente.";
+            $estatus = Response::HTTP_OK;
+            return back()->with(compact('mensaje', 'estatus'));
+        } catch (\Throwable $th) {
+            $mensaje = Helpers::getMensajeError($th, ", ¡Error interno al intentar importar los comensales!");
+            $estatus = Response::HTTP_INTERNAL_SERVER_ERROR;
+            return back()->with(compact('mensaje', 'estatus'));
+        }
+    }
+
+    /**
+     * Descargar plantilla CSV para importación
+     */
+    public function downloadTemplate()
+    {
+        try {
+            $path = storage_path('app/templates/comensales_template.csv');
+            if (!file_exists($path)) {
+                abort(404);
+            }
+
+            return response()->download($path, 'comensales_template.csv', [
+                'Content-Type' => 'text/csv',
+            ]);
+        } catch (\Throwable $th) {
+            $mensaje = Helpers::getMensajeError($th, ", Error al descargar la plantilla");
+            $estatus = Response::HTTP_INTERNAL_SERVER_ERROR;
+            return back()->with(compact('mensaje', 'estatus'));
+        }
+    }
+
+    /**
+     * Descargar plantilla en formato XLSX (solo encabezados)
+     */
+    public function downloadTemplateXlsx()
+    {
+        try {
+            return Excel::download(new ComensalesTemplateExport, 'comensales_template.xlsx');
+        } catch (\Throwable $th) {
+            $mensaje = Helpers::getMensajeError($th, ", Error al descargar la plantilla xlsx");
+            $estatus = Response::HTTP_INTERNAL_SERVER_ERROR;
+            return back()->with(compact('mensaje', 'estatus'));
+        }
+    }
+
+    /**
+     * Exportar comensales registrados con la misma estructura de la plantilla
+     */
+    public function export()
+    {
+        try {
+            return Excel::download(new ComensalesExport, 'comensales.xlsx');
+        } catch (\Throwable $th) {
+            $mensaje = Helpers::getMensajeError($th, ", Error al exportar comensales");
             $estatus = Response::HTTP_INTERNAL_SERVER_ERROR;
             return back()->with(compact('mensaje', 'estatus'));
         }

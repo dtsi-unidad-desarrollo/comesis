@@ -34,6 +34,31 @@
 
                 
                 {{-- @include('admin.comensales.partials.modalSincronizardata') --}}
+
+                {{-- Formulario de importación masiva desde Excel --}}
+                <div class="mt-3 d-flex gap-2 align-items-center">
+                    <a href="{{ route('admin.comensales.template') }}" class="btn btn-outline-secondary">Descargar plantilla (.csv)</a>
+                    <a href="{{ route('admin.comensales.template.xlsx') }}" class="btn btn-outline-secondary">Descargar plantilla (.xlsx)</a>
+                    <a href="{{ route('admin.comensales.export') }}" class="btn btn-outline-primary">Exportar registrados (.xlsx)</a>
+                    <form action="{{ route('admin.comensales.import') }}" method="post" enctype="multipart/form-data" class="m-0">
+                        @csrf
+                        <div class="input-group">
+                            <input type="file" name="file" class="form-control" accept=".xlsx,.xls,.csv" required>
+                            <button class="btn btn-success" type="submit">Importar Excel</button>
+                        </div>
+                    </form>
+                </div>
+
+                @if(session('import_errores'))
+                    <div class="alert alert-warning mt-2">
+                        <strong>Errores en la importación:</strong>
+                        <ul class="mb-0">
+                            @foreach(session('import_errores') as $err)
+                                <li>{{ $err }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
             </div>
             <div class="col-sm-6 col-xs-12">
                 <form action="{{ route('admin.comensales.index') }}" method="post">
