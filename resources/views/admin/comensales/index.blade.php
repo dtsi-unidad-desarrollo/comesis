@@ -37,7 +37,6 @@
 
                 {{-- Formulario de importación masiva desde Excel --}}
                 <div class="mt-3 d-flex gap-2 align-items-center">
-                    <a href="{{ route('admin.comensales.template') }}" class="btn btn-outline-secondary">Descargar plantilla (.csv)</a>
                     <a href="{{ route('admin.comensales.template.xlsx') }}" class="btn btn-outline-secondary">Descargar plantilla (.xlsx)</a>
                     <a href="{{ route('admin.comensales.export') }}" class="btn btn-outline-primary">Exportar registrados (.xlsx)</a>
                     <form action="{{ route('admin.comensales.import') }}" method="post" enctype="multipart/form-data" class="m-0">
@@ -100,9 +99,20 @@
                                 <td>{{ $comensal->apellidos }}</td>
                                 <td>{{$comensal->nacionalidad . '-' . $comensal->cedula }}</td>
                                 <td class="table-warning">{{ $comensal->tipo_comensal }}</td>
-                                <td class=" {{ $comensal->estatus ? 'table-success' : 'table-danger'}} ">
-                                    {{ $comensal->estatus ? 'ACTIVO' : 'INACTIVO'}}
-                                </td>
+                                <td id="estatus-{{ $comensal->id }}" class="{{ $comensal->estatus ? 'table-success' : 'table-danger'}}">
+    <div class="form-check form-switch d-flex align-items-center">
+        <input
+            class="form-check-input estatus-switch"
+            type="checkbox"
+            id="switch-{{ $comensal->id }}"
+            data-id="{{ $comensal->id }}"
+            {{ $comensal->estatus ? 'checked' : '' }}
+        >
+        <label class="form-check-label ms-2" for="switch-{{ $comensal->id }}">
+            {{ $comensal->estatus ? 'ACTIVO' : 'INACTIVO' }}
+        </label>
+    </div>
+</td>
 
                                 <td>
 
@@ -152,4 +162,51 @@
 
     </section>
     <script src="{{ asset('assets/js/comensales/editar.js') }}" defer></script>
-@endsection
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const switches = document.querySelectorAll('.estatus-switch');
+    switches.forEach(function (cb) {
+        cb.addEventListener('change', function () {
+            const id = this.dataset.id;
+            const checked = this.checked;
+            const url = `/comensales/${id}/toggle`;
+            const token = '{{ csrf_token() }}';
+            const switchEl = this;
+            const container = document.getElementById('estatus-'+id);
+            const label = container ? container.querySelector('.form-check-label') : null;
+
+            fetch(url, {
+                method: 'PATCH',
+                headers: {
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json().then(data => ({ ok: response.ok, data })))
+            .then(({ ok, data }) => {
+                if (!ok || data.error) {
+                    alert(data.error || 'Error al actualizar el estatus.');
+                    switchEl.checked = !checked;
+                    return;
+                }
+                const nuevoEstatus = Number(data.estatus);
+                if (container) {
+                    container.classList.toggle('table-success', nuevoEstatus === 1);
+                    container.classList.toggle('table-danger', nuevoEstatus !== 1);
+                }
+                if (label) {
+                    label.textContent = nuevoEstatus === 1 ? 'ACTIVO' : 'INACTIVO';
+                }
+            })
+            .catch(err => {
+                alert('Error de red al actualizar estatus.');
+                switchEl.checked = !checked;
+            });
+        });
+    });
+});
+</script>
+    @endsection
+

@@ -52,7 +52,10 @@ class ComensalesImport implements ToCollection, WithHeadingRow, WithChunkReading
 
             $existing = Comensale::where('cedula', $data['cedula'])->first();
             if ($existing) {
-                $existing->update($data);
+                $existing->update([
+           
+                    'estatus' => 1,
+                ]);
             } else {
                 Comensale::create($data);
             }

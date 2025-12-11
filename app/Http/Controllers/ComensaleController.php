@@ -197,6 +197,42 @@ class ComensaleController extends Controller
         }
     }
 
+     /**
+     * Toggle (activar/desactivar) el estatus de un comensal.
+     * Si la petición espera JSON, retorna JSON; si no, redirige back con mensaje.
+     */
+    public function toggle(Request $request, $id)
+{
+    try {
+        $comensale = Comensale::findOrFail($id);
+
+        $nuevo = $comensale->estatus ? 0 : 1;
+        $comensale->estatus = $nuevo;
+        $comensale->save();
+
+        $mensaje = $nuevo ? "Comensal activado correctamente." : "Comensal desactivado correctamente.";
+
+        if ($request->expectsJson()) {
+            return response()->json(['estatus' => (int)$nuevo, 'mensaje' => $mensaje], Response::HTTP_OK);
+        }
+
+        return back()->with('mensaje', $mensaje);
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        $msg = "Comensal no encontrado.";
+        if ($request->expectsJson()) {
+            return response()->json(['error' => $msg], Response::HTTP_NOT_FOUND);
+        }
+        return back()->with(['mensaje' => $msg, 'estatus' => Response::HTTP_NOT_FOUND]);
+    } catch (\Throwable $th) {
+        $mensaje = Helpers::getMensajeError($th, ", Error al cambiar el estatus del comensal.");
+        if ($request->expectsJson()) {
+            return response()->json(['error' => $mensaje], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+        $estatus = Response::HTTP_INTERNAL_SERVER_ERROR;
+        return back()->with(compact('mensaje', 'estatus'));
+    }
+}
+
     /**
      * Metodo que permite registrar comensales
      *
