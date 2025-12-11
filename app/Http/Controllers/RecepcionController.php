@@ -38,6 +38,7 @@ class RecepcionController extends Controller
             $estatusEstudiante =  0;
             $codigoCarrera = "";
             $cantidadDeEntradas = 0;
+            $estatus = Response::HTTP_OK;
 
             /** obtenemos el servicio actual activo por medio de la hora */
             $servicio = Helpers::getServicio($date);
