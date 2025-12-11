@@ -278,11 +278,18 @@ class ComensaleController extends Controller
      * @param  \App\Models\Comensale  $comensale
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Comensale $comensale)
+    public function destroy(Comensale $comensale, Request $request)
     {
         try {
-            $comensale->update(["estatus" => 0]);
-            $mensaje = "El comensal {$comensale->nombre}, fue desactivado correctamente.";
+            $mensaje = '';
+            if ($request->input('checkbox')) {
+                $comensale->delete();
+                $mensaje = "El comensal {$comensale->nombre}, fue eliminado permanentemente.";
+            } else {
+                $comensale->update(["estatus" => 0]);
+                $mensaje = "El comensal {$comensale->nombre}, fue desactivado correctamente.";
+            }
+            
             $estatus = 200;
             return back()->with(compact('mensaje', 'estatus'));
         } catch (\Throwable $th) {
