@@ -47,7 +47,7 @@ class RecepcionController extends Controller
 
             /** Se valida si hay una cedula  */
             if ($request->filled('cedula')) {
-                 return $comensal = $this->getEmpleados($request->cedula);
+                return $comensal = $this->getEmpleados($request->cedula);
                 /** Si no se detecta un servicio, el comedor esta fuera de servicio */
                 if (!$servicio) {
                     $mensaje = "Comedor inactivo, está fuera del horario de servicio.";
@@ -68,11 +68,11 @@ class RecepcionController extends Controller
                     if (!$comensal) {
                         /** SEGUNDO CONSULTAMOS DUX  para los ESTUDIANTES */
                         $comensal = $this->getEstudiantes($request->cedula);
-                    } 
-                    
-                    if(!$comensal) {
+                    }
+
+                    if (!$comensal) {
                         /** Buscamos en TEREPAIMA */
-                       return $comensal = $this->getEmpleados($request->cedula);
+                        return $comensal = $this->getEmpleados($request->cedula);
                     }
 
                     /** Validamos si existe el comensal */
@@ -80,6 +80,14 @@ class RecepcionController extends Controller
                         /** MENSAJE DE FALLO BUSQUEDA DE COMENSALES */
                         $mensaje_comensal = "Comensal no registrado.";
                     } else {
+
+                        /** Validamos si el comensal tiene estatus activo o no */
+                        if ($comensal->estatus == 0) {
+                            /** Se valdiad si el comensal esta activo en el sistema  */
+                            $mensaje = "<strong> El comensal </strong>" . $comensal->nombres . " " . $comensal->apellidos . " está inactivo, no puede ingresar.";
+                            $estatus = Response::HTTP_UNAUTHORIZED;
+                            return back()->with(compact('mensaje', 'estatus'));
+                        }
 
                         /** si el comensal es del sistema se le push un elemento ficticio */
                         if ($comensal->tipo !== 'ESTUDIANTE') {
@@ -196,11 +204,19 @@ class RecepcionController extends Controller
             ->where('per_cedula', $cedula)
             ->first()->per_status;
 
-        $comensal->sexo =DB::connection('mysql_third')
+        $comensal->sexo = DB::connection('mysql_third')
             ->table('rrhh_personal')
             ->join('tools_sexo', 'tools_sexo.sex_codigo', '=', 'per_sexo')
             ->where('per_cedula', $cedula)
             ->first()->sex_descripcion;
+
+         $comensal->nacionalidad = DB::connection('mysql_third')
+            ->table('rrhh_personal as p')
+            ->leftJoin('rrhh_vista_personal as v', 'v.per_codigo', '=', 'p.per_codigo')
+            ->leftJoin('rrhh_personal_datosp as pd', 'pd.perdat_percodigo', '=', 'p.per_codigo')
+            ->where('p.per_cedula', $cedula)
+            ->selectRaw('COALESCE(v.per_nacionalidad, p.per_nacionalidad, pd.perdat_nacionalidad) as nacionalidad')
+            ->value('nacionalidad');
 
 
         if ($comensal) {
@@ -209,18 +225,21 @@ class RecepcionController extends Controller
 
         return $comensal;
     }
-        // construir objeto adaptado (forma esperada por la vista/flujo)
-// +        $comensalObj = new \stdClass();
-// +        $comensalObj->nombres = $comensal->per_nombres ?? $personal->per_nombres ?? '';
-// +        $comensalObj->apellidos = $comensal->per_apellidos ?? $personal->per_apellidos ?? '';
-// +        $comensalObj->nacionalidad = $comensal->per_nacionalidad ?? $personal->per_nacionalidad ?? null;
-// +        $comensalObj->cedula = $comensal->per_cedula ?? $personal->per_cedula ?? $cedula;
-// +        $comensalObj->sexo = $sexo;
-// +        $comensalObj->per_codigo = $vista->per_codigo ?? $personal->per_codigo ?? null;
-// +        $comensalObj->estatus = $personal->per_status ?? $vista->per_status ?? null;
-// +        $comensalObj->tipo = "EMPLEADO";
-//+        // para mantener compatibilidad con la lógica que usa count($comensal->carreras)
-// +        $comensalObj->carreras = [false];
 
+    public function adaptadorDeComensal($queryComensal)
+    {
 
+        $comensalObj = new \stdClass();
+        $comensalObj->nombres = $queryComensal->per_nombres;
+        $comensalObj->apellidos = $queryComensal->per_apellidos;
+        $comensalObj->nacionalidad = $queryComensal->per_nacionalidad;
+        $comensalObj->cedula = $queryComensal->per_cedula;
+        $comensalObj->sexo = strtoupper($queryComensal->sexo) == "MASCULINO" ? 'M' : 'F';
+        $comensalObj->estatus = $queryComensal->estatus;
+        $comensalObj->tipo_comensal = $queryComensal->tipo_comensal;
+        $comensalObj->sede = $queryComensal->vicn_descripcion;
+        $comensalObj->direccion = $queryComensal->Nombre_Completo;
+        // para mantener compatibilidad con la lógica que usa count($comensal->carreras)
+        $comensalObj->carreras = [false];
+    }
 }

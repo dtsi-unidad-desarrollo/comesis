@@ -1,34 +1,12 @@
 {
     "per_codigo": 15230,
     "per_cedula": 24823972,
-    "per_nacionalidad": 1,
-    "per_nombres": "YORDHIS JOSE ",
-    "per_apellidos": "OSUNA AGUIRRE",
-    "per_sexo": 1,
-    "per_fecnac": "1996-02-11",
-    "per_fecadmpub": "0000-00-00",
-    "per_status": 1,
-    "per_cumpleano": null,
-    "Impreso": 0,
-    "st_codigo": 1,
-    "st_descripcion": "ACTIVO",
-    "st_dmn": 153,
-    "st_act": 3,
-    "st_marca": 1,
-    "peru_codigo": 16775,
-    "peru_percodigo": 15230,
-    "peru_nomcodigo": 5,
-    "peru_vicerrec": 5,
-    "peru_nucleo": 47,
-    "peru_departamento": 511
-}
-
-{
-    "per_codigo": 15230,
-    "per_cedula": 24823972,
     "per_apellidos": "OSUNA AGUIRRE",
     "per_nombres": "YORDHIS JOSE ",
-    "Nombre_Completo": "VICERRECTORADO DE PLANIFICACI\u00d3N Y DESARROLLO SOCIAL(CENTRAL)",
+    "Nombre_Completo": "VICERRECTORADO DE PLANIFICACIÓN Y DESARROLLO SOCIAL(CENTRAL)",
     "Nombre": "CENTRAL",
-    "vicn_descripcion": "Barinas sede"
+    "vicn_descripcion": "Barinas sede",
+    "estatus": 1,
+    "sexo": "Masculino",
+    "tipo_comensal": "EMPLEADO"
 }
