@@ -211,12 +211,9 @@ class RecepcionController extends Controller
             ->first()->sex_descripcion;
 
          $comensal->nacionalidad = DB::connection('mysql_third')
-            ->table('rrhh_personal as p')
-            ->leftJoin('rrhh_vista_personal as v', 'v.per_codigo', '=', 'p.per_codigo')
-            ->leftJoin('rrhh_personal_datosp as pd', 'pd.perdat_percodigo', '=', 'p.per_codigo')
-            ->where('p.per_cedula', $cedula)
-            ->selectRaw('COALESCE(v.per_nacionalidad, p.per_nacionalidad, pd.perdat_nacionalidad) as nacionalidad')
-            ->value('nacionalidad');
+            ->table('rrhh_personal_datosp')
+            ->where('perdat_percodigo', $comensal->per_codigo)
+            ->get();
 
 
         if ($comensal) {
