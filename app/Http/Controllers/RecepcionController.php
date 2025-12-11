@@ -198,24 +198,27 @@ class RecepcionController extends Controller
             ->where('per_cedula', $cedula)
             ->first();
 
-        // obtenemos el estatus del empleado 1:ACTIVO
-        $comensal->estatus = DB::connection('mysql_third')
-            ->table('rrhh_personal')
-            ->where('per_cedula', $cedula)
-            ->first()->per_status;
-
-        $comensal->sexo = DB::connection('mysql_third')
-            ->table('rrhh_personal')
-            ->join('tools_sexo', 'tools_sexo.sex_codigo', '=', 'per_sexo')
-            ->where('per_cedula', $cedula)
-            ->first()->sex_descripcion;
-
-
         if ($comensal) {
-            $comensal->tipo_comensal = "EMPLEADO";
+            // obtenemos el estatus del empleado 1:ACTIVO
+            $comensal->estatus = DB::connection('mysql_third')
+                ->table('rrhh_personal')
+                ->where('per_cedula', $cedula)
+                ->first()->per_status;
+    
+            $comensal->sexo = DB::connection('mysql_third')
+                ->table('rrhh_personal')
+                ->join('tools_sexo', 'tools_sexo.sex_codigo', '=', 'per_sexo')
+                ->where('per_cedula', $cedula)
+                ->first()->sex_descripcion;
+    
+    
+            if ($comensal) {
+                $comensal->tipo_comensal = "EMPLEADO";
+            }
+    
+            $comensal = $this->adaptadorDeComensal($comensal);
         }
 
-        $comensal = $this->adaptadorDeComensal($comensal);
 
         return $comensal;
     }
