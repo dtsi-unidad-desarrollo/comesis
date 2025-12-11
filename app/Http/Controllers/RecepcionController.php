@@ -210,16 +210,12 @@ class RecepcionController extends Controller
             ->where('per_cedula', $cedula)
             ->first()->sex_descripcion;
 
-        $comensal->nacionalidad = DB::connection('mysql_third')
-            ->table('rrhh_personal as p')
-            ->join('tools_nacionalidad', 'tools_nacionalidad.nac_codigo', '=', 'p.per_nacionalidad')
-            ->where('p.per_cedula', $cedula)
-            ->get();
-
 
         if ($comensal) {
             $comensal->tipo_comensal = "EMPLEADO";
         }
+
+        $comensal = $this->adaptadorDeComensal($comensal);
 
         return $comensal;
     }
@@ -230,7 +226,7 @@ class RecepcionController extends Controller
         $comensalObj = new \stdClass();
         $comensalObj->nombres = $queryComensal->per_nombres;
         $comensalObj->apellidos = $queryComensal->per_apellidos;
-        $comensalObj->nacionalidad = $queryComensal->per_nacionalidad;
+        $comensalObj->nacionalidad = "V";
         $comensalObj->cedula = $queryComensal->per_cedula;
         $comensalObj->sexo = strtoupper($queryComensal->sexo) == "MASCULINO" ? 'M' : 'F';
         $comensalObj->estatus = $queryComensal->estatus;
