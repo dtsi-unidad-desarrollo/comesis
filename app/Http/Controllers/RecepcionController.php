@@ -47,7 +47,6 @@ class RecepcionController extends Controller
 
             /** Se valida si hay una cedula  */
             if ($request->filled('cedula')) {
-                return $comensal = $this->getEmpleados($request->cedula);
                 /** Si no se detecta un servicio, el comedor esta fuera de servicio */
                 if (!$servicio) {
                     $mensaje = "Comedor inactivo, está fuera del horario de servicio.";
@@ -72,7 +71,7 @@ class RecepcionController extends Controller
 
                     if (!$comensal) {
                         /** Buscamos en TEREPAIMA */
-                        return $comensal = $this->getEmpleados($request->cedula);
+                        $comensal = $this->getEmpleados($request->cedula);
                     }
 
                     /** Validamos si existe el comensal */
