@@ -89,7 +89,7 @@ class RecepcionController extends Controller
                         }
 
                         /** si el comensal es del sistema se le push un elemento ficticio */
-                        if ($comensal->tipo !== 'ESTUDIANTE') {
+                        if ($comensal->tipo_comensal !== 'ESTUDIANTE') {
                             $comensal->carreras  = [false];
                         }
 
@@ -143,7 +143,7 @@ class RecepcionController extends Controller
             ->first();
         if ($comensal) {
             /** Se setea el tipo */
-            $comensal->tipo = "ESTUDIANTE";
+            $comensal->tipo_comensal = "ESTUDIANTE";
 
             /** Consultamos todas las carreras donde el estudiante este activo */
             $carreras = DB::connection('mysql_second')->table('carreras_est')
