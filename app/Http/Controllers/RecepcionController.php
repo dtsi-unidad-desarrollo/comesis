@@ -47,6 +47,7 @@ class RecepcionController extends Controller
 
             /** Se valida si hay una cedula  */
             if ($request->filled('cedula')) {
+                 return $comensal = $this->getEmpleados($request->cedula);
                 /** Si no se detecta un servicio, el comedor esta fuera de servicio */
                 if (!$servicio) {
                     $mensaje = "Comedor inactivo, está fuera del horario de servicio.";
@@ -67,7 +68,9 @@ class RecepcionController extends Controller
                     if (!$comensal) {
                         /** SEGUNDO CONSULTAMOS DUX  para los ESTUDIANTES */
                         $comensal = $this->getEstudiantes($request->cedula);
-                    } else {
+                    } 
+                    
+                    if(!$comensal) {
                         /** Buscamos en TEREPAIMA */
                        return $comensal = $this->getEmpleados($request->cedula);
                     }
@@ -87,7 +90,7 @@ class RecepcionController extends Controller
                         /** Validamos si esta activo en una carrera de pregrago */
                         if (count($comensal->carreras)) {
 
-                            /** obtenemos las entradas del dia del comensal  para validar que coma una ves por turno */
+                            /** obtenemos las entradas del dia del comensal  para validar que coma una ves por servicio */
                             $entradas = Entrada::where([
                                 'cedula' => $comensal->cedula,
                                 'fecha' =>  $date->format('d-m-Y'),
