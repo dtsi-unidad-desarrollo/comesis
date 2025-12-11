@@ -223,7 +223,7 @@ class RecepcionController extends Controller
     public function adaptadorDeComensal($queryComensal)
     {
 
-        $comensalObj = new \stdClass();
+        $comensalObj = new Comensale();
         $comensalObj->nombres = $queryComensal->per_nombres;
         $comensalObj->apellidos = $queryComensal->per_apellidos;
         $comensalObj->nacionalidad = "V";
