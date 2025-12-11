@@ -66,13 +66,13 @@ class RecepcionController extends Controller
                     $comensal = Comensale::where('cedula', $request->cedula)->first();
 
                     if (!$comensal) {
-                        /** SEGUNDO CONSULTAMOS DUX  para los ESTUDIANTES */
-                        $comensal = $this->getEstudiantes($request->cedula);
-                    }
-
-                    if (!$comensal) {
                         /** Buscamos en TEREPAIMA */
                         $comensal = $this->getEmpleados($request->cedula);
+                    }
+                    
+                    if (!$comensal) {
+                        /** CONSULTAMOS DUX  para los ESTUDIANTES */
+                        $comensal = $this->getEstudiantes($request->cedula);
                     }
 
                     /** Validamos si existe el comensal */
@@ -187,6 +187,7 @@ class RecepcionController extends Controller
 
             $comensal->carreras =  $carreras;
             $comensal->estatus_estudiante =  count($carreras) ? $carreras[0]->estatus_estudiante : 'I';
+            $comensal->estatus = $comensal->estatus_estudiante == 'I' ? 0 : 1;
         }
         return $comensal;
     }
