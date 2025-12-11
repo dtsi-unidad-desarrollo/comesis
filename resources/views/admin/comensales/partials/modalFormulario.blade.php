@@ -129,6 +129,7 @@
                                     <option value="ADMINISTRATIVO">ADMINISTRATIVO</option>
                                     <option value="OBRERO">OBRERO</option>
                                     <option value="EVENTUAL">EVENTUAL</option>
+                                    <option value="EMPLEADO">EMPLEADO</option>
                                 </select>
                                 <div class="invalid-feedback">
                                     Por favor, ingresar tipo del comensal!
