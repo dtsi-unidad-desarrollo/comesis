@@ -80,7 +80,7 @@ class RecepcionController extends Controller
                         /** MENSAJE DE FALLO BUSQUEDA DE COMENSALES */
                         $mensaje_comensal = "Comensal no registrado.";
                     } else {
-                        return $comensal->estatus;
+                        return $comensal;
                         /** Validamos si el comensal tiene estatus activo o no */
                         if ($comensal->estatus == 0) {
                             /** Se valdiad si el comensal esta activo en el sistema  */
