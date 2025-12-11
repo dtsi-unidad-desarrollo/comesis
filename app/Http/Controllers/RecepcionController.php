@@ -223,7 +223,7 @@ class RecepcionController extends Controller
     public function adaptadorDeComensal($queryComensal)
     {
 
-        $comensalObj = new Comensale();
+        $comensalObj = new \stdClass();
         $comensalObj->nombres = $queryComensal->per_nombres;
         $comensalObj->apellidos = $queryComensal->per_apellidos;
         $comensalObj->nacionalidad = "V";
@@ -235,5 +235,7 @@ class RecepcionController extends Controller
         $comensalObj->direccion = $queryComensal->Nombre_Completo;
         // para mantener compatibilidad con la lógica que usa count($comensal->carreras)
         $comensalObj->carreras = [false];
+
+        return $comensalObj;
     }
 }
