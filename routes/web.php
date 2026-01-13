@@ -61,8 +61,6 @@ Route::middleware('auth', 'validarRol')->group(function () {
     // Exportar comensales registrados a Excel (xlsx)
     Route::get('/comensales/export', [ComensaleController::class, 'export'])->name('admin.comensales.export');
    
-    // Toggle de estatus (activar / desactivar) — usar PATCH para semántica REST
-    Route::patch('/comensales/{comensal}/toggle', [ComensaleController::class, 'toggle'])->name('admin.comensales.toggle');
     Route::resource('/comensales', ComensaleController::class)->names('admin.comensales');
 
     /** Ruta para sincronizar data con dux actualmente desactivada */
