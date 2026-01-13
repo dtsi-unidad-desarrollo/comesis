@@ -27,6 +27,9 @@
                                 <li class="list-group-item">Nombres: {{ $comensal->nombres }}</li>
                                 <li class="list-group-item">Apellidos: {{ $comensal->apellidos }}</li>
                                 <li class="list-group-item">Genero: {{ $comensal->sexo }}</li>
+                                <li class="list-group-item">Tipo: {{ $comensal->tipo_comensal }}</li>
+                                <li class="list-group-item">Sede: {{ $comensal->sede }}</li>
+                                <li class="list-group-item">Dirección: {{ $comensal->direccion ?? 'N/A' }}</li>
                                 <li class="list-group-item">C.I.:
                                     {{ $comensal->nacionalidad . '-' . $comensal->cedula }}
                                 </li>

@@ -82,12 +82,12 @@ class Helpers extends Model
                 'carrera' => $comensal->carreras[0]->nombre_carrera ?? '', 
 
                 'codigo_sede' => $comensal->carreras[0]->codigo_sede ?? '', 
-                'sede' => $comensal->carreras[0]->nombre_sede ?? '', 
+                'sede' => $comensal->carreras[0]->nombre_sede ?? $comensal->sede, 
                 'tipo_sede' => $comensal->carreras[0]->tipo_sede ?? '',
 
                 'estado' => $comensal->carreras[0]->estado_sede ?? '',
                 'municipio' => $comensal->carreras[0]->municipio_sede ?? '',
-                'direccion' => $comensal->carreras[0]->sector_sede ?? '',
+                'direccion' => $comensal->carreras[0]->sector_sede ?? $comensal->direccion,
                 
            
                 'fecha' => $date->format('d-m-Y'),

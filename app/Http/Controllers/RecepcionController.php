@@ -38,6 +38,7 @@ class RecepcionController extends Controller
             $estatusEstudiante =  0;
             $codigoCarrera = "";
             $cantidadDeEntradas = 0;
+            $estatus = Response::HTTP_OK;
 
             /** obtenemos el servicio actual activo por medio de la hora */
             $servicio = Helpers::getServicio($date);
@@ -47,7 +48,6 @@ class RecepcionController extends Controller
 
             /** Se valida si hay una cedula  */
             if ($request->filled('cedula')) {
-                 return $comensal = $this->getEmpleados($request->cedula);
                 /** Si no se detecta un servicio, el comedor esta fuera de servicio */
                 if (!$servicio) {
                     $mensaje = "Comedor inactivo, está fuera del horario de servicio.";
@@ -66,13 +66,13 @@ class RecepcionController extends Controller
                     $comensal = Comensale::where('cedula', $request->cedula)->first();
 
                     if (!$comensal) {
-                        /** SEGUNDO CONSULTAMOS DUX  para los ESTUDIANTES */
-                        $comensal = $this->getEstudiantes($request->cedula);
-                    } 
-                    
-                    if(!$comensal) {
                         /** Buscamos en TEREPAIMA */
-                       return $comensal = $this->getEmpleados($request->cedula);
+                        $comensal = $this->getEmpleados($request->cedula);
+                    }
+                    
+                    if (!$comensal) {
+                        /** CONSULTAMOS DUX  para los ESTUDIANTES */
+                        $comensal = $this->getEstudiantes($request->cedula);
                     }
 
                     /** Validamos si existe el comensal */
@@ -80,9 +80,16 @@ class RecepcionController extends Controller
                         /** MENSAJE DE FALLO BUSQUEDA DE COMENSALES */
                         $mensaje_comensal = "Comensal no registrado.";
                     } else {
+                        /** Validamos si el comensal tiene estatus activo o no */
+                        if ($comensal->estatus == 0) {
+                            /** Se valdiad si el comensal esta activo en el sistema  */
+                            $mensaje = "<strong> El comensal </strong>" . $comensal->nombres . " " . $comensal->apellidos . " está inactivo, no puede ingresar.";
+                            $estatus = Response::HTTP_UNAUTHORIZED;
+                            return back()->with(compact('mensaje', 'estatus'));
+                        }
 
                         /** si el comensal es del sistema se le push un elemento ficticio */
-                        if ($comensal->tipo !== 'ESTUDIANTE') {
+                        if ($comensal->tipo_comensal !== 'ESTUDIANTE') {
                             $comensal->carreras  = [false];
                         }
 
@@ -136,7 +143,7 @@ class RecepcionController extends Controller
             ->first();
         if ($comensal) {
             /** Se setea el tipo */
-            $comensal->tipo = "ESTUDIANTE";
+            $comensal->tipo_comensal = "ESTUDIANTE";
 
             /** Consultamos todas las carreras donde el estudiante este activo */
             $carreras = DB::connection('mysql_second')->table('carreras_est')
@@ -179,6 +186,7 @@ class RecepcionController extends Controller
 
             $comensal->carreras =  $carreras;
             $comensal->estatus_estudiante =  count($carreras) ? $carreras[0]->estatus_estudiante : 'I';
+            $comensal->estatus = $comensal->estatus_estudiante == 'I' ? 0 : 1;
         }
         return $comensal;
     }
@@ -190,37 +198,47 @@ class RecepcionController extends Controller
             ->where('per_cedula', $cedula)
             ->first();
 
-        // obtenemos el estatus del empleado 1:ACTIVO
-        $comensal->estatus = DB::connection('mysql_third')
-            ->table('rrhh_personal')
-            ->where('per_cedula', $cedula)
-            ->first()->per_status;
-
-        $comensal->sexo =DB::connection('mysql_third')
-            ->table('rrhh_personal')
-            ->join('tools_sexo', 'tools_sexo.sex_codigo', '=', 'per_sexo')
-            ->where('per_cedula', $cedula)
-            ->first()->sex_descripcion;
-
-
         if ($comensal) {
-            $comensal->tipo_comensal = "EMPLEADO";
+            // obtenemos el estatus del empleado 1:ACTIVO
+            $comensal->estatus = DB::connection('mysql_third')
+                ->table('rrhh_personal')
+                ->where('per_cedula', $cedula)
+                ->first()->per_status;
+    
+            $comensal->sexo = DB::connection('mysql_third')
+                ->table('rrhh_personal')
+                ->join('tools_sexo', 'tools_sexo.sex_codigo', '=', 'per_sexo')
+                ->where('per_cedula', $cedula)
+                ->first()->sex_descripcion;
+    
+    
+            if ($comensal) {
+                $comensal->tipo_comensal = "EMPLEADO";
+            }
+    
+            $comensal = $this->adaptadorDeComensal($comensal);
         }
+
 
         return $comensal;
     }
-        // construir objeto adaptado (forma esperada por la vista/flujo)
-// +        $comensalObj = new \stdClass();
-// +        $comensalObj->nombres = $comensal->per_nombres ?? $personal->per_nombres ?? '';
-// +        $comensalObj->apellidos = $comensal->per_apellidos ?? $personal->per_apellidos ?? '';
-// +        $comensalObj->nacionalidad = $comensal->per_nacionalidad ?? $personal->per_nacionalidad ?? null;
-// +        $comensalObj->cedula = $comensal->per_cedula ?? $personal->per_cedula ?? $cedula;
-// +        $comensalObj->sexo = $sexo;
-// +        $comensalObj->per_codigo = $vista->per_codigo ?? $personal->per_codigo ?? null;
-// +        $comensalObj->estatus = $personal->per_status ?? $vista->per_status ?? null;
-// +        $comensalObj->tipo = "EMPLEADO";
-//+        // para mantener compatibilidad con la lógica que usa count($comensal->carreras)
-// +        $comensalObj->carreras = [false];
 
+    public function adaptadorDeComensal($queryComensal)
+    {
 
+        $comensalObj = new \stdClass();
+        $comensalObj->nombres = $queryComensal->per_nombres;
+        $comensalObj->apellidos = $queryComensal->per_apellidos;
+        $comensalObj->nacionalidad = "V";
+        $comensalObj->cedula = $queryComensal->per_cedula;
+        $comensalObj->sexo = strtoupper($queryComensal->sexo) == "MASCULINO" ? 'M' : 'F';
+        $comensalObj->estatus = $queryComensal->estatus;
+        $comensalObj->tipo_comensal = $queryComensal->tipo_comensal;
+        $comensalObj->sede = $queryComensal->vicn_descripcion;
+        $comensalObj->direccion = $queryComensal->Nombre_Completo;
+        // para mantener compatibilidad con la lógica que usa count($comensal->carreras)
+        $comensalObj->carreras = [false];
+
+        return $comensalObj;
+    }
 }
