@@ -19,133 +19,85 @@
 
 <!DOCTYPE html>
 <html>
-
 <head>
+    <meta charset="utf-8">
     <title>Reporte del comedor - Sistema Comesis</title>
     <style>
-        .reporte-incidencia {
-            width: 90%;
-            margin: 20px auto;
-            font-family: sans-serif;
-        }
-
-        .encabezado {
-            overflow: hidden;
-            /* Asegura que el contenedor "encabezado" contenga los floats */
-            margin-bottom: 20px;
-
-        }
-
-        .logo-titulo {
-            overflow: hidden;
-            /* Asegura que el contenedor "logo-titulo" contenga los floats */
-        }
-
-        .logo {
-            float: left;
-            margin-right: 20px;
-        }
-
-        .logo img {
-            max-height: 70px;
-
-        }
-
-        .titulo {
-
-            float: left;
-            width: 100%;
-
-        }
-
-        .titulo h1 {
-            margin: 0;
-            padding: 0;
-
-        }
-
-
-        .tabla-incidencias {
-            border-collapse: collapse;
-            width: 100%;
-        }
-
-        .tabla-incidencias th,
-        .tabla-incidencias td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-            vertical-align: top;
-        }
-
-        .tabla-incidencias th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-        }
-
-        .tabla-incidencias td:nth-child(1) {
-            width: 20%;
-        }
-
-        .tabla-incidencias td:nth-child(2) {
-            width: 80%;
-        }
+        body { font-family: sans-serif; font-size: 12px; }
+        .container { width: 95%; margin: 10px auto; }
+        .header { text-align: center; margin-bottom: 10px; }
+        .summary { margin: 10px 0; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background: #f2f2f2; }
     </style>
 </head>
-
 <body>
-    <!-- Encabezado con logo, título y rango de emisión -->
-    <div class="reporte-incidencia">
-        <div class="encabezado">
-            <div class="logo-titulo">
-                <div class="logo">
-                    <img src="{{ asset('assets/img/logo.png') }}" alt="Logo Comesis">
-                </div>
-                <div class="titulo">
-                    <h1>Reporte de Incidencia</h1>
-                    <hr>
-                    <div class="rango-emision">
-                        <p><strong>Rango de emisión: Desde:</strong> {{ $fechaInicio->toDateString() }}
-                            <strong>Hasta:</strong> {{ $fechaFin->toDateString() }}
-                        </p>
-                    </div>
-                </div>
-
-
-                <div style="clear: both;"></div>
-            </div>
+    <div class="container">
+        <div class="header">
+            <img src="{{ asset('assets/img/logo.png') }}" alt="Logo" style="height:60px;">
+            <h2>Reporte de Comidas</h2>
+            <p><strong>Fecha:</strong> {{ optional($fecha)->toDateString() ?? $fecha }}</p>
         </div>
 
+        <div class="summary">
+            <p><strong>Total Almuerzos:</strong> {{ $totalAlmuerzos ?? 0 }}</p>
+            <p><strong>Total Cenas:</strong> {{ $totalCenas ?? 0 }}</p>
+        </div>
 
-        <!-- Listado de incidencias -->
-        @foreach ($incidencias as $incidencia)
-            <table class="tabla-incidencias">
-                <thead>
-                    <tr>
-                        <th>FECHA Y HORA:</th>
-                        <th>INCIDENCIA: {{ $incidencia->tipoIncidencia->nombre }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>
-                            <p>{{ $incidencia->fecha_apertura }}</p>
-                            <p><strong>Estatus:</strong> {{ $incidencia->estatus }}</p>
-                        </td>
-                        <td>
-                            <p>Total de Almuerzos: {{ $totalAlmuerzos ?? 0 }}</p>
-                            <p>Total de Cenas: {{ $totalCenas ?? 0 }}</p>
-                            <p>Total de Estudiantes: {{ $totalEstudiantes ?? 0 }}</p>
-                            <p>Total de Estudiantes Foráneos: {{ $totalEstudiantesForaneos ?? 0 }}</p>
-                            <p>Total de Obreros: {{ $totalObreros ?? 0 }}</p>
-                            <p>Total de Administrativos: {{ $totalAdministrativos ?? 0 }}</p>
-                            <p>Total de Profesores: {{ $totalProfesor ?? 0 }}</p>
-                            <p>Total de Eventuales: {{ $totalEventual ?? 0 }}</p>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        @endforeach
+        <table>
+            <thead>
+                <tr>
+                    <th>Tipo de comensal</th>
+                    <th>Cantidad</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php $tipoSel = isset($tipoSeleccionado) ? strtoupper($tipoSeleccionado) : null; @endphp
+
+                @if(!$tipoSel || $tipoSel === 'ESTUDIANTE')
+                <tr>
+                    <td>ESTUDIANTE</td>
+                    <td>{{ $totalEstudiantes ?? 0 }}</td>
+                </tr>
+                @endif
+
+                @if(!$tipoSel || $tipoSel === 'ESTUDIANTE FORANEO')
+                <tr>
+                    <td>ESTUDIANTE FORANEO</td>
+                    <td>{{ $totalEstudiantesForaneos ?? 0 }}</td>
+                </tr>
+                @endif
+
+                @if(!$tipoSel || $tipoSel === 'PROFESOR')
+                <tr>
+                    <td>PROFESOR</td>
+                    <td>{{ $totalProfesor ?? 0 }}</td>
+                </tr>
+                @endif
+
+                @if(!$tipoSel || $tipoSel === 'ADMINISTRATIVO')
+                <tr>
+                    <td>ADMINISTRATIVO</td>
+                    <td>{{ $totalAdministrativos ?? 0 }}</td>
+                </tr>
+                @endif
+
+                @if(!$tipoSel || $tipoSel === 'EVENTUAL')
+                <tr>
+                    <td>EVENTUAL</td>
+                    <td>{{ $totalEventual ?? 0 }}</td>
+                </tr>
+                @endif
+
+                @if(!$tipoSel || $tipoSel === 'OBRERO')
+                <tr>
+                    <td>OBRERO</td>
+                    <td>{{ $totalObreros ?? 0 }}</td>
+                </tr>
+                @endif
+            </tbody>
+        </table>
+    </div>
 </body>
-
 </html>

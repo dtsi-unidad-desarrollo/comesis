@@ -185,56 +185,111 @@ class EntradaController extends Controller
     {
         $fecha = Carbon::parse($request->input('fecha'))->startOfDay();
 
-        // Obtener el total de almuerzos y cenas en la fecha especificada
+        $tipo = $request->input('tipo'); // puede ser 'TODOS' o un tipo específico
+        $servicio = $request->input('servicio'); // opcional: filtrar por servicio (ALMUERZO/CENA)
+
+        $tipoFilter = null;
+        if ($tipo && strtoupper($tipo) !== 'TODOS') {
+            $tipoFilter = strtoupper($tipo);
+        }
+
+        // Totales de almuerzos y cenas (aplican filtro de fecha, servicio y tipo si vienen)
         $totalAlmuerzos = Entrada::whereDate('created_at', $fecha)
+            ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
+                return $q->where('comida', $servicio);
+            })
+            ->when($tipoFilter, function ($q) use ($tipoFilter) {
+                return $q->where('tipo_comensal', $tipoFilter);
+            })
             ->where('comida', 'ALMUERZO')
             ->count();
 
         $totalCenas = Entrada::whereDate('created_at', $fecha)
+            ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
+                return $q->where('comida', $servicio);
+            })
+            ->when($tipoFilter, function ($q) use ($tipoFilter) {
+                return $q->where('tipo_comensal', $tipoFilter);
+            })
             ->where('comida', 'CENA')
             ->count();
 
-        // Obtener el total de cada tipo de comensal
-        $totalEstudiantes = Entrada::whereDate('created_at', $fecha)
-            ->where('tipo_comensal', 'ESTUDIANTE')
-            ->count();
+        // Si se solicitó un tipo concreto, sólo ese tipo debe aparecer con su total; los demás serán 0
+        if ($tipoFilter) {
+            $selectedTotal = Entrada::whereDate('created_at', $fecha)
+                ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
+                    return $q->where('comida', $servicio);
+                })
+                ->where('tipo_comensal', $tipoFilter)
+                ->count();
 
+            $totalEstudiantes = ($tipoFilter === 'ESTUDIANTE') ? $selectedTotal : 0;
+            $totalEstudiantesForaneos = ($tipoFilter === 'ESTUDIANTE FORANEO') ? $selectedTotal : 0;
+            $totalObreros = ($tipoFilter === 'OBRERO') ? $selectedTotal : 0;
+            $totalAdministrativos = ($tipoFilter === 'ADMINISTRATIVO') ? $selectedTotal : 0;
+            $totalProfesor = ($tipoFilter === 'PROFESOR') ? $selectedTotal : 0;
+            $totalEventual = ($tipoFilter === 'EVENTUAL') ? $selectedTotal : 0;
+        } else {
+            // Comportamiento actual: obtener totales por cada tipo
+            $totalEstudiantes = Entrada::whereDate('created_at', $fecha)
+                ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
+                    return $q->where('comida', $servicio);
+                })
+                ->where('tipo_comensal', 'ESTUDIANTE')
+                ->count();
 
-        $totalEstudiantesForaneos = Entrada::whereDate('created_at', $fecha)
-            ->where('tipo_comensal', 'ESTUDIANTE FORANEO')
-            ->count();
+            $totalEstudiantesForaneos = Entrada::whereDate('created_at', $fecha)
+                ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
+                    return $q->where('comida', $servicio);
+                })
+                ->where('tipo_comensal', 'ESTUDIANTE FORANEO')
+                ->count();
 
-        $totalObreros = Entrada::whereDate('created_at', $fecha)
-            ->where('tipo_comensal', 'OBRERO')
-            ->count();
+            $totalObreros = Entrada::whereDate('created_at', $fecha)
+                ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
+                    return $q->where('comida', $servicio);
+                })
+                ->where('tipo_comensal', 'OBRERO')
+                ->count();
 
-        $totalAdministrativos = Entrada::whereDate('created_at', $fecha)
-            ->where('tipo_comensal', 'ADMINISTRATIVO')
-            ->count();
+            $totalAdministrativos = Entrada::whereDate('created_at', $fecha)
+                ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
+                    return $q->where('comida', $servicio);
+                })
+                ->where('tipo_comensal', 'ADMINISTRATIVO')
+                ->count();
 
+            $totalProfesor = Entrada::whereDate('created_at', $fecha)
+                ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
+                    return $q->where('comida', $servicio);
+                })
+                ->where('tipo_comensal', 'PROFESOR')
+                ->count();
 
-        $totalProfesor = Entrada::whereDate('created_at', $fecha)
-            ->where('tipo_comensal', 'PROFESOR')
-            ->count();
-
-        $totalEventual = Entrada::whereDate('created_at', $fecha)
-            ->where('tipo_comensal', 'EVENTUAL')
-            ->count();
+            $totalEventual = Entrada::whereDate('created_at', $fecha)
+                ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
+                    return $q->where('comida', $servicio);
+                })
+                ->where('tipo_comensal', 'EVENTUAL')
+                ->count();
+        }
 
         // Generar el PDF
         $pdf = Pdf::loadView('admin.entradas.reporte', [
             'fecha' => $fecha,
             'totalAlmuerzos' => $totalAlmuerzos,
             'totalCenas' => $totalCenas,
-            'totalEstudiantes' => $totalEstudiantes,
-            'totalEstudiantesForaneos' => $totalEstudiantesForaneos,
-            'totalObreros' => $totalObreros,
-            'totalAdministrativos' => $totalAdministrativos,
-            'totalProfesor' => $totalProfesor,
-            'totalEventual' => $totalEventual
+            'totalEstudiantes' => $totalEstudiantes ?? 0,
+            'totalEstudiantesForaneos' => $totalEstudiantesForaneos ?? 0,
+            'totalObreros' => $totalObreros ?? 0,
+            'totalAdministrativos' => $totalAdministrativos ?? 0,
+            'totalProfesor' => $totalProfesor ?? 0,
+            'totalEventual' => $totalEventual ?? 0,
+            'tipoSeleccionado' => $tipoFilter,
+            'servicioSeleccionado' => $servicio,
         ]);
 
         // Descargar el PDF
-        return $pdf->stream('reporte_comidas_' . $fecha . '.pdf');
+        return $pdf->stream('reporte_comidas_' . $fecha->toDateString() . '.pdf');
     }
 }

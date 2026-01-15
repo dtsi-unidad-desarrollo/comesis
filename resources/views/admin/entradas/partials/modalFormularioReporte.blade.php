@@ -20,19 +20,27 @@
                            @method('POST')
 
 
-                           <select name="servicio" id="servicio" class="form-select">
-                               <option value="0">Seleccione servicio</option>
-                               @foreach ($servicios as $servicio)
-                                   <option value="{{ $servicio->nombre }}">{{ $servicio->nombre }}</option>
-                               @endforeach
-                           </select>
+                           
 
-                           <select name="servicio" id="servicio" class="form-select">
-                               <option value="0">Seleccione servicio</option>
-                               @foreach ($tipos as $tipo)
-                                   <option value="{{ $tipo }}">{{ $tipo }}</option>
-                               @endforeach
-                           </select>
+                           <div class="col-6">
+                               <label for="servicio" class="form-label">Servicio</label>
+                               <select name="servicio" id="servicio" class="form-select">
+                                   <option value="0">Todos los servicios</option>
+                                   @foreach ($servicios as $servicio)
+                                       <option value="{{ $servicio->nombre }}">{{ $servicio->nombre }}</option>
+                                   @endforeach
+                               </select>
+                           </div>
+
+                           <div class="col-6">
+                               <label for="tipo" class="form-label">Tipo de comensal</label>
+                               <select name="tipo" id="tipo" class="form-select">
+                                   <option value="TODOS">TODOS</option>
+                                   @foreach ($tipos as $tipo)
+                                       <option value="{{ $tipo }}">{{ $tipo }}</option>
+                                   @endforeach
+                               </select>
+                           </div>
 
                            <input type="date" class="form-control" name="fecha" aria-label="fecha"
                                aria-describedby="button-addon2">

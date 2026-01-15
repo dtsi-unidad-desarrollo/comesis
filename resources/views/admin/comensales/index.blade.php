@@ -37,8 +37,8 @@
 
                 {{-- Formulario de importación masiva desde Excel --}}
                 <div class="mt-3 d-flex gap-2 align-items-center">
-                    <a href="{{ route('admin.comensales.template.xlsx') }}" class="btn btn-outline-secondary">Descargar plantilla (.xlsx)</a>
-                    <a href="{{ route('admin.comensales.export') }}" class="btn btn-outline-primary">Exportar registrados (.xlsx)</a>
+                    <a href="{{ route('admin.comensales.template.xlsx') }}" class="btn btn-outline-secondary">Descargar plantilla</a>
+                    <a href="{{ route('admin.comensales.export') }}" class="btn btn-outline-primary">Exportar registrados</a>
                     <form action="{{ route('admin.comensales.import') }}" method="post" enctype="multipart/form-data" class="m-0">
                         @csrf
                         <div class="input-group">
