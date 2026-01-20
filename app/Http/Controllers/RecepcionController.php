@@ -69,13 +69,15 @@ class RecepcionController extends Controller
                         /** CONSULTAMOS DUX  para los ESTUDIANTES */
                         $comensal = $this->getEstudiantes($request->cedula);
 
-                        if ($comensal->estatus == 0) {
-                            $comensal = $this->getEmpleados($request->cedula);
-                            /** Validamos si el comensal tiene estatus activo o no */
-                            if ($comensal == null) {
-                                /** Se valdiad si el comensal esta activo en el sistema  */
-                                $mensaje_comensal = "<strong>¡NO PERMITIR EL ACCESO!</strong> El comensal está inactivo, no puede ingresar.";
-                                return view('admin.recepcion.index', compact('comensal', 'respuesta', 'mensaje_comensal', 'cantidadDeEntradas', 'servicio', 'request'));
+                        if ($comensal) {
+                            if ($comensal->estatus == 0) {
+                                $comensal = $this->getEmpleados($request->cedula);
+                                /** Validamos si el comensal tiene estatus activo o no */
+                                if ($comensal == null) {
+                                    /** Se valdiad si el comensal esta activo en el sistema  */
+                                    $mensaje_comensal = "<strong>¡NO PERMITIR EL ACCESO!</strong> El comensal está inactivo, no puede ingresar.";
+                                    return view('admin.recepcion.index', compact('comensal', 'respuesta', 'mensaje_comensal', 'cantidadDeEntradas', 'servicio', 'request'));
+                                }
                             }
                         }
                     }
