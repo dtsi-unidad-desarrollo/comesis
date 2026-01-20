@@ -124,6 +124,7 @@
                                     @endif
  
                                     <option value="">Seleccione tipo</option>
+                                    <option value="ESTUDIANTE">ESTUDIANTE</option>
                                     <option value="ESTUDIANTE FORANEO">ESTUDIANTE FORANEO</option>
                                     <option value="PROFESOR">PROFESOR</option>
                                     <option value="ADMINISTRATIVO">ADMINISTRATIVO</option>

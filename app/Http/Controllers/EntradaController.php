@@ -35,10 +35,9 @@ class EntradaController extends Controller
             $tipos = [
                 "ESTUDIANTE",
                 "ESTUDIANTE FORANEO",
-                "PROFESOR",
-                "ADMINISTRATIVO",
+                "EMPLEADO",
                 "EVENTUAL",
-                "OBRERO",
+                
             ];
 
             if ($request->activo == true) {
@@ -188,6 +187,9 @@ class EntradaController extends Controller
         $tipo = $request->input('tipo'); // puede ser 'TODOS' o un tipo específico
         $servicio = $request->input('servicio'); // opcional: filtrar por servicio (ALMUERZO/CENA)
 
+        // tipos que agrupamos como empleados en el reporte
+        $empleadoTypes = ['PROFESOR', 'ADMINISTRATIVO', 'OBRERO'];
+
         $tipoFilter = null;
         if ($tipo && strtoupper($tipo) !== 'TODOS') {
             $tipoFilter = strtoupper($tipo);
@@ -198,7 +200,10 @@ class EntradaController extends Controller
             ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
                 return $q->where('comida', $servicio);
             })
-            ->when($tipoFilter, function ($q) use ($tipoFilter) {
+            ->when($tipoFilter, function ($q) use ($tipoFilter, $empleadoTypes) {
+                if ($tipoFilter === 'EMPLEADO') {
+                    return $q->whereIn('tipo_comensal', $empleadoTypes);
+                }
                 return $q->where('tipo_comensal', $tipoFilter);
             })
             ->where('comida', 'ALMUERZO')
@@ -208,7 +213,10 @@ class EntradaController extends Controller
             ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
                 return $q->where('comida', $servicio);
             })
-            ->when($tipoFilter, function ($q) use ($tipoFilter) {
+            ->when($tipoFilter, function ($q) use ($tipoFilter, $empleadoTypes) {
+                if ($tipoFilter === 'EMPLEADO') {
+                    return $q->whereIn('tipo_comensal', $empleadoTypes);
+                }
                 return $q->where('tipo_comensal', $tipoFilter);
             })
             ->where('comida', 'CENA')
@@ -216,22 +224,58 @@ class EntradaController extends Controller
 
         // Si se solicitó un tipo concreto, sólo ese tipo debe aparecer con su total; los demás serán 0
         if ($tipoFilter) {
-            $selectedTotal = Entrada::whereDate('created_at', $fecha)
-                ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
-                    return $q->where('comida', $servicio);
-                })
-                ->where('tipo_comensal', $tipoFilter)
-                ->count();
+            // Si se filtra por 'EMPLEADO' queremos contar todos los registros
+            // cuyo tipo sea PROFESOR/ADMINISTRATIVO/OBRERO
+            if ($tipoFilter === 'EMPLEADO') {
+                $selectedTotal = Entrada::whereDate('created_at', $fecha)
+                    ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
+                        return $q->where('comida', $servicio);
+                    })
+                    ->whereIn('tipo_comensal', $empleadoTypes)
+                    ->count();
 
-            $totalEstudiantes = ($tipoFilter === 'ESTUDIANTE') ? $selectedTotal : 0;
-            $totalEstudiantesForaneos = ($tipoFilter === 'ESTUDIANTE FORANEO') ? $selectedTotal : 0;
-            $totalObreros = ($tipoFilter === 'OBRERO') ? $selectedTotal : 0;
-            $totalAdministrativos = ($tipoFilter === 'ADMINISTRATIVO') ? $selectedTotal : 0;
-            $totalProfesor = ($tipoFilter === 'PROFESOR') ? $selectedTotal : 0;
-            $totalEventual = ($tipoFilter === 'EVENTUAL') ? $selectedTotal : 0;
+                $totalEmpleados = $selectedTotal;
+                $totalEstudiantes = 0;
+                $totalEstudiantesForaneos = 0;
+                $totalObreros = 0;
+                $totalAdministrativos = 0;
+                $totalProfesor = 0;
+                $totalEventual = 0;
+            } elseif (in_array($tipoFilter, $empleadoTypes)) {
+                // Si se filtra por un tipo que consideramos empleado, también lo asignamos
+                $selectedTotal = Entrada::whereDate('created_at', $fecha)
+                    ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
+                        return $q->where('comida', $servicio);
+                    })
+                    ->where('tipo_comensal', $tipoFilter)
+                    ->count();
+
+                $totalEmpleados = $selectedTotal;
+                $totalEstudiantes = 0;
+                $totalEstudiantesForaneos = 0;
+                $totalObreros = 0;
+                $totalAdministrativos = 0;
+                $totalProfesor = 0;
+                $totalEventual = 0;
+            } else {
+                $selectedTotal = Entrada::whereDate('created_at', $fecha)
+                    ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
+                        return $q->where('comida', $servicio);
+                    })
+                    ->where('tipo_comensal', $tipoFilter)
+                    ->count();
+
+                $totalEstudiantes = ($tipoFilter === 'ESTUDIANTE') ? $selectedTotal : 0;
+                $totalEstudiantesForaneos = ($tipoFilter === 'ESTUDIANTE FORANEO') ? $selectedTotal : 0;
+                $totalObreros = ($tipoFilter === 'OBRERO') ? $selectedTotal : 0;
+                $totalAdministrativos = ($tipoFilter === 'ADMINISTRATIVO') ? $selectedTotal : 0;
+                $totalProfesor = ($tipoFilter === 'PROFESOR') ? $selectedTotal : 0;
+                $totalEventual = ($tipoFilter === 'EVENTUAL') ? $selectedTotal : 0;
+                $totalEmpleados = 0;
+            }
         } else {
             // Comportamiento actual: obtener totales por cada tipo
-            $totalEstudiantes = Entrada::whereDate('created_at', $fecha)
+            $totalEstudiantes = Entrada::   whereDate('created_at', $fecha)
                 ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
                     return $q->where('comida', $servicio);
                 })
@@ -285,6 +329,7 @@ class EntradaController extends Controller
             'totalAdministrativos' => $totalAdministrativos ?? 0,
             'totalProfesor' => $totalProfesor ?? 0,
             'totalEventual' => $totalEventual ?? 0,
+            'totalEmpleados' => $totalEmpleados ?? 0,
             'tipoSeleccionado' => $tipoFilter,
             'servicioSeleccionado' => $servicio,
         ]);
