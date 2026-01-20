@@ -66,24 +66,28 @@ class RecepcionController extends Controller
                     $comensal = Comensale::where('cedula', $request->cedula)->first();
 
                     if (!$comensal) {
+                        /** CONSULTAMOS DUX  para los ESTUDIANTES */
+                        $comensal = $this->getEstudiantes($request->cedula);
+
+                        if ($comensal->estatus == 0) {
+                            $comensal = $this->getEmpleados($request->cedula);
+                        }
+                    }
+                    
+                    if (!$comensal) {
                         /** Buscamos en TEREPAIMA */
                         $comensal = $this->getEmpleados($request->cedula);
                     }
                     
-                    if (!$comensal) {
-                        /** CONSULTAMOS DUX  para los ESTUDIANTES */
-                        $comensal = $this->getEstudiantes($request->cedula);
-                    }
-
                     /** Validamos si existe el comensal */
                     if ($comensal == null) {
                         /** MENSAJE DE FALLO BUSQUEDA DE COMENSALES */
-                        $mensaje_comensal = "Comensal no registrado.";
+                        $mensaje_comensal = "<strong>¡NO PERMITIR EL ACCESO!</strong> Comensal no registrado.";
                     } else {
                         /** Validamos si el comensal tiene estatus activo o no */
                         if ($comensal->estatus == 0) {
                             /** Se valdiad si el comensal esta activo en el sistema  */
-                            $mensaje = "<strong> El comensal </strong>" . $comensal->nombres . " " . $comensal->apellidos . " está inactivo, no puede ingresar.";
+                            $mensaje = "<strong> ¡NO PERMITIR EL ACCESO!</strong> El comensal " . $comensal->nombres . " " . $comensal->apellidos . " está inactivo, no puede ingresar.";
                             $estatus = Response::HTTP_UNAUTHORIZED;
                             return back()->with(compact('mensaje', 'estatus'));
                         }
@@ -107,7 +111,7 @@ class RecepcionController extends Controller
 
                             /** Validamos si ya comio y cual comida */
                             if (count($entradas)) {
-                                $mensaje_comensal = "El comensal " . $comensal->nombres . " " . $comensal->apellidos . ", Cédula: " . $comensal->cedula . ", ya consumio el servicio: " . $servicio->nombre ?? '' . ". ";
+                                $mensaje_comensal = "<strong>¡NO PERMITIR EL ACCESO!</strong> El comensal " . $comensal->nombres . " " . $comensal->apellidos . ", Cédula: " . $comensal->cedula . ", ya consumio el servicio: " . $servicio->nombre ?? '' . ". ";
                                 $comensal = null;
                             } else {
 
@@ -119,7 +123,7 @@ class RecepcionController extends Controller
                             }
                         } else {
                             /** Se valdiad si el comensal esta activo en el sistema  */
-                            $mensaje = "<strong>¡Ya comió!</strong> El comensal " . $comensal->nombres . " " . $comensal->apellidos . " está inactivo, no puede ingresar.";
+                            $mensaje = "El comensal " . $comensal->nombres . " " . $comensal->apellidos . " está inactivo, no puede ingresar.";
                             $estatus = Response::HTTP_NOT_FOUND;
                             return back()->with(compact('mensaje', 'estatus'));
                         }

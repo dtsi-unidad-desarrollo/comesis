@@ -97,9 +97,14 @@
                             </div>
                         @empty(!$mensaje_comensal)
                             <br>
-                            <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                                 {!! $mensaje_comensal !!}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <div class="d-flex justify-content-center align-items-center">
+                                    <i class="bi bi-shield-slash text-danger fs-1 mx-2"></i>
+                                    <p class="mt-1">
+                                        {!! $mensaje_comensal !!}
+                                    </p>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
                               </div>
                         @endempty
                         </form>
