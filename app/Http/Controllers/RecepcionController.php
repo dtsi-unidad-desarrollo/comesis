@@ -71,18 +71,24 @@ class RecepcionController extends Controller
 
                         if ($comensal->estatus == 0) {
                             $comensal = $this->getEmpleados($request->cedula);
+                            /** Validamos si el comensal tiene estatus activo o no */
+                            if ($comensal == null) {
+                                /** Se valdiad si el comensal esta activo en el sistema  */
+                                $mensaje_comensal = "<strong>¡NO PERMITIR EL ACCESO!</strong> El comensal está inactivo, no puede ingresar.";
+                                return view('admin.recepcion.index', compact('comensal', 'respuesta', 'mensaje_comensal', 'cantidadDeEntradas', 'servicio', 'request'));
+                            }
                         }
                     }
-                    
+
                     if (!$comensal) {
                         /** Buscamos en TEREPAIMA */
                         $comensal = $this->getEmpleados($request->cedula);
                     }
-                    
+
                     /** Validamos si existe el comensal */
                     if ($comensal == null) {
                         /** MENSAJE DE FALLO BUSQUEDA DE COMENSALES */
-                        $mensaje_comensal = "<strong>¡NO PERMITIR EL ACCESO!</strong> Comensal no registrado.";
+                        $mensaje_comensal = "<strong>¡NO PERMITIR EL ACCESO!</strong> Comensal no registrado .";
                     } else {
                         /** Validamos si el comensal tiene estatus activo o no */
                         if ($comensal->estatus == 0) {
@@ -208,18 +214,18 @@ class RecepcionController extends Controller
                 ->table('rrhh_personal')
                 ->where('per_cedula', $cedula)
                 ->first()->per_status;
-    
+
             $comensal->sexo = DB::connection('mysql_third')
                 ->table('rrhh_personal')
                 ->join('tools_sexo', 'tools_sexo.sex_codigo', '=', 'per_sexo')
                 ->where('per_cedula', $cedula)
                 ->first()->sex_descripcion;
-    
-    
+
+
             if ($comensal) {
                 $comensal->tipo_comensal = "EMPLEADO";
             }
-    
+
             $comensal = $this->adaptadorDeComensal($comensal);
         }
 
