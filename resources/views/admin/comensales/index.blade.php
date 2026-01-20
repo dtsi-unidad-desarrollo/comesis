@@ -43,7 +43,7 @@
                         @csrf
                         <div class="input-group">
                             <input type="file" name="file" class="form-control" accept=".xlsx,.xls,.csv" required>
-                            <button class="btn btn-success" type="submit">Importar Excel</button>
+                            <button class="btn btn-success" type="submit">Importar</button>
                         </div>
                     </form>
                 </div>
