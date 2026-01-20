@@ -47,49 +47,49 @@ class EntradaController extends Controller
                     $entradas = Entrada::whereDate('created_at', $request->fecha)
                         ->where('comida', $request->servicio)
                         ->where('cedula', $request->filtro)
-                        ->orderBy('fecha', 'ASC')->paginate(12);
+                        ->orderBy('fecha', 'DESC')->paginate(12);
 
                         if (!count($entradas)) {
                             $entradas = Entrada::whereDate('created_at', $request->fecha)
                             ->where('comida', $request->servicio)
                             ->where('nombres', 'LIKE', "%{$request->filtro}%")
-                            ->orderBy('fecha', 'ASC')->paginate(12);
+                            ->orderBy('fecha', 'DESC')->paginate(12);
                         }
 
                 } else if ($request->servicio && $request->fecha) {
                     $entradas = Entrada::whereDate('created_at', $request->fecha)
                         ->where('comida', $request->servicio)
-                        ->orderBy('fecha', 'ASC')->paginate(12);
+                        ->orderBy('fecha', 'DESC')->paginate(12);
                         
                 } else if ($request->fecha && $request->filtro) {
                     $entradas = Entrada::whereDate('created_at', $request->fecha)
                         ->where('cedula', $request->filtro)
-                        ->orderBy('fecha', 'ASC')->paginate(12);
+                        ->orderBy('fecha', 'DESC')->paginate(12);
 
                         if (!count($entradas)) {
                             $entradas = Entrada::whereDate('created_at', $request->fecha)
                             ->where('nombres', 'LIKE', "%{$request->filtro}%")
-                            ->orderBy('fecha', 'ASC')->paginate(12);
+                            ->orderBy('fecha', 'DESC')->paginate(12);
                         }
                 } else if ($request->servicio && $request->filtro) {
                     $entradas = Entrada::where('comida', $request->servicio)
                         ->where('cedula', $request->filtro)
-                        ->orderBy('fecha', 'ASC')->paginate(12);
+                        ->orderBy('fecha', 'DESC')->paginate(12);
 
                         if (!count($entradas)) {
                             $entradas = Entrada::where('comida', $request->servicio)
                             ->where('nombres', 'LIKE', "%{$request->filtro}%")
-                            ->orderBy('fecha', 'ASC')->paginate(12);
+                            ->orderBy('fecha', 'DESC')->paginate(12);
                         }
 
                 } else if ($request->filtro) {
                     $entradas = Entrada::where('cedula', $request->filtro)
                         ->orWhere('nombres', 'LIKE', "%{$request->filtro}%")
                         ->orWhere('apellidos', 'LIKE', "%{$request->filtro}%")
-                        ->orderBy('fecha', 'ASC')->paginate(12);
+                        ->orderBy('fecha', 'DESC')->paginate(12);
                 } else if ($request->servicio) {
                    $entradas = Entrada::where('comida', $request->servicio)
-                        ->orderBy('fecha', 'ASC')->paginate(12);
+                        ->orderBy('fecha', 'DESC')->paginate(12);
                 } else if ($request->fecha) {
                     $entradas = Entrada::whereDate('created_at', $request->fecha)->orderBy('nombres', 'ASC')->paginate(12);
                 }
