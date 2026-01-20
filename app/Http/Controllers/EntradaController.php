@@ -94,7 +94,7 @@ class EntradaController extends Controller
                     $entradas = Entrada::whereDate('created_at', $request->fecha)->orderBy('nombres', 'ASC')->paginate(12);
                 }
             } else {
-                $entradas = Entrada::orderBy('fecha', 'DESC')->paginate(12);
+                $entradas = Entrada::orderBy('created_at', 'DESC')->paginate(12);
             }
 
             $respuesta =  $this->data->respuesta;
