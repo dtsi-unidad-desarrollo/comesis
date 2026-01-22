@@ -18,7 +18,7 @@
         <div class="header">
             <img src="{{ asset('assets/img/logo.png') }}" alt="Logo" style="height:60px;">
             <h2>Reporte de Comidas</h2>
-            <p><strong>Fecha:</strong> {{ optional($fecha)->toDateString() ?? $fecha }}</p>
+            <p><strong>Fecha:</strong> {{ isset($fecha) && $fecha ? \Carbon\Carbon::parse($fecha)->format('d-m-Y') : '' }}</p>
         </div>
 
         <div class="summary">
