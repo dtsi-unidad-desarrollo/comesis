@@ -16,6 +16,12 @@ use Illuminate\Http\Response;
 class EntradaController extends Controller
 {
     public $data;
+    public $tiposDeComensales = [
+        "ESTUDIANTE",
+        "ESTUDIANTE FORANEO",
+        "EMPLEADO",
+        "EVENTUAL"
+    ];
 
     public function __construct()
     {
@@ -28,7 +34,7 @@ class EntradaController extends Controller
      */
     public function index(Request $request)
     {
-        
+
         try {
             $entradas = [];
             $servicios = Servicio::all();
@@ -37,7 +43,7 @@ class EntradaController extends Controller
                 "ESTUDIANTE FORANEO",
                 "EMPLEADO",
                 "EVENTUAL",
-                
+
             ];
 
             if ($request->activo == true) {
@@ -48,46 +54,43 @@ class EntradaController extends Controller
                         ->where('cedula', $request->filtro)
                         ->orderBy('fecha', 'DESC')->paginate(12);
 
-                        if (!count($entradas)) {
-                            $entradas = Entrada::whereDate('created_at', $request->fecha)
+                    if (!count($entradas)) {
+                        $entradas = Entrada::whereDate('created_at', $request->fecha)
                             ->where('comida', $request->servicio)
                             ->where('nombres', 'LIKE', "%{$request->filtro}%")
                             ->orderBy('fecha', 'DESC')->paginate(12);
-                        }
-
+                    }
                 } else if ($request->servicio && $request->fecha) {
                     $entradas = Entrada::whereDate('created_at', $request->fecha)
                         ->where('comida', $request->servicio)
                         ->orderBy('fecha', 'DESC')->paginate(12);
-                        
                 } else if ($request->fecha && $request->filtro) {
                     $entradas = Entrada::whereDate('created_at', $request->fecha)
                         ->where('cedula', $request->filtro)
                         ->orderBy('fecha', 'DESC')->paginate(12);
 
-                        if (!count($entradas)) {
-                            $entradas = Entrada::whereDate('created_at', $request->fecha)
+                    if (!count($entradas)) {
+                        $entradas = Entrada::whereDate('created_at', $request->fecha)
                             ->where('nombres', 'LIKE', "%{$request->filtro}%")
                             ->orderBy('fecha', 'DESC')->paginate(12);
-                        }
+                    }
                 } else if ($request->servicio && $request->filtro) {
                     $entradas = Entrada::where('comida', $request->servicio)
                         ->where('cedula', $request->filtro)
                         ->orderBy('fecha', 'DESC')->paginate(12);
 
-                        if (!count($entradas)) {
-                            $entradas = Entrada::where('comida', $request->servicio)
+                    if (!count($entradas)) {
+                        $entradas = Entrada::where('comida', $request->servicio)
                             ->where('nombres', 'LIKE', "%{$request->filtro}%")
                             ->orderBy('fecha', 'DESC')->paginate(12);
-                        }
-
+                    }
                 } else if ($request->filtro) {
                     $entradas = Entrada::where('cedula', $request->filtro)
                         ->orWhere('nombres', 'LIKE', "%{$request->filtro}%")
                         ->orWhere('apellidos', 'LIKE', "%{$request->filtro}%")
                         ->orderBy('fecha', 'DESC')->paginate(12);
                 } else if ($request->servicio) {
-                   $entradas = Entrada::where('comida', $request->servicio)
+                    $entradas = Entrada::where('comida', $request->servicio)
                         ->orderBy('fecha', 'DESC')->paginate(12);
                 } else if ($request->fecha) {
                     $entradas = Entrada::whereDate('created_at', $request->fecha)->orderBy('nombres', 'ASC')->paginate(12);
@@ -182,155 +185,46 @@ class EntradaController extends Controller
 
     public function getReporte(Request $request)
     {
+        $reporte = [];
         $fecha = Carbon::parse($request->input('fecha'))->startOfDay();
-
-        $tipo = $request->input('tipo'); // puede ser 'TODOS' o un tipo específico
+        $tipo = strtoupper($request->input('tipo')); // puede ser 'TODOS' o un tipo específico
         $servicio = $request->input('servicio'); // opcional: filtrar por servicio (ALMUERZO/CENA)
 
-        // tipos que agrupamos como empleados en el reporte
-        $empleadoTypes = ['PROFESOR', 'ADMINISTRATIVO', 'OBRERO'];
-
-        $tipoFilter = null;
-        if ($tipo && strtoupper($tipo) !== 'TODOS') {
-            $tipoFilter = strtoupper($tipo);
-        }
-
-        // Totales de almuerzos y cenas (aplican filtro de fecha, servicio y tipo si vienen)
-        $totalAlmuerzos = Entrada::whereDate('created_at', $fecha)
-            ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
-                return $q->where('comida', $servicio);
-            })
-            ->when($tipoFilter, function ($q) use ($tipoFilter, $empleadoTypes) {
-                if ($tipoFilter === 'EMPLEADO') {
-                    return $q->whereIn('tipo_comensal', $empleadoTypes);
-                }
-                return $q->where('tipo_comensal', $tipoFilter);
-            })
-            ->where('comida', 'ALMUERZO')
-            ->count();
-
-        $totalCenas = Entrada::whereDate('created_at', $fecha)
-            ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
-                return $q->where('comida', $servicio);
-            })
-            ->when($tipoFilter, function ($q) use ($tipoFilter, $empleadoTypes) {
-                if ($tipoFilter === 'EMPLEADO') {
-                    return $q->whereIn('tipo_comensal', $empleadoTypes);
-                }
-                return $q->where('tipo_comensal', $tipoFilter);
-            })
-            ->where('comida', 'CENA')
+        // Totales de comidas
+        $totalComidas = Entrada::whereDate('created_at', $fecha)
+            ->where('comida', $servicio)
             ->count();
 
         // Si se solicitó un tipo concreto, sólo ese tipo debe aparecer con su total; los demás serán 0
-        if ($tipoFilter) {
-            // Si se filtra por 'EMPLEADO' queremos contar todos los registros
-            // cuyo tipo sea PROFESOR/ADMINISTRATIVO/OBRERO
-            if ($tipoFilter === 'EMPLEADO') {
-                $selectedTotal = Entrada::whereDate('created_at', $fecha)
-                    ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
-                        return $q->where('comida', $servicio);
-                    })
-                    ->whereIn('tipo_comensal', $empleadoTypes)
-                    ->count();
-
-                $totalEmpleados = $selectedTotal;
-                $totalEstudiantes = 0;
-                $totalEstudiantesForaneos = 0;
-                $totalObreros = 0;
-                $totalAdministrativos = 0;
-                $totalProfesor = 0;
-                $totalEventual = 0;
-            } elseif (in_array($tipoFilter, $empleadoTypes)) {
-                // Si se filtra por un tipo que consideramos empleado, también lo asignamos
-                $selectedTotal = Entrada::whereDate('created_at', $fecha)
-                    ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
-                        return $q->where('comida', $servicio);
-                    })
-                    ->where('tipo_comensal', $tipoFilter)
-                    ->count();
-
-                $totalEmpleados = $selectedTotal;
-                $totalEstudiantes = 0;
-                $totalEstudiantesForaneos = 0;
-                $totalObreros = 0;
-                $totalAdministrativos = 0;
-                $totalProfesor = 0;
-                $totalEventual = 0;
-            } else {
-                $selectedTotal = Entrada::whereDate('created_at', $fecha)
-                    ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
-                        return $q->where('comida', $servicio);
-                    })
-                    ->where('tipo_comensal', $tipoFilter)
-                    ->count();
-
-                $totalEstudiantes = ($tipoFilter === 'ESTUDIANTE') ? $selectedTotal : 0;
-                $totalEstudiantesForaneos = ($tipoFilter === 'ESTUDIANTE FORANEO') ? $selectedTotal : 0;
-                $totalObreros = ($tipoFilter === 'OBRERO') ? $selectedTotal : 0;
-                $totalAdministrativos = ($tipoFilter === 'ADMINISTRATIVO') ? $selectedTotal : 0;
-                $totalProfesor = ($tipoFilter === 'PROFESOR') ? $selectedTotal : 0;
-                $totalEventual = ($tipoFilter === 'EVENTUAL') ? $selectedTotal : 0;
-                $totalEmpleados = 0;
+        if ($tipo && $tipo != 'TODOS') {
+            foreach ($this->tiposDeComensales as $tipoComensal) {
+                if ($tipoComensal == $tipo) {
+                    $reporte[$tipoComensal] = Entrada::whereDate('created_at', $fecha)
+                        ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
+                            return $q->where('comida', $servicio);
+                        })
+                        ->where('tipo_comensal', $tipoComensal)
+                        ->count();
+                }
             }
         } else {
-            // Comportamiento actual: obtener totales por cada tipo
-            $totalEstudiantes = Entrada::   whereDate('created_at', $fecha)
-                ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
-                    return $q->where('comida', $servicio);
-                })
-                ->where('tipo_comensal', 'ESTUDIANTE')
-                ->count();
-
-            $totalEstudiantesForaneos = Entrada::whereDate('created_at', $fecha)
-                ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
-                    return $q->where('comida', $servicio);
-                })
-                ->where('tipo_comensal', 'ESTUDIANTE FORANEO')
-                ->count();
-
-            $totalObreros = Entrada::whereDate('created_at', $fecha)
-                ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
-                    return $q->where('comida', $servicio);
-                })
-                ->where('tipo_comensal', 'OBRERO')
-                ->count();
-
-            $totalAdministrativos = Entrada::whereDate('created_at', $fecha)
-                ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
-                    return $q->where('comida', $servicio);
-                })
-                ->where('tipo_comensal', 'ADMINISTRATIVO')
-                ->count();
-
-            $totalProfesor = Entrada::whereDate('created_at', $fecha)
-                ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
-                    return $q->where('comida', $servicio);
-                })
-                ->where('tipo_comensal', 'PROFESOR')
-                ->count();
-
-            $totalEventual = Entrada::whereDate('created_at', $fecha)
-                ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
-                    return $q->where('comida', $servicio);
-                })
-                ->where('tipo_comensal', 'EVENTUAL')
-                ->count();
+            foreach ($this->tiposDeComensales as $tipoComensal) {
+                $reporte[$tipoComensal] = Entrada::whereDate('created_at', $fecha)
+                    ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
+                        return $q->where('comida', $servicio);
+                    })
+                    ->where('tipo_comensal', $tipoComensal)
+                    ->count();
+            }
         }
+
 
         // Generar el PDF
         $pdf = Pdf::loadView('admin.entradas.reporte', [
-            'fecha' => $fecha,
-            'totalAlmuerzos' => $totalAlmuerzos,
-            'totalCenas' => $totalCenas,
-            'totalEstudiantes' => $totalEstudiantes ?? 0,
-            'totalEstudiantesForaneos' => $totalEstudiantesForaneos ?? 0,
-            'totalObreros' => $totalObreros ?? 0,
-            'totalAdministrativos' => $totalAdministrativos ?? 0,
-            'totalProfesor' => $totalProfesor ?? 0,
-            'totalEventual' => $totalEventual ?? 0,
-            'totalEmpleados' => $totalEmpleados ?? 0,
-            'tipoSeleccionado' => $tipoFilter,
+            'fecha' => Helpers::normalizarFecha($fecha),
+            'totalComidas' => $totalComidas,
+            'reporte' => $reporte,
+            'tipoSeleccionado' => $tipo,
             'servicioSeleccionado' => $servicio,
         ]);
 
