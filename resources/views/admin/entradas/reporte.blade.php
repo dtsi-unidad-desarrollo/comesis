@@ -45,6 +45,7 @@
 <body>
     <div class="container">
         <div class="header">
+<<<<<<< HEAD
             <table style="width: 100%; border: none; margin-bottom: 20px;">
                 <tr>
                     <td style="text-align: left; vertical-align: middle; border: none;">
@@ -59,6 +60,16 @@
                     </td>
                 </tr>
             </table>
+=======
+            <img src="{{ asset('assets/img/logo.png') }}" alt="Logo" style="height:60px;">
+            <h2>Reporte de Comidas</h2>
+            <p><strong>Fecha:</strong> {{ isset($fecha) && $fecha ? \Carbon\Carbon::parse($fecha)->format('d-m-Y') : '' }}</p>
+        </div>
+
+        <div class="summary">
+            <p><strong>Total Almuerzos:</strong> {{ $totalAlmuerzos ?? 0 }}</p>
+            <p><strong>Total Cenas:</strong> {{ $totalCenas ?? 0 }}</p>
+>>>>>>> 89ab6e8341cbefb711c59e8c2104e3dac6c76a54
         </div>
 
         <table>
