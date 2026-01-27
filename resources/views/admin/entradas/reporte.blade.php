@@ -39,6 +39,42 @@
         th {
             background: #f2f2f2;
         }
+
+        /* Sección de firmas para impresión: usar tabla (compatible con dompdf) */
+        .signatures-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 40px;
+        }
+
+        .signatures-table td {
+            width: 50%;
+            vertical-align: top;
+            text-align: center;
+            padding: 0 10px;
+        }
+
+        .sign-line {
+            display: block;
+            height: 90px; /* espacio para firmar a mano */
+            border-bottom: 1px solid #000;
+            margin-bottom: 8px;
+        }
+
+        .stamp-box {
+            display: block;
+            width: 120px;
+            height: 60px;
+            border: none; /* sin rectángulo del sello */
+            margin: 6px auto 0 auto; /* espacio para el sello */
+        }
+
+        /* Ajustes específicos para impresión */
+        @media print {
+            .container { width: 100%; margin: 0; }
+            .signatures-table { margin-top: 50px; }
+            tr, td { page-break-inside: avoid; }
+        }
     </style>
 </head>
 
@@ -80,6 +116,20 @@
                     <td><strong>{{ $totalComidas ?? 0 }}</strong></td>
                 </tr>
             </tbody>
+        </table>
+        <table class="signatures-table" role="presentation">
+            <tr>
+                <td>
+                    <span class="sign-line"></span>
+                    <div><strong>Por la Universidad</strong><br>Firma y Sello</div>
+                    <span class="stamp-box" aria-hidden="true"></span>
+                </td>
+                <td>
+                    <span class="sign-line"></span>
+                    <div><strong>Por la Empresa</strong><br>Firma y Sello</div>
+                    <span class="stamp-box" aria-hidden="true"></span>
+                </td>
+            </tr>
         </table>
     </div>
 </body>
