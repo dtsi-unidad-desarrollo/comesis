@@ -45,6 +45,7 @@ Route::middleware('auth', 'validarRol')->group(function () {
 
     /** Control de entrada */
     Route::post('reportes', [EntradaController::class, 'getReporte'])->name('admin.entradas.reporte');
+    Route::post('reportes-semanal', [EntradaController::class, 'getReporteSemanal'])->name('admin.entradas.reporte.semanal');
     Route::resource('/entradas', EntradaController::class)->names('admin.entradas');
 
     /** Control de servicios */

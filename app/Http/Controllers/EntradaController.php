@@ -231,4 +231,48 @@ class EntradaController extends Controller
         // Descargar el PDF
         return $pdf->stream('reporte_comidas_' . $fecha->toDateString() . '.pdf');
     }
+
+    public function getReporteSemanal(Request $request)
+{
+    $inicio = Carbon::parse($request->input('fecha_inicio'))->startOfDay();
+    $fin = Carbon::parse($request->input('fecha_fin'))->endOfDay();
+    $tipo = strtoupper($request->input('tipo', 'TODOS'));
+    $servicio = $request->input('servicio');
+
+    $reporte = [];
+    foreach ($this->tiposDeComensales as $tipoComensal) {
+        $reporte[$tipoComensal] = Entrada::whereBetween('created_at', [$inicio, $fin])
+            ->when($tipo != 'TODOS', fn($q)=>$q->where('tipo_comensal', $tipo))
+            ->when($servicio && $servicio != 0, fn($q)=>$q->where('comida', $servicio))
+            ->where('tipo_comensal', $tipoComensal)
+            ->count();
+    }
+
+    $totalComidas = Entrada::whereBetween('created_at', [$inicio, $fin])
+        ->when($servicio && $servicio != 0, fn($q)=>$q->where('comida', $servicio))
+        ->count();
+
+    // Para generar el listado diario:
+    $diario = Entrada::whereBetween('created_at', [$inicio, $fin])
+        ->when($servicio && $servicio != 0, fn($q)=>$q->where('comida', $servicio))
+        ->selectRaw("DAYNAME(created_at) as dia, DATE_FORMAT(created_at, '%d/%m/%Y') as fecha, COUNT(*) as bandejas")
+        ->groupBy('dia','fecha')
+        ->orderBy('fecha')
+        ->get();
+
+    $fechaEtiqueta = $inicio->format('d/m/Y') . ' al ' . $fin->format('d/m/Y');
+
+    $pdf = Pdf::loadView('admin.entradas.reporte_semanal', [
+        'fecha' => $fechaEtiqueta,
+        'diario' => $diario,
+        'totalComidas' => $totalComidas,
+        'reporte' => $reporte,
+    ]);
+    return $pdf->stream('reporte_semanal_'.$inicio->toDateString().'.pdf');
+}
+
+    
+
+
+
 }
