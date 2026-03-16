@@ -236,43 +236,31 @@ class EntradaController extends Controller
 {
     $inicio = Carbon::parse($request->input('fecha_inicio'))->startOfDay();
     $fin = Carbon::parse($request->input('fecha_fin'))->endOfDay();
-    $tipo = strtoupper($request->input('tipo', 'TODOS'));
     $servicio = $request->input('servicio');
+    $tipo = strtoupper($request->input('tipo', 'TODOS'));
 
-    $reporte = [];
-    foreach ($this->tiposDeComensales as $tipoComensal) {
-        $reporte[$tipoComensal] = Entrada::whereBetween('created_at', [$inicio, $fin])
-            ->when($tipo != 'TODOS', fn($q)=>$q->where('tipo_comensal', $tipo))
-            ->when($servicio && $servicio != 0, fn($q)=>$q->where('comida', $servicio))
-            ->where('tipo_comensal', $tipoComensal)
-            ->count();
-    }
+    $queryBase = Entrada::whereBetween('created_at', [$inicio, $fin])
+        ->when($servicio && $servicio != 0, fn($q) => $q->where('comida', $servicio))
+        ->when($tipo && $tipo != 'TODOS', fn($q) => $q->where('tipo_comensal', $tipo));
 
-    $totalComidas = Entrada::whereBetween('created_at', [$inicio, $fin])
-        ->when($servicio && $servicio != 0, fn($q)=>$q->where('comida', $servicio))
-        ->count();
+    $diario = (clone $queryBase)
+    ->selectRaw("DAYNAME(created_at) AS dia, DATE_FORMAT(created_at, '%d/%m/%Y') AS fecha, COUNT(*) AS bandejas")
+    ->groupByRaw("DAYNAME(created_at), DATE_FORMAT(created_at, '%d/%m/%Y')")
+    ->orderByRaw("MIN(created_at)")
+    ->get();
 
-    // Para generar el listado diario:
-    $diario = Entrada::whereBetween('created_at', [$inicio, $fin])
-        ->when($servicio && $servicio != 0, fn($q)=>$q->where('comida', $servicio))
-        ->selectRaw("DAYNAME(created_at) as dia, DATE_FORMAT(created_at, '%d/%m/%Y') as fecha, COUNT(*) as bandejas")
-        ->groupBy('dia','fecha')
-        ->orderBy('fecha')
-        ->get();
+    $totalComidas = (clone $queryBase)->count();
 
-    $fechaEtiqueta = $inicio->format('d/m/Y') . ' al ' . $fin->format('d/m/Y');
+    $fechaLabel = $inicio->format('d/m/Y') . ' al ' . $fin->format('d/m/Y');
 
     $pdf = Pdf::loadView('admin.entradas.reporte_semanal', [
-        'fecha' => $fechaEtiqueta,
+        'fecha' => $inicio->format('d/m/Y'),
+        'desde' => $inicio->format('d/m/Y'),
+        'hasta' => $fin->format('d/m/Y'),
         'diario' => $diario,
         'totalComidas' => $totalComidas,
-        'reporte' => $reporte,
     ]);
+
     return $pdf->stream('reporte_semanal_'.$inicio->toDateString().'.pdf');
 }
-
-    
-
-
-
 }

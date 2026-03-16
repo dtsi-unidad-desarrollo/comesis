@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\RolPermiso;
 use Illuminate\Http\Response;
 
-class ValidarRol 
+class ValidarRol
 {
     /**
      * Handle an incoming request.
@@ -19,23 +19,24 @@ class ValidarRol
      */
     public function handle(Request $request, Closure $next)
     {
-        if(Auth::user()->rol != 1 ){
-            if( Auth::user()->rol ){
-                $rolPermisos = RolPermiso::select('id_permiso')->where('id_rol', Auth::user()->rol )->get();
-             
-                $permisos=[];
+        if (Auth::user()->rol != 1) {
+            if (Auth::user()->rol) {
+                $rolPermisos = RolPermiso::select('id_permiso')->where('id_rol', Auth::user()->rol)->get();
+
+                $permisos = [];
                 foreach ($rolPermisos as $key => $value) {
                     array_push($permisos, $value->id_permiso);
                 }
 
-                $path = explode('/',$request->path())[0];
+                $path = explode('/', $request->path())[0];
+                $pathBase = explode('-', $path)[0]; // reportes-semanal -> reportes
 
-                if( !in_array($path , $permisos) ){
+                if (!in_array($pathBase, $permisos)) {
                     return redirect()->route('admin.recepcion.index')->with([
-                        "mensaje" => "No tiene autorización para acceder al modulo: ". $path ,
+                        "mensaje" => "No tiene autorización para acceder al modulo: " . $path,
                         "estatus" => Response::HTTP_UNAUTHORIZED
                     ]);
-                } 
+                }
             }
         }
 

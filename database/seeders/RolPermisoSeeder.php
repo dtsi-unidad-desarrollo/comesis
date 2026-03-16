@@ -25,6 +25,7 @@ class RolPermisoSeeder extends Seeder
             "users",
             "recepcion",
             "reportes",
+            "reportes-semanal",
             "entradas",
             "sincronizarData",
             "servicios",
