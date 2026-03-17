@@ -238,20 +238,22 @@ class EntradaController extends Controller
     $fin = Carbon::parse($request->input('fecha_fin'))->endOfDay();
     $servicio = $request->input('servicio');
     $tipo = strtoupper($request->input('tipo', 'TODOS'));
-
-    $queryBase = Entrada::whereBetween('created_at', [$inicio, $fin])
+       
+    $inicioFormat = $inicio->format('d-m-Y');
+    $finFormat = $fin->format('d-m-Y');
+    $queryBase = Entrada::whereBetween('fecha', [$inicioFormat, $finFormat])
         ->when($servicio && $servicio != 0, fn($q) => $q->where('comida', $servicio))
         ->when($tipo && $tipo != 'TODOS', fn($q) => $q->where('tipo_comensal', $tipo));
 
     $diario = (clone $queryBase)
-    ->selectRaw("DAYNAME(created_at) AS dia, DATE_FORMAT(created_at, '%d/%m/%Y') AS fecha, COUNT(*) AS bandejas")
-    ->groupByRaw("DAYNAME(created_at), DATE_FORMAT(created_at, '%d/%m/%Y')")
-    ->orderByRaw("MIN(created_at)")
-    ->get();
+        ->selectRaw("DAYNAME(STR_TO_DATE(fecha, '%d-%m-%Y')) AS dia, DATE_FORMAT(STR_TO_DATE(fecha, '%d-%m-%Y'), '%d/%m/%Y') AS fecha, COUNT(*) AS bandejas")
+        ->groupByRaw("DAYNAME(STR_TO_DATE(fecha, '%d-%m-%Y')), DATE_FORMAT(STR_TO_DATE(fecha, '%d-%m-%Y'), '%d/%m/%Y')")
+        ->orderByRaw("MIN(STR_TO_DATE(fecha, '%d-%m-%Y'))")
+        ->get();
 
     $totalComidas = (clone $queryBase)->count();
 
-    $fechaLabel = $inicio->format('d/m/Y') . ' al ' . $fin->format('d/m/Y');
+   
 
     $pdf = Pdf::loadView('admin.entradas.reporte_semanal', [
         'fecha' => $inicio->format('d/m/Y'),
