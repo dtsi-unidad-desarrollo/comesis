@@ -5,7 +5,7 @@
     <img src="{{ asset('assets/img/logo-dtsi-unellez.png') }}" width="100" class="  " alt="logo-footer">
 
     &copy; Copyright <strong><span>UNELLEZ</span></strong>. Todos los derechos reservados
-    Diseñado y desarrollado por <a href="https://unellez.edu.ve/portalweb/public/departamentos/16/informacion/2015" target="_blank">DTSI</a>
+    Diseñado y desarrollado por <a href="https://dependencias.unellez.edu.ve/dtsi/" target="_blank">DTSI</a>
 
   </div>
   
