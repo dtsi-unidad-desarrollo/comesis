@@ -233,36 +233,36 @@ class EntradaController extends Controller
     }
 
     public function getReporteSemanal(Request $request)
-{
-    $inicio = Carbon::parse($request->input('fecha_inicio'))->startOfDay();
-    $fin = Carbon::parse($request->input('fecha_fin'))->endOfDay();
-    $servicio = $request->input('servicio');
-    $tipo = strtoupper($request->input('tipo', 'TODOS'));
-       
-    $inicioFormat = $inicio->format('d-m-Y');
-    $finFormat = $fin->format('d-m-Y');
-    $queryBase = Entrada::whereBetween('fecha', [$inicioFormat, $finFormat])
-        ->when($servicio && $servicio != 0, fn($q) => $q->where('comida', $servicio))
-        ->when($tipo && $tipo != 'TODOS', fn($q) => $q->where('tipo_comensal', $tipo));
+    {
+        $inicio = Carbon::parse($request->input('fecha_inicio'))->startOfDay();
+        $fin = Carbon::parse($request->input('fecha_fin'))->endOfDay();
+        $servicio = $request->input('servicio');
+        $tipo = strtoupper($request->input('tipo', 'TODOS'));
 
-    $diario = (clone $queryBase)
-        ->selectRaw("DAYNAME(STR_TO_DATE(fecha, '%d-%m-%Y')) AS dia, DATE_FORMAT(STR_TO_DATE(fecha, '%d-%m-%Y'), '%d/%m/%Y') AS fecha, COUNT(*) AS bandejas")
-        ->groupByRaw("DAYNAME(STR_TO_DATE(fecha, '%d-%m-%Y')), DATE_FORMAT(STR_TO_DATE(fecha, '%d-%m-%Y'), '%d/%m/%Y')")
-        ->orderByRaw("MIN(STR_TO_DATE(fecha, '%d-%m-%Y'))")
-        ->get();
+        $inicioFormat = $inicio->format('d-m-Y');
+        $finFormat = $fin->format('d-m-Y');
+        $queryBase = Entrada::whereBetween('fecha', [$inicioFormat, $finFormat])
+            ->when($servicio && $servicio != 0, fn($q) => $q->where('comida', $servicio))
+            ->when($tipo && $tipo != 'TODOS', fn($q) => $q->where('tipo_comensal', $tipo));
 
-    $totalComidas = (clone $queryBase)->count();
+        $diario = (clone $queryBase)
+            ->selectRaw("DAYNAME(STR_TO_DATE(fecha, '%d-%m-%Y')) AS dia, DATE_FORMAT(STR_TO_DATE(fecha, '%d-%m-%Y'), '%d/%m/%Y') AS fecha, COUNT(*) AS bandejas")
+            ->groupByRaw("DAYNAME(STR_TO_DATE(fecha, '%d-%m-%Y')), DATE_FORMAT(STR_TO_DATE(fecha, '%d-%m-%Y'), '%d/%m/%Y')")
+            ->orderByRaw("MIN(STR_TO_DATE(fecha, '%d-%m-%Y'))")
+            ->get();
 
-   
+        $totalComidas = (clone $queryBase)->count();
 
-    $pdf = Pdf::loadView('admin.entradas.reporte_semanal', [
-        'fecha' => $inicio->format('d/m/Y'),
-        'desde' => $inicio->format('d/m/Y'),
-        'hasta' => $fin->format('d/m/Y'),
-        'diario' => $diario,
-        'totalComidas' => $totalComidas,
-    ]);
 
-    return $pdf->stream('reporte_semanal_'.$inicio->toDateString().'.pdf');
-}
+
+        $pdf = Pdf::loadView('admin.entradas.reporte_semanal', [
+            'fecha' => $inicio->format('d/m/Y'),
+            'desde' => $inicio->format('d/m/Y'),
+            'hasta' => $fin->format('d/m/Y'),
+            'diario' => $diario,
+            'totalComidas' => $totalComidas,
+        ]);
+
+        return $pdf->stream('reporte_semanal_' . $inicio->toDateString() . '.pdf');
+    }
 }
