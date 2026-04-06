@@ -39,6 +39,7 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::middleware('auth', 'validarRol')->group(function () {
     /** Tablero estadistico */
     Route::get('/panel', [DashboardController::class, 'index'])->name('admin.panel.index');
+    Route::get('/api/dashboard-stats', [DashboardController::class, 'getStats'])->name('admin.dashboard.stats');
 
     /** Vista de recepción */
     Route::get('/recepcion', [RecepcionController::class, 'index'])->name('admin.recepcion.index');
