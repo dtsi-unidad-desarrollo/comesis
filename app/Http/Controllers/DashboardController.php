@@ -18,6 +18,7 @@ use App\Models\{
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -28,25 +29,47 @@ class DashboardController extends Controller
         $this->data = new DataDev;
     }
 
+
     /**
      * Get entrada statistics for a given date range
      *
      * @param Carbon $startDate
      * @param Carbon|null $endDate
      * @return \Illuminate\Support\Collection
+     * 
+     * $tipoDeConsulta can be 'diaria', 'semanal' or 'mensual' to determine the grouping of the results
      */
-    private function getEntradaStats(Carbon $startDate, Carbon $endDate = null)
+    public function getEntradaStats($startDate, $endDate = null, $tipoDeConsulta = 'diaria')
     {
-        $query = Entrada::whereDate('created_at', '>=', $startDate);
+        $stats = [];
+        $dateRange = [];
 
         if ($endDate) {
-            $query->whereDate('created_at', '<=', $endDate);
-        }
+            if ($tipoDeConsulta == "semanal") {
+                return $this->getWeeklyStats($startDate, $endDate);
+            } elseif ($tipoDeConsulta == "mensual") {
+                // Aquí podrías implementar la lógica para obtener estadísticas mensuales
+                // agrupando por día o por semana dentro del mes, dependiendo de tus necesidades.
+                $this->getMonthlyStats($startDate, $endDate);
+            }
+        } else {
+            $stats = DB::table('entradas')
+                ->select('tipo_comensal', DB::raw('count(*) as cantidad'))
+                ->whereDate('fecha', $startDate)
+                ->groupBy('tipo_comensal')
+                ->pluck('cantidad', 'tipo_comensal');
+            // Si quieres asegurar que siempre tengas ambos tipos aunque no haya registros:
+            $result = [
+                'EMPLEADO' => $stats['EMPLEADO'] ?? 0,
+                'ESTUDIANTE' => $stats['ESTUDIANTE'] ?? 0,
+            ];
 
-        return $query->selectRaw('tipo_comensal, COUNT(*) as count')
-            ->groupBy('tipo_comensal')
-            ->get()
-            ->pluck('count', 'tipo_comensal');
+            // También puedes incluir el total si quieres:
+            $result['total'] = $result['EMPLEADO'] + $result['ESTUDIANTE'];
+
+            // Retornar como respuesta JSON
+            return $result;
+        }
     }
 
     /**
@@ -58,31 +81,16 @@ class DashboardController extends Controller
     {
         $today = Carbon::today();
         $startOfWeek = Carbon::now()->startOfWeek();
-        $startOfMonth = Carbon::now()->startOfMonth();
+        // $startOfMonth = Carbon::now()->startOfMonth();
 
-        return Cache::remember('dashboard.stats', 60, function () use ($today, $startOfWeek, $startOfMonth) {
-            $dailyStats = $this->getEntradaStats($today);
-            $weeklyStats = $this->getEntradaStats($startOfWeek, Carbon::now()->endOfWeek());
-            $monthlyStats = $this->getEntradaStats($startOfMonth, Carbon::now()->endOfMonth());
-
-            return [
-                'daily' => [
-                    'estudiante' => $dailyStats->get('estudiante', 0),
-                    'empleado' => $dailyStats->get('empleado', 0),
-                    'total' => $dailyStats->sum()
-                ],
-                'weekly' => [
-                    'estudiante' => $weeklyStats->get('estudiante', 0),
-                    'empleado' => $weeklyStats->get('empleado', 0),
-                    'total' => $weeklyStats->sum()
-                ],
-                'monthly' => [
-                    'estudiante' => $monthlyStats->get('estudiante', 0),
-                    'empleado' => $monthlyStats->get('empleado', 0),
-                    'total' => $monthlyStats->sum()
-                ]
-            ];
-        });
+        $dailyStats = $this->getEntradaStats($today);
+        $weeklyStats = $this->getEntradaStats($startOfWeek, Carbon::now()->endOfWeek(), 'semanal');
+        // $monthlyStats = $this->getEntradaStats($startOfMonth, Carbon::now()->endOfMonth(), 'mensual');
+        return [
+            'hoy' => $dailyStats,
+            'semanal' => $weeklyStats,
+            // 'monthly' => $monthlyStats,
+        ];
     }
     /**
      * Display a listing of the resource.
@@ -93,8 +101,7 @@ class DashboardController extends Controller
     {
         $respuesta = $this->data->respuesta;
         $stats = $this->getFormattedStats();
-
-        return view('admin.dashboard', compact('respuesta', 'stats'));
+        return view('admin.dashboard', compact('respuesta', 'stats', 'stats'));
     }
 
     /**
@@ -110,5 +117,77 @@ class DashboardController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => 'Error retrieving statistics'], 500);
         }
+    }
+
+    public function getMonthlyStats($startDate, $endDate)
+    {
+        // Aquí podrías implementar la lógica para obtener estadísticas mensuales
+        // agrupando por día o por semana dentro del mes, dependiendo de tus necesidades.
+    }
+
+    public function getWeeklyStats($startDate, $endDate)
+    {
+        $stats = [];
+        $dateRange = [];
+
+        // crear un array de fecha para cada día entre startDate y endDate
+        $currentDate = clone $startDate;
+        while ($currentDate->lte($endDate)) {
+            $dateRange[] = $currentDate->copy();
+            $currentDate->addDay();
+        }
+
+        // inicializar un array con los días de la semana y los tipos de comensal
+        $stats = collect($dateRange)->mapWithKeys(function ($date) {
+            // obtener el nombre del día en minúsculas y en español
+            $diaSemana = strtolower($date->locale('es')->dayName);
+            // quitar los acentos para evitar problemas con los nombres de los días
+            $diaSemana = str_replace(['á', 'é', 'í', 'ó', 'ú'], ['a', 'e', 'i', 'o', 'u'], $diaSemana);
+            // $diaSemana = strtolower($date->format('l'));
+            return [$diaSemana => ['EMPLEADO' => 0, 'ESTUDIANTE' => 0]];
+        });
+
+        foreach ($dateRange as $date) {
+            // obtener los datos del día de la fecha $date
+            $dataDay = DB::table('entradas')
+                ->select('tipo_comensal', DB::raw('count(*) as cantidad'))
+                ->whereDate('fecha', $date)
+                ->groupBy('tipo_comensal')
+                ->pluck('cantidad', 'tipo_comensal');
+
+            // combinar los datos del día con el array inicial
+            foreach ($dataDay as $tipoComensal => $cantidad) {
+                $diasDeLaSemana = strtolower($date->locale('es')->dayName);
+                $diasDeLaSemana = str_replace(['á', 'é', 'í', 'ó', 'ú'], ['a', 'e', 'i', 'o', 'u'], $diasDeLaSemana);
+                $array = $stats->toArray();
+                $array[$diasDeLaSemana][$tipoComensal] = doubleval($cantidad);
+                $stats = collect($array);
+            }
+
+            // totalizar los datos del día para obtener el total de comensales
+            $totalDia = $dataDay->sum();
+            $diasDeLaSemana = strtolower($date->locale('es')->dayName);
+            $diasDeLaSemana = str_replace(['á', 'é', 'í', 'ó', 'ú'], ['a', 'e', 'i', 'o', 'u'], $diasDeLaSemana);
+            $array = $stats->toArray();
+            $array[$diasDeLaSemana]['total'] = doubleval($totalDia);
+            $stats = collect($array);
+        }
+
+        // total de estudiantes y empleados en la semana
+
+        $stats['total'] = [
+            'EMPLEADO' => $stats->sum(function ($day) {
+                return $day['EMPLEADO'] ?? 0;
+            }),
+            'ESTUDIANTE' => $stats->sum(function ($day) {
+                return $day['ESTUDIANTE'] ?? 0;
+            }),
+            'TODOS' => $stats->sum(function ($day) {
+                return $day['total'] ?? 0;
+            }),
+        ];
+
+
+        return $stats;
     }
 }
