@@ -92,7 +92,7 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $respuesta = $this->data->respuesta;
-       return  $stats = $this->getFormattedStats();
+        $stats = $this->getFormattedStats();
 
         return view('admin.dashboard', compact('respuesta', 'stats'));
     }
@@ -111,6 +111,4 @@ class DashboardController extends Controller
             return response()->json(['error' => 'Error retrieving statistics'], 500);
         }
     }
-
-    
 }
