@@ -47,6 +47,8 @@ Route::middleware('auth', 'validarRol')->group(function () {
     /** Control de entrada */
     Route::post('reportes', [EntradaController::class, 'getReporte'])->name('admin.entradas.reporte');
     Route::post('reportes-semanal', [EntradaController::class, 'getReporteSemanal'])->name('admin.entradas.reporte.semanal');
+    Route::post('reportes-semanas-mes', [EntradaController::class, 'getReporteSemanasMes'])->name('admin.entradas.reporte.semanas.mes');
+    Route::post('reportes-mensual', [EntradaController::class, 'getReporteMensual'])->name('admin.entradas.reporte.mensual');
     Route::resource('/entradas', EntradaController::class)->names('admin.entradas');
 
     /** Control de servicios */

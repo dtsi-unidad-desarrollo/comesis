@@ -12,6 +12,8 @@ use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class EntradaController extends Controller
 {
@@ -234,26 +236,78 @@ class EntradaController extends Controller
 
     public function getReporteSemanal(Request $request)
     {
-        $inicio = Carbon::parse($request->input('fecha_inicio'))->startOfDay();
-        $fin = Carbon::parse($request->input('fecha_fin'))->endOfDay();
+        $anio = $request->input('anio');
+        $mes = $request->input('mes');
+        $semana = (int) $request->input('semana');
         $servicio = $request->input('servicio');
         $tipo = strtoupper($request->input('tipo', 'TODOS'));
 
-        $inicioFormat = $inicio->format('d-m-Y');
-        $finFormat = $fin->format('d-m-Y');
-        $queryBase = Entrada::whereBetween('fecha', [$inicioFormat, $finFormat])
+        // Validar que la semana sea positiva
+        if ($semana < 1) {
+            return back()->with('error', 'Semana no válida');
+        }
+
+        // Calcular el primer lunes del mes
+        $primerLunes = Carbon::createFromDate($anio, $mes, 1);
+        while ($primerLunes->dayOfWeek != 1) { // 1 = Lunes
+            $primerLunes->addDay();
+        }
+
+        // Calcular fecha de inicio (lunes) de la semana seleccionada
+        $inicio = $primerLunes->copy()->addWeeks($semana - 1);
+
+        // Validar que la fecha de inicio esté dentro del mes
+        if ($inicio->month != $mes) {
+            return back()->with('error', 'La semana seleccionada no existe en este mes');
+        }
+
+        // Calcular fecha de fin (sábado)
+        $fin = $inicio->copy()->addDays(5);
+
+        // NO ajustar al mes - la semana puede cruzar meses
+        // Generar array de fechas en formato d-m-Y (como se guardan en BD)
+        $fechasRango = [];
+        $iter = $inicio->copy();
+        while ($iter->lessThanOrEqualTo($fin)) {
+            $fechasRango[] = $iter->format('d-m-Y');
+            $iter->addDay();
+        }
+
+        $queryBase = Entrada::whereIn('fecha', $fechasRango)
             ->when($servicio && $servicio != 0, fn($q) => $q->where('comida', $servicio))
             ->when($tipo && $tipo != 'TODOS', fn($q) => $q->where('tipo_comensal', $tipo));
 
-        $diario = (clone $queryBase)
-            ->selectRaw("DAYNAME(STR_TO_DATE(fecha, '%d-%m-%Y')) AS dia, DATE_FORMAT(STR_TO_DATE(fecha, '%d-%m-%Y'), '%d/%m/%Y') AS fecha, COUNT(*) AS bandejas")
-            ->groupByRaw("DAYNAME(STR_TO_DATE(fecha, '%d-%m-%Y')), DATE_FORMAT(STR_TO_DATE(fecha, '%d-%m-%Y'), '%d/%m/%Y')")
-            ->orderByRaw("MIN(STR_TO_DATE(fecha, '%d-%m-%Y'))")
-            ->get();
+        // Obtener conteos por fecha específica
+        $conteosPorFecha = (clone $queryBase)
+            ->selectRaw('fecha, COUNT(*) as cantidad')
+            ->groupBy('fecha')
+            ->pluck('cantidad', 'fecha')
+            ->toArray();
 
-        $totalComidas = (clone $queryBase)->count();
+        $diario = collect();
+        foreach ($fechasRango as $fecha) {
+            $fechaCarbon = Carbon::createFromFormat('d-m-Y', $fecha);
+            $diaNombre = $fechaCarbon->format('l');
+            $diasEsp = [
+                'Monday' => 'Lunes',
+                'Tuesday' => 'Martes',
+                'Wednesday' => 'Miercoles',
+                'Thursday' => 'Jueves',
+                'Friday' => 'Viernes',
+                'Saturday' => 'Sabado',
+                'Sunday' => 'Domingo',
+            ];
+            $dia = $diasEsp[$diaNombre] ?? $diaNombre;
+            $bandejas = $conteosPorFecha[$fecha] ?? 0;
 
+            $diario->push((object)[
+                'dia' => $dia,
+                'fecha' => $fechaCarbon->format('d/m/Y'),
+                'bandejas' => $bandejas,
+            ]);
+        }
 
+        $totalComidas = array_sum($conteosPorFecha);
 
         $pdf = Pdf::loadView('admin.entradas.reporte_semanal', [
             'fecha' => $inicio->format('d/m/Y'),
@@ -264,5 +318,138 @@ class EntradaController extends Controller
         ]);
 
         return $pdf->stream('reporte_semanal_' . $inicio->toDateString() . '.pdf');
+    }
+
+    public function getReporteMensual(Request $request)
+    {
+        $mes = $request->input('mes'); // 1-12
+        $anio = $request->input('anio');
+        $servicio = $request->input('servicio');
+        $tipo = strtoupper($request->input('tipo', 'TODOS'));
+
+        // Build date range for the entire month
+        $inicioMes = Carbon::createFromDate($anio, $mes, 1)->startOfDay();
+        $finMes = Carbon::createFromDate($anio, $mes, 1)->endOfMonth()->endOfDay();
+
+        $inicioFormat = $inicioMes->format('d-m-Y');
+        $finFormat = $finMes->format('d-m-Y');
+
+        // Base query with filters
+        $queryBase = Entrada::whereBetween('fecha', [$inicioFormat, $finFormat])
+            ->when($servicio && $servicio != 0, fn($q) => $q->where('comida', $servicio))
+            ->when($tipo && $tipo != 'TODOS', fn($q) => $q->where('tipo_comensal', $tipo));
+
+        // Get daily counts grouped by fecha and tipo_comensal
+        $registros = (clone $queryBase)
+            ->selectRaw('fecha, tipo_comensal, COUNT(*) as cantidad')
+            ->groupByRaw('fecha, tipo_comensal')
+            ->orderByRaw('STR_TO_DATE(fecha, "%d-%m-%Y")')
+            ->get()
+            ->groupBy('fecha');
+
+        // Generate all dates in the month (1 to number of days)
+        $diasEnElMes = $finMes->day;
+        $rangoFechas = collect();
+        for ($dia = 1; $dia <= $diasEnElMes; $dia++) {
+            $fecha = Carbon::createFromDate($anio, $mes, $dia)->format('d-m-Y');
+            $rangoFechas->push($fecha);
+        }
+
+        // Calculate grand total
+        $granTotal = 0;
+        foreach ($rangoFechas as $fecha) {
+            if (isset($registros[$fecha])) {
+                foreach ($registros[$fecha] as $registro) {
+                    $granTotal += $registro->cantidad;
+                }
+            }
+        }
+
+        $pdf = Pdf::loadView('admin.entradas.reporte_mensual', [
+            'mes' => $this->getMesNombre($mes),
+            'anio' => $anio,
+            'rangoFechas' => $rangoFechas,
+            'registros' => $registros,
+            'granTotal' => $granTotal,
+        ]);
+
+        return $pdf->stream('reporte_mensual_' . $inicioMes->format('Y-m') . '.pdf');
+    }
+
+    public function getReporteSemanasMes(Request $request)
+    {
+        $mes = $request->input('mes');
+        $anio = $request->input('anio');
+        $servicio = $request->input('servicio');
+        $tipo = strtoupper($request->input('tipo', 'TODOS'));
+
+        $primerDiaMes = Carbon::createFromDate($anio, $mes, 1);
+        $primerLunes = Carbon::createFromDate($anio, $mes, 1);
+        while ($primerLunes->dayOfWeek != 1) {
+            $primerLunes->addDay();
+        }
+
+        if ($primerLunes->month != $mes) {
+            $semanas = collect();
+            $granTotal = 0;
+        } else {
+            $semanas = collect();
+            $lunes = $primerLunes->copy();
+            $ultimoDiaMes = $primerDiaMes->copy()->endOfMonth();
+
+             while ($lunes <= $ultimoDiaMes) {
+                 $sabado = $lunes->copy()->addDays(5);
+
+                 $fechasSemana = [];
+                 $fechaIter = $lunes->copy();
+                 while ($fechaIter <= $sabado) {
+                     $fechasSemana[] = $fechaIter->format('d-m-Y');
+                     $fechaIter->addDay();
+                 }
+
+                 $total = Entrada::whereIn('fecha', $fechasSemana)
+                     ->when($servicio && $servicio != 0, fn($q) => $q->where('comida', $servicio))
+                     ->when($tipo && $tipo != 'TODOS', fn($q) => $q->where('tipo_comensal', $tipo))
+                     ->count();
+
+                 $semanas->push((object)[
+                     'desde' => $lunes->copy(),
+                     'hasta' => $sabado->copy(),
+                     'total' => $total,
+                 ]);
+
+                 $lunes->addDays(7);
+             }
+
+            $granTotal = $semanas->sum('total');
+        }
+
+        $pdf = Pdf::loadView('admin.entradas.reporte_semanas_mes', [
+            'mes' => $this->getMesNombre($mes),
+            'anio' => $anio,
+            'semanas' => $semanas,
+            'granTotal' => $granTotal,
+        ]);
+
+        return $pdf->stream('reporte_semanas_mes_' . $anio . '_' . $mes . '.pdf');
+    }
+
+    private function getMesNombre($mes)
+    {
+        $meses = [
+            1 => 'ENERO',
+            2 => 'FEBRERO',
+            3 => 'MARZO',
+            4 => 'ABRIL',
+            5 => 'MAYO',
+            6 => 'JUNIO',
+            7 => 'JULIO',
+            8 => 'AGOSTO',
+            9 => 'SEPTIEMBRE',
+            10 => 'OCTUBRE',
+            11 => 'NOVIEMBRE',
+            12 => 'DICIEMBRE',
+        ];
+        return $meses[$mes] ?? '';
     }
 }
