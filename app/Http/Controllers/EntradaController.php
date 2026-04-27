@@ -40,13 +40,7 @@ class EntradaController extends Controller
         try {
             $entradas = [];
             $servicios = Servicio::all();
-            $tipos = [
-                "ESTUDIANTE",
-                "ESTUDIANTE FORANEO",
-                "EMPLEADO",
-                "EVENTUAL",
-
-            ];
+            $tipos = $this->tiposDeComensales;
 
             if ($request->activo == true) {
 
@@ -188,12 +182,12 @@ class EntradaController extends Controller
     public function getReporte(Request $request)
     {
         $reporte = [];
-       return  $fecha = Carbon::parse($request->input('fecha'))->startOfDay();
+        $fecha = $request->input('fecha');
         $tipo = strtoupper($request->input('tipo')); // puede ser 'TODOS' o un tipo específico
         $servicio = $request->input('servicio'); // opcional: filtrar por servicio (ALMUERZO/CENA)
 
         // Totales de comidas
-        $totalComidas = Entrada::whereDate('created_at', $fecha)
+        $totalComidas = Entrada::whereDate('fecha', $fecha)
             ->where('comida', $servicio)
             ->count();
 
@@ -201,7 +195,7 @@ class EntradaController extends Controller
         if ($tipo && $tipo != 'TODOS') {
             foreach ($this->tiposDeComensales as $tipoComensal) {
                 if ($tipoComensal == $tipo) {
-                    $reporte[$tipoComensal] = Entrada::whereDate('created_at', $fecha)
+                    $reporte[$tipoComensal] = Entrada::whereDate('fecha', $fecha)
                         ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
                             return $q->where('comida', $servicio);
                         })
@@ -211,7 +205,7 @@ class EntradaController extends Controller
             }
         } else {
             foreach ($this->tiposDeComensales as $tipoComensal) {
-                $reporte[$tipoComensal] = Entrada::whereDate('created_at', $fecha)
+                $reporte[$tipoComensal] = Entrada::whereDate('fecha', $fecha)
                     ->when($servicio && $servicio != 0, function ($q) use ($servicio) {
                         return $q->where('comida', $servicio);
                     })
@@ -220,7 +214,7 @@ class EntradaController extends Controller
             }
         }
 
-
+        $reporte;
         // Generar el PDF
         $pdf = Pdf::loadView('admin.entradas.reporte', [
             'fecha' => Helpers::normalizarFecha($fecha),
@@ -231,7 +225,7 @@ class EntradaController extends Controller
         ]);
 
         // Descargar el PDF
-        return $pdf->stream('reporte_comidas_' . $fecha->toDateString() . '.pdf');
+        return $pdf->stream('reporte_de_entradas_' . $fecha . '.pdf');
     }
 
     public function getReporteSemanal(Request $request)

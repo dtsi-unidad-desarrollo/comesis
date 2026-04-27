@@ -38,6 +38,7 @@
                                <label for="servicio" class="form-label">Servicio</label>
                                <select name="servicio" id="servicio" class="form-select">
                                    <option value="0">Todos los servicios</option>
+                                   <option value="ALMUERZO" selected>ALMUERZO</option>
                                    @foreach ($servicios as $servicio)
                                    <option value="{{ $servicio->nombre }}">{{ $servicio->nombre }}</option>
                                    @endforeach
