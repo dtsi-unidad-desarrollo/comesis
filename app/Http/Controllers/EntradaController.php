@@ -188,7 +188,7 @@ class EntradaController extends Controller
     public function getReporte(Request $request)
     {
         $reporte = [];
-        $fecha = Carbon::parse($request->input('fecha'))->startOfDay();
+       return  $fecha = Carbon::parse($request->input('fecha'))->startOfDay();
         $tipo = strtoupper($request->input('tipo')); // puede ser 'TODOS' o un tipo específico
         $servicio = $request->input('servicio'); // opcional: filtrar por servicio (ALMUERZO/CENA)
 

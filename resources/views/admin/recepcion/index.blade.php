@@ -87,9 +87,9 @@
                         </span>
                         <input type="text" class="form-control" name="cedula" autofocus id="cedula"
                             aria-describedby="inputGroupPrepend" placeholder="Ingrese número de identificación."
-                            min="6" max="9" {{-- $servicio == false ? "readonly disabled" : "" --}} required>
+                            min="6" max="9" {{ $servicio == false ? "readonly disabled" : "" }} required>
                         <button class="input-group-text btn btn-primary" type="submit"
-                            {{-- $servicio == false ? "disabled" : "" --}}
+                            {{ $servicio == false ? "disabled" : "" }}
                             id="buscarEstudiante">Buscar</button>
                         <div class="invalid-feedback">
                             Por favor ingrese número de identificación.
@@ -144,9 +144,10 @@
                 </div>
             </div>
             @else
-            <div class="col-sm-6 col-xs-12">
-                <img src="{{ asset('assets/img/comedor-close.jpg')}}" class="" height="350px" alt="img-close">
-            </div>
+                <div class="col-sm-6 col-xs-12">
+                    <img src="{{ asset('assets/img/comedor-close.jpg')}}" class="" height="350px" alt="img-close">
+                </div>
+                
             @endif
         </div>
     </div>
