@@ -81,15 +81,15 @@ class DashboardController extends Controller
     {
         $today = Carbon::today();
         $startOfWeek = Carbon::now()->startOfWeek();
-        // $startOfMonth = Carbon::now()->startOfMonth();
+        $startOfMonth = Carbon::now()->startOfMonth();
 
         $dailyStats = $this->getEntradaStats($today);
         $weeklyStats = $this->getEntradaStats($startOfWeek, Carbon::now()->endOfWeek(), 'semanal');
-        // $monthlyStats = $this->getEntradaStats($startOfMonth, Carbon::now()->endOfMonth(), 'mensual');
+        $monthlyStats = $this->getEntradaStats($startOfMonth, Carbon::now()->endOfMonth(), 'mensual');
         return [
             'hoy' => $dailyStats,
             'semanal' => $weeklyStats,
-            // 'monthly' => $monthlyStats,
+            'monthly' => $monthlyStats,
         ];
     }
     /**
@@ -170,6 +170,7 @@ class DashboardController extends Controller
             $diasDeLaSemana = str_replace(['á', 'é', 'í', 'ó', 'ú'], ['a', 'e', 'i', 'o', 'u'], $diasDeLaSemana);
             $array = $stats->toArray();
             $array[$diasDeLaSemana]['total'] = doubleval($totalDia);
+            $array[$diasDeLaSemana]['fecha'] = $date;
             $stats = collect($array);
         }
 
