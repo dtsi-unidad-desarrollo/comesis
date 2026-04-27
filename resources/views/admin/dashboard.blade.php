@@ -11,14 +11,6 @@
     <div class="container">
         <section class="section register d-flex flex-column align-items-center justify-content-center ">
             <div class="container">
-                <div class="row justify-content-center">
-                    <div class=" col-sm-12 d-flex flex-column align-items-center justify-content-center">
-                        <div class="hero-section text-center py-5 mb-4"
-                            style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px; width: 100%;">
-                            <p class="lead">Monitorea las entradas en tiempo real</p>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Estadísticas -->
                 <div class="row mt-4">
@@ -51,11 +43,11 @@
                             <div class="card-body">
                                 <canvas id="weeklyChart" width="400" height="200"></canvas>
                                 <div class="mt-3 text-center">
-                                    <p class="mb-1">Estudiantes: <span
+                                    <p class="mb-1">Total de bandejas entregadas a estudiantes: <span
                                             id="weekly-estudiante">{{ $stats['semanal']['total']['ESTUDIANTE'] }}</span></p>
-                                    <p class="mb-1">Empleados: <span
+                                    <p class="mb-1">Total de bandejas entregadas a empleados: <span
                                             id="weekly-empleado">{{ $stats['semanal']['total']['EMPLEADO'] }}</span></p>
-                                    <p class="font-weight-bold">Total: <span
+                                    <p class="font-weight-bold">Total bruto: <span
                                             id="weekly-total">{{ $stats['semanal']['total']['TODOS'] }}</span></p>
                                 </div>
                             </div>
@@ -126,7 +118,15 @@
         const weeklyChart = new Chart(ctxWeek, {
             type: 'bar',
             data: {
-                labels: ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'],
+                labels: [
+                  
+                    "{{  $stats['semanal']['lunes']['fecha'] }} - LUNES",
+                    "{{  $stats['semanal']['martes']['fecha'] }} - MARTES",
+                    "{{  $stats['semanal']['miercoles']['fecha']}} - MIERCOLES",
+                    "{{  $stats['semanal']['jueves']['fecha'] }} - JUEVES",
+                    "{{  $stats['semanal']['viernes']['fecha'] }} - VIERNES",
+                    "{{  $stats['semanal']['sabado']['fecha'] }} - SABADO",
+                ],
                 datasets: [{
                         label: 'Estudiantes',
                         data: [
