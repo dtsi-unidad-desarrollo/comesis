@@ -112,7 +112,7 @@ class RecepcionController extends Controller
                             /** obtenemos las entradas del dia del comensal  para validar que coma una ves por servicio */
                             $entradas = Entrada::where([
                                 'cedula' => $comensal->cedula,
-                                'fecha' =>  $date->format('d-m-Y'),
+                                'fecha' =>  $date->format('Y-m-d'),
                                 'comida' => $servicio->nombre // Aqui valida si es ALMUERZO | CENA
                             ])->get();
 
@@ -127,7 +127,7 @@ class RecepcionController extends Controller
                                 Helpers::setEntradaComedor($comensal, $servicio);
 
                                 /** obtener las entradas actualizadas */
-                                $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('d-m-Y'), $servicio->nombre ?? '');
+                                $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre ?? '');
                             }
                         } else {
                             /** Se valdiad si el comensal esta activo en el sistema  */
