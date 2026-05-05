@@ -90,7 +90,7 @@ class Helpers extends Model
                 'direccion' => $comensal->carreras[0]->sector_sede ?? $comensal->direccion,
                 
            
-                'fecha' => $date->format('d-m-Y'),
+                'fecha' => $date->format('Y-m-d'),
                 'hora' => $date->format('h:ia'),    
             ]);
             
