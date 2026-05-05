@@ -44,7 +44,7 @@ class RecepcionController extends Controller
             $servicio = Helpers::getServicio($date);
 
             /** Obtenemos el total de entradas */
-            if ($servicio) $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('d-m-Y'), $servicio->nombre);
+            if ($servicio) $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre);
 
             /** Se valida si hay una cedula  */
             if ($request->filled('cedula')) {
