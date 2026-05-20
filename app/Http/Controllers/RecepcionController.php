@@ -221,7 +221,8 @@ class RecepcionController extends Controller
                 'vicn_descripcion',
                 DB::raw("CONCAT(per_direccion, ' ', per_direccion2) as Nombre_Completo")
             )
-            ->leftJoin('rrhh_vista_cargos', 'rrhh_vista_cargos.per_cedula', '=', 'rrhh_vista_personal.per_cedula')
+            ->leftJoin('rrhh_personal', 'rrhh_personal.per_cedula', '=', 'rrhh_vista_personal.per_cedula')
+    
             ->first();
 
         // obtenermos los tipos de cargos para determinar el tipo de empleado
