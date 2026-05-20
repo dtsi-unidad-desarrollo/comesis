@@ -213,7 +213,6 @@ class RecepcionController extends Controller
 
         return $comensal = DB::connection('mysql_third')
             ->table('rrhh_vista_personal')
-            ->leftJoin('rrhh_personal', 'rrhh_personal.per_cedula', '=', 'rrhh_vista_personal.per_cedula')
             ->where('per_cedula', $cedula)
             ->select(
                 'per_nombres',
