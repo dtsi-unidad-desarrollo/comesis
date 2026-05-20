@@ -214,8 +214,8 @@ class RecepcionController extends Controller
         $comensal['cargos'] = DB::connection('mysql_third')
             ->table('rrhh_cargo_tipo')
             ->get();
-        $comensal['rrhh_cargo_opsu_manual_relac'] = DB::connection('mysql_third')
-            ->table('rrhh_cargo_opsu_manual_relac')
+        $comensal['rrhh_personal_cargo'] = DB::connection('mysql_third')
+            ->table('rrhh_personal_cargo')
             ->get();
 
         $comensal['data'] = DB::connection('mysql_third')
