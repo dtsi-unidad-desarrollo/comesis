@@ -210,7 +210,7 @@ class RecepcionController extends Controller
     {
         return $comensal = DB::connection('mysql_third')
             ->table('vista_carga_fam')
-            ->where('per_cedula', $cedula)
+            ->where('carfam_cedula', $cedula)
             ->first();
 
         if ($comensal) {
