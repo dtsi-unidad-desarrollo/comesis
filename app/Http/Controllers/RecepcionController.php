@@ -46,8 +46,7 @@ class RecepcionController extends Controller
             /** Obtenemos el total de entradas */
             if ($servicio) $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre);
 
-            /** Buscamos en TEREPAIMA */
-            return $comensal = $this->getEmpleados(24823972);
+            // llamada de prueba eliminada para evitar respuestas inesperadas en producción
 
             /** Se valida si hay una cedula  */
             if ($request->filled('cedula')) {
@@ -258,9 +257,11 @@ class RecepcionController extends Controller
             }
         }
 
+        // Marcar tipo de comensal para que el adaptador no falle
+
         // Adaptar comensal al formato esperado por la aplicación
         $comensal = $this->adaptadorDeComensal($comensal);
-        $comensal->tipo_empleado = $tipoEmpleado;
+        $comensal->tipo_comensal = $tipoEmpleado;
         $comensal->vista_carga_fam = $cargaFamiliar;
 
         return $comensal;
