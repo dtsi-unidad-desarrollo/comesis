@@ -69,7 +69,7 @@ class DashboardController extends Controller
             $result['total'] = $result['EMPLEADO'] + $result['ESTUDIANTE'];
 
             // consultamos el servicio para obtener el total de bandejas disponibles, por ejemplo, 2000
-            $result['disponibles'] = Servicio::where('nombre', 'ALMUERZO')->first()->disponibilidad;
+            $result['disponibles'] = Servicio::where('nombre', 'ALMUERZO')->first()->disponibilidad ?? 0;
 
             //bandejas no entregadas
             $result['no_entregadas'] = $result['disponibles'] - $result['EMPLEADO'] - $result['ESTUDIANTE'];
