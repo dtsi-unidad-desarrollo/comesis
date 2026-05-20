@@ -170,7 +170,7 @@ class DashboardController extends Controller
             $diasDeLaSemana = str_replace(['á', 'é', 'í', 'ó', 'ú'], ['a', 'e', 'i', 'o', 'u'], $diasDeLaSemana);
             $array = $stats->toArray();
             $array[$diasDeLaSemana]['total'] = doubleval($totalDia);
-            $array[$diasDeLaSemana]['fecha'] = Carbon::create($date)->format('d-m-Y');
+            $array[$diasDeLaSemana]['fecha'] = Carbon::create($date)->format('Y-m-d');
             $stats = collect($array);
         }
 

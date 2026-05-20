@@ -48,7 +48,7 @@
                         </select>
 
                         <input type="date" class="form-control" name="fecha" aria-label="fecha"
-                            value="{{ $request->fecha ? $request->fecha : '' }}"
+                            value="{{ $request->fecha ? \Carbon\Carbon::parse($request->fecha)->format('Y-m-d') : '' }}"
                             aria-describedby="button-addon2">
 
                         <input type="text" class="form-control" name="filtro"
@@ -91,7 +91,7 @@
                                 <td>{{ $entrada->nacionalidad . '-' . $entrada->cedula }}</td>
                                 <td>{{ $entrada->tipo_comensal }}</td>
                                 <td class="">{{ $entrada->comida }}</td>
-                                <td>{{ $entrada->fecha }}</td>
+                                <td>{{ \Carbon\Carbon::parse($entrada->fecha)->format('d/m/Y') }}</td>
                                 <td>{{ $entrada->hora }}</td>
                                 <td>
                                     @if (Auth::user()->rol <= 2)

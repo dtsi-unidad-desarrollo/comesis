@@ -45,28 +45,28 @@ class EntradaController extends Controller
             if ($request->activo == true) {
 
                 if ($request->servicio && $request->fecha && $request->filtro) {
-                    $entradas = Entrada::whereDate('created_at', $request->fecha)
+                    $entradas = Entrada::whereDate('fecha', $request->fecha)
                         ->where('comida', $request->servicio)
                         ->where('cedula', $request->filtro)
                         ->orderBy('fecha', 'DESC')->paginate(12);
 
                     if (!count($entradas)) {
-                        $entradas = Entrada::whereDate('created_at', $request->fecha)
+                        $entradas = Entrada::whereDate('fecha', $request->fecha)
                             ->where('comida', $request->servicio)
                             ->where('nombres', 'LIKE', "%{$request->filtro}%")
                             ->orderBy('fecha', 'DESC')->paginate(12);
                     }
                 } else if ($request->servicio && $request->fecha) {
-                    $entradas = Entrada::whereDate('created_at', $request->fecha)
+                    $entradas = Entrada::whereDate('fecha', $request->fecha)
                         ->where('comida', $request->servicio)
                         ->orderBy('fecha', 'DESC')->paginate(12);
                 } else if ($request->fecha && $request->filtro) {
-                    $entradas = Entrada::whereDate('created_at', $request->fecha)
+                    $entradas = Entrada::whereDate('fecha', $request->fecha)
                         ->where('cedula', $request->filtro)
                         ->orderBy('fecha', 'DESC')->paginate(12);
 
                     if (!count($entradas)) {
-                        $entradas = Entrada::whereDate('created_at', $request->fecha)
+                        $entradas = Entrada::whereDate('fecha', $request->fecha)
                             ->where('nombres', 'LIKE', "%{$request->filtro}%")
                             ->orderBy('fecha', 'DESC')->paginate(12);
                     }
@@ -89,7 +89,7 @@ class EntradaController extends Controller
                     $entradas = Entrada::where('comida', $request->servicio)
                         ->orderBy('fecha', 'DESC')->paginate(12);
                 } else if ($request->fecha) {
-                    $entradas = Entrada::whereDate('created_at', $request->fecha)->orderBy('nombres', 'ASC')->paginate(12);
+                    $entradas = Entrada::whereDate('fecha', $request->fecha)->orderBy('nombres', 'ASC')->paginate(12);
                 }
             } else {
                 $entradas = Entrada::orderBy('created_at', 'DESC')->paginate(12);
@@ -259,11 +259,11 @@ class EntradaController extends Controller
         $fin = $inicio->copy()->addDays(5);
 
         // NO ajustar al mes - la semana puede cruzar meses
-        // Generar array de fechas en formato d-m-Y (como se guardan en BD)
+        // Generar array de fechas en formato Y-m-d (ISO 8601 estándar)
         $fechasRango = [];
         $iter = $inicio->copy();
         while ($iter->lessThanOrEqualTo($fin)) {
-            $fechasRango[] = $iter->format('d-m-Y');
+            $fechasRango[] = $iter->format('Y-m-d');
             $iter->addDay();
         }
 
@@ -280,7 +280,7 @@ class EntradaController extends Controller
 
         $diario = collect();
         foreach ($fechasRango as $fecha) {
-            $fechaCarbon = Carbon::createFromFormat('d-m-Y', $fecha);
+            $fechaCarbon = Carbon::parse($fecha);
             $diaNombre = $fechaCarbon->format('l');
             $diasEsp = [
                 'Monday' => 'Lunes',
@@ -325,8 +325,8 @@ class EntradaController extends Controller
         $inicioMes = Carbon::createFromDate($anio, $mes, 1)->startOfDay();
         $finMes = Carbon::createFromDate($anio, $mes, 1)->endOfMonth()->endOfDay();
 
-        $inicioFormat = $inicioMes->format('d-m-Y');
-        $finFormat = $finMes->format('d-m-Y');
+        $inicioFormat = $inicioMes->format('Y-m-d');
+        $finFormat = $finMes->format('Y-m-d');
 
         // Base query with filters
         $queryBase = Entrada::whereBetween('fecha', [$inicioFormat, $finFormat])
@@ -337,7 +337,7 @@ class EntradaController extends Controller
         $registros = (clone $queryBase)
             ->selectRaw('fecha, tipo_comensal, COUNT(*) as cantidad')
             ->groupByRaw('fecha, tipo_comensal')
-            ->orderByRaw('STR_TO_DATE(fecha, "%d-%m-%Y")')
+            ->orderByRaw('fecha')
             ->get()
             ->groupBy('fecha');
 
@@ -345,7 +345,7 @@ class EntradaController extends Controller
         $diasEnElMes = $finMes->day;
         $rangoFechas = collect();
         for ($dia = 1; $dia <= $diasEnElMes; $dia++) {
-            $fecha = Carbon::createFromDate($anio, $mes, $dia)->format('d-m-Y');
+            $fecha = Carbon::createFromDate($anio, $mes, $dia)->format('Y-m-d');
             $rangoFechas->push($fecha);
         }
 
@@ -391,17 +391,17 @@ class EntradaController extends Controller
             $lunes = $primerLunes->copy();
             $ultimoDiaMes = $primerDiaMes->copy()->endOfMonth();
 
-             while ($lunes <= $ultimoDiaMes) {
-                 $sabado = $lunes->copy()->addDays(5);
+while ($lunes <= $ultimoDiaMes) {
+                  $sabado = $lunes->copy()->addDays(5);
 
-                 $fechasSemana = [];
-                 $fechaIter = $lunes->copy();
-                 while ($fechaIter <= $sabado) {
-                     $fechasSemana[] = $fechaIter->format('d-m-Y');
-                     $fechaIter->addDay();
-                 }
+                  $fechasSemana = [];
+                  $fechaIter = $lunes->copy();
+                  while ($fechaIter <= $sabado) {
+                      $fechasSemana[] = $fechaIter->format('Y-m-d');
+                      $fechaIter->addDay();
+                  }
 
-                 $total = Entrada::whereIn('fecha', $fechasSemana)
+                  $total = Entrada::whereIn('fecha', $fechasSemana)
                      ->when($servicio && $servicio != 0, fn($q) => $q->where('comida', $servicio))
                      ->when($tipo && $tipo != 'TODOS', fn($q) => $q->where('tipo_comensal', $tipo))
                      ->count();

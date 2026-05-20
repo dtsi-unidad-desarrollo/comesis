@@ -91,7 +91,7 @@
             @php $granTotal = 0; @endphp
             @foreach($rangoFechas as $fecha)
                 @php 
-                    $fechaCarbon = \Carbon\Carbon::createFromFormat('d-m-Y', $fecha);
+                    $fechaCarbon = \Carbon\Carbon::parse($fecha);
                     $esDomingo = $fechaCarbon->isSunday();
                     $data = $registros[$fecha] ?? collect();
                     $estudiantes = $data->where('tipo_comensal', 'ESTUDIANTE')->sum('cantidad');
