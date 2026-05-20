@@ -93,7 +93,7 @@
                     data: [
                         {{ $stats['hoy']['ESTUDIANTE'] }},
                         {{ $stats['hoy']['EMPLEADO'] }},
-                        {{ (($stats['hoy']['ESTUDIANTE'] + $stats['hoy']['EMPLEADO']) - $stats['hoy']['total']) }}
+                        {{ $stats['hoy']['no_entregadas'] }}
                     ],
                     backgroundColor: [
                         'rgba(54, 162, 235, 0.7)',
@@ -112,7 +112,7 @@
                 scales: {
                     y: {
                         beginAtZero: true,
-                        max: 2000,
+                        max: {{ $stats['hoy']['disponibles'] }},
                     }
                 }
             }

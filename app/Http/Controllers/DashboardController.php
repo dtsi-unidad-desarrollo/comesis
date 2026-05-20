@@ -13,7 +13,8 @@ use App\Models\{
     Grupo,
     GrupoEstudiante,
     Pago,
-    Profesore
+    Profesore,
+    Servicio
 };
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -66,6 +67,12 @@ class DashboardController extends Controller
 
             // También puedes incluir el total si quieres:
             $result['total'] = $result['EMPLEADO'] + $result['ESTUDIANTE'];
+
+            // consultamos el servicio para obtener el total de bandejas disponibles, por ejemplo, 2000
+            $result['disponibles'] = Servicio::where('nombre', 'ALMUERZO')->first()->disponibilidad;
+
+            //bandejas no entregadas
+            $result['no_entregadas'] = $result['disponibles'] - $result['EMPLEADO'] - $result['ESTUDIANTE'];
 
             // Retornar como respuesta JSON
             return $result;

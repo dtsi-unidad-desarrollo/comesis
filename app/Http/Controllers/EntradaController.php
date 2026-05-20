@@ -128,13 +128,6 @@ class EntradaController extends Controller
                 ->addHours(1)
                 ->addMinute(15);
 
-            // var_dump( $ahora->format('d-m-Y h:ia')); echo "<br>";
-            // var_dump( $almuerzoInferior->format('d-m-Y h:ia')); echo "<br>";
-            // var_dump( $almuerzoSuperior->format('d-m-Y h:ia')); echo "<br>";
-
-            // var_dump($ahora->greaterThan($almuerzoInferior)); // Determina si la instancia es mayor (después) que otra
-            // var_dump($ahora->lessThan($almuerzoSuperior)); // Determina si la instancia es menor (antes) que otra
-
             if ($ahora->lessThan($almuerzoSuperior) == true && $ahora->greaterThan($almuerzoInferior) == true) {
                 $comida = "ALMUERZO";
             } elseif ($ahora->lessThan($cenaSuperior) == true && $ahora->greaterThan($cenaInferior) == true) {
