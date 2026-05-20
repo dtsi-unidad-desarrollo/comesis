@@ -219,6 +219,11 @@ class RecepcionController extends Controller
             ->table('rrhh_personal')
             ->where('per_cedula', $cedula)
             ->get();
+        
+            $comensal['data_nomina'] = DB::connection('mysql_third')
+            ->table('rrhh_personal_nomina')
+            ->where('pern_percodigo', $cedula)
+            ->get();
 
 
          $comensal['empleado'] = DB::connection('mysql_third')
