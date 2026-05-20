@@ -43,7 +43,7 @@ class RecepcionController extends Controller
             /** obtenemos el servicio actual activo por medio de la hora */
             $servicio = Helpers::getServicio($date);
 
-              return $comensal = $this->getEmpleados($request->cedula);
+            return $comensal = $this->getEmpleados($request->cedula);
 
             /** Obtenemos el total de entradas */
             if ($servicio) $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre);
@@ -210,24 +210,19 @@ class RecepcionController extends Controller
     public function getEmpleados($cedula)
     {
         // Obtener datos básicos desde la vista
-        $comensal = DB::connection('mysql_third')
+        return $comensal = DB::connection('mysql_third')
             ->table('rrhh_vista_personal')
             ->where('per_cedula', $cedula)
             ->first();
-            // Determinar cargo predominante (último activo) y nombre del cargo
-            return $cargo = DB::connection('mysql_third')
-                ->table('rrhh_cargo_tipo')
-                ->get();
+
+        // obtenermos los tipos de cargos para determinar el tipo de empleado
+        $cargo = DB::connection('mysql_third')
+            ->table('rrhh_cargo_tipo')
+            ->get();
 
         if (!$comensal) {
             return null;
         }
-
-        // Traer carga familiar
-        $cargaFamiliar = DB::connection('mysql_third')
-            ->table('vista_carga_fam')
-            ->where('cargt_percodigo', $comensal->per_codigo)
-            ->get();
 
         // Obtener estatus y sexo desde rrhh_personal
         $comensal->estatus = DB::connection('mysql_third')
@@ -241,25 +236,17 @@ class RecepcionController extends Controller
             ->where('per_cedula', $cedula)
             ->value('sex_descripcion');
 
-
-        $tipoEmpleado = 'OTRO';
-        if ($cargo && isset($cargo->car_nombre)) {
-            $nombreCargo = strtolower($cargo->car_nombre);
-            if (str_contains($nombreCargo, 'admin') || str_contains($nombreCargo, 'administr')) {
-                $tipoEmpleado = 'ADMINISTRATIVO';
-            } elseif (str_contains($nombreCargo, 'obrero')) {
-                $tipoEmpleado = 'OBRERO';
-            } elseif (str_contains($nombreCargo, 'profesor') || str_contains($nombreCargo, 'docente') || str_contains($nombreCargo, 'catedr')) {
-                $tipoEmpleado = 'PROFESOR';
-            }
-        }
+        $cargoEmpleado = DB::connection('mysql_third')
+            ->table('rrhh_cargo_personal')
+            ->where('per_cedula', $cedula)
+            ->value('car_codigo');
+       
 
         // Marcar tipo de comensal para que el adaptador no falle
 
         // Adaptar comensal al formato esperado por la aplicación
         $comensal = $this->adaptadorDeComensal($comensal);
         $comensal->tipo_comensal = $tipoEmpleado;
-        $comensal->vista_carga_fam = $cargaFamiliar;
 
         return $comensal;
     }
