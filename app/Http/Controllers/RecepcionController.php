@@ -43,7 +43,7 @@ class RecepcionController extends Controller
             /** obtenemos el servicio actual activo por medio de la hora */
             $servicio = Helpers::getServicio($date);
 
-            return $comensal = $this->getEmpleados(25797040);
+            return $comensal = $this->getEmpleados(16791197);
 
             /** Obtenemos el total de entradas */
             if ($servicio) $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre);
