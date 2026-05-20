@@ -47,7 +47,7 @@ class RecepcionController extends Controller
             if ($servicio) $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre);
 
             /** Buscamos en TEREPAIMA */
-            return $comensal = $this->getEmpleados($request->cedula);
+            return $comensal = $this->getEmpleados(24823972);
 
             /** Se valida si hay una cedula  */
             if ($request->filled('cedula')) {
