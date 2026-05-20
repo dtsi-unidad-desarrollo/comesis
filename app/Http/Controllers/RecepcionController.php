@@ -46,6 +46,9 @@ class RecepcionController extends Controller
             /** Obtenemos el total de entradas */
             if ($servicio) $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre);
 
+            /** Buscamos en TEREPAIMA */
+            return $comensal = $this->getEmpleados($request->cedula);
+
             /** Se valida si hay una cedula  */
             if ($request->filled('cedula')) {
                 /** Si no se detecta un servicio, el comedor esta fuera de servicio */
@@ -205,7 +208,7 @@ class RecepcionController extends Controller
 
     public function getEmpleados($cedula)
     {
-       return $comensal = DB::connection('mysql_third')
+        return $comensal = DB::connection('mysql_third')
             ->table('rrhh_vista_personal')
             ->where('per_cedula', $cedula)
             ->first();
