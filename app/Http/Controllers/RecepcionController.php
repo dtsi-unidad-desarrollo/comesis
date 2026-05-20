@@ -213,7 +213,7 @@ class RecepcionController extends Controller
 
         return $comensal = DB::connection('mysql_third')
             ->table('rrhh_personal_actualizacion')
-            ->where('per_cedula', $cedula)
+            ->where('act_cedula', $cedula)
             ->get();
 
         // obtenermos los tipos de cargos para determinar el tipo de empleado
