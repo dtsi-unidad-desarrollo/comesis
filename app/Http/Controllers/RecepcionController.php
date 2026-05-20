@@ -84,7 +84,7 @@ class RecepcionController extends Controller
 
                     if (!$comensal) {
                         /** Buscamos en TEREPAIMA */
-                        $comensal = $this->getEmpleados($request->cedula);
+                        return $comensal = $this->getEmpleados($request->cedula);
                     }
 
                     /** Validamos si existe el comensal */
@@ -205,7 +205,7 @@ class RecepcionController extends Controller
 
     public function getEmpleados($cedula)
     {
-        $comensal = DB::connection('mysql_third')
+       return $comensal = DB::connection('mysql_third')
             ->table('rrhh_vista_personal')
             ->where('per_cedula', $cedula)
             ->first();
