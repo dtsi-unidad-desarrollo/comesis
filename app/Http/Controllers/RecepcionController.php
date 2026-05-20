@@ -210,10 +210,19 @@ class RecepcionController extends Controller
     public function getEmpleados($cedula)
     {
         // Obtener datos básicos desde la vista
+
         return $comensal = DB::connection('mysql_third')
             ->table('rrhh_vista_personal')
             ->where('per_cedula', $cedula)
-            ->get();
+            ->select(
+                'per_nombres',
+                'per_apellidos',
+                'per_cedula',
+                'vicn_descripcion',
+                DB::raw("CONCAT(per_direccion, ' ', per_direccion2) as Nombre_Completo")
+            )
+            ->leftJoin('rrhh_vista_cargos', 'rrhh_vista_cargos.per_cedula', '=', 'rrhh_vista_personal.per_cedula')
+            ->first();
 
         // obtenermos los tipos de cargos para determinar el tipo de empleado
         $cargo = DB::connection('mysql_third')
