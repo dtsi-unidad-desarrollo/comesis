@@ -216,7 +216,7 @@ class RecepcionController extends Controller
             ->first();
             // Determinar cargo predominante (último activo) y nombre del cargo
             return $cargo = DB::connection('mysql_third')
-                ->table('rrhh_cargo_funcion')
+                ->table('rrhh_cargo_tipo')
                 ->get();
 
         if (!$comensal) {
