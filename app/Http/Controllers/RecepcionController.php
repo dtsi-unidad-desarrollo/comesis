@@ -245,7 +245,7 @@ class RecepcionController extends Controller
             ->where('pc.perc_status', 1)
             ->orderByDesc('pc.perc_desde')
             ->select('c.car_nombre')
-            ->first();
+            ->get();
 
         $tipoEmpleado = 'OTRO';
         if ($cargo && isset($cargo->car_nombre)) {
