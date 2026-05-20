@@ -214,6 +214,15 @@ class RecepcionController extends Controller
             ->table('rrhh_vista_personal')
             ->where('per_cedula', $cedula)
             ->first();
+            // Determinar cargo predominante (último activo) y nombre del cargo
+            return $cargo = DB::connection('mysql_third')
+                ->table('rrhh_personal_cargo as pc')
+                ->join('rrhh_cargo as c', 'c.car_codigo', '=', 'pc.perc_carcodigo')
+                ->where('pc.perc_percodigo', $comensal->per_codigo)
+                ->where('pc.perc_status', 1)
+                ->orderByDesc('pc.perc_desde')
+                ->select('c.car_nombre')
+                ->get();
 
         if (!$comensal) {
             return null;
@@ -237,15 +246,6 @@ class RecepcionController extends Controller
             ->where('per_cedula', $cedula)
             ->value('sex_descripcion');
 
-        // Determinar cargo predominante (último activo) y nombre del cargo
-        return $cargo = DB::connection('mysql_third')
-            ->table('rrhh_personal_cargo as pc')
-            ->join('rrhh_cargo as c', 'c.car_codigo', '=', 'pc.perc_carcodigo')
-            ->where('pc.perc_percodigo', $comensal->per_codigo)
-            ->where('pc.perc_status', 1)
-            ->orderByDesc('pc.perc_desde')
-            ->select('c.car_nombre')
-            ->get();
 
         $tipoEmpleado = 'OTRO';
         if ($cargo && isset($cargo->car_nombre)) {
