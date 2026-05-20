@@ -208,10 +208,17 @@ class RecepcionController extends Controller
 
     public function getEmpleados($cedula)
     {
-        return $comensal = DB::connection('mysql_third')
-            ->table('vista_carga_fam')
-            ->where('carfam_cedula', $cedula)
+         $comensal = DB::connection('mysql_third')
+            ->table('rrhh_vista_personal')
+            ->where('per_cedula', $cedula)
             ->first();
+
+        $comensal['vista_carga_fam'] = DB::connection('mysql_third')
+            ->table('vista_carga_fam')
+            ->where('cargt_percodigo', $comensal->per_codigo)
+            ->first();
+
+        return $comensal;
 
         if ($comensal) {
             // obtenemos el estatus del empleado 1:ACTIVO
