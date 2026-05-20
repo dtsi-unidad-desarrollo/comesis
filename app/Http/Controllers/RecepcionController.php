@@ -216,7 +216,7 @@ class RecepcionController extends Controller
         $comensal['vista_carga_fam'] = DB::connection('mysql_third')
             ->table('vista_carga_fam')
             ->where('cargt_percodigo', $comensal->per_codigo)
-            ->first();
+            ->get();
 
         return $comensal;
 
