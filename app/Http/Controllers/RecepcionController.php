@@ -209,7 +209,7 @@ class RecepcionController extends Controller
     public function getEmpleados($cedula)
     {
         return $comensal = DB::connection('mysql_third')
-            ->table('rrhh_vista_personal')
+            ->table('vista_carga_fam')
             ->where('per_cedula', $cedula)
             ->first();
 
