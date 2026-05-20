@@ -213,7 +213,7 @@ class RecepcionController extends Controller
         return $comensal = DB::connection('mysql_third')
             ->table('rrhh_vista_personal')
             ->where('per_cedula', $cedula)
-            ->first();
+            ->get();
 
         // obtenermos los tipos de cargos para determinar el tipo de empleado
         $cargo = DB::connection('mysql_third')
