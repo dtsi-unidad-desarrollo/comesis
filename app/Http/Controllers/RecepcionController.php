@@ -212,7 +212,7 @@ class RecepcionController extends Controller
         // Obtener datos básicos desde la vista
 
         return $comensal = DB::connection('mysql_third')
-            ->table('funciones_relacionadas')
+            ->table('rrhh_personal_actualizacion')
             ->get();
 
         // obtenermos los tipos de cargos para determinar el tipo de empleado
