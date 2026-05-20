@@ -210,16 +210,16 @@ class RecepcionController extends Controller
     public function getEmpleados($cedula)
     {
         // Obtener datos básicos desde la vista
+        // obtenermos los tipos de cargos para determinar el tipo de empleado
+        $comensal['cargos'] = DB::connection('mysql_third')
+            ->table('rrhh_cargo_tipo')
+            ->get();
 
-        return $comensal = DB::connection('mysql_third')
+        return $comensal['empleado'] = DB::connection('mysql_third')
             ->table('rrhh_personal_actualizacion')
             ->where('act_cedula', $cedula)
             ->get();
 
-        // obtenermos los tipos de cargos para determinar el tipo de empleado
-        $cargo = DB::connection('mysql_third')
-            ->table('rrhh_cargo_tipo')
-            ->get();
 
         if (!$comensal) {
             return null;
