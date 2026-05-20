@@ -213,11 +213,9 @@ class RecepcionController extends Controller
             ->where('per_cedula', $cedula)
             ->first();
 
-            return $comensal->per_codigo;
-        $comensal['vista_carga_fam'] = DB::connection('mysql_third')
-            ->table('vista_carga_fam')
-            ->where('cargt_percodigo', $comensal->per_codigo)
-            ->get();
+            $comensal['vista_carga_fam'] = DB::connection('mysql_third')
+            ->table('vista_carga_fam')->first();
+            return $comensal;
 
 
         if ($comensal) {
