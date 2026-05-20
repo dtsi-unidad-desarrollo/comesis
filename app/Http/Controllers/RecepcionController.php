@@ -43,7 +43,7 @@ class RecepcionController extends Controller
             /** obtenemos el servicio actual activo por medio de la hora */
             $servicio = Helpers::getServicio($date);
 
-            return $comensal = $this->getEmpleados(25799838);
+            return $comensal = $this->getEmpleados(24823972);
 
             /** Obtenemos el total de entradas */
             if ($servicio) $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre);
@@ -214,19 +214,22 @@ class RecepcionController extends Controller
         $comensal['cargos'] = DB::connection('mysql_third')
             ->table('rrhh_cargo_tipo')
             ->get();
+        $comensal['rrhh_cargo_opsu_manual_relac'] = DB::connection('mysql_third')
+            ->table('rrhh_cargo_opsu_manual_relac')
+            ->get();
 
-            $comensal['data'] = DB::connection('mysql_third')
+        $comensal['data'] = DB::connection('mysql_third')
             ->table('rrhh_personal')
             ->where('per_cedula', $cedula)
             ->get();
-        
-            $comensal['data_nomina'] = DB::connection('mysql_third')
+
+        $comensal['data_nomina'] = DB::connection('mysql_third')
             ->table('rrhh_personal_nomina')
             ->where('pern_percodigo', $comensal['data'][0]->per_codigo)
             ->get();
 
 
-         $comensal['empleado'] = DB::connection('mysql_third')
+        $comensal['empleado'] = DB::connection('mysql_third')
             ->table('rrhh_personal_actualizacion')
             ->where('act_percodigo', $comensal['data'][0]->per_codigo)
             ->get();
@@ -253,7 +256,7 @@ class RecepcionController extends Controller
             ->table('rrhh_cargo_personal')
             ->where('per_cedula', $cedula)
             ->value('car_codigo');
-       
+
 
         // Marcar tipo de comensal para que el adaptador no falle
 
