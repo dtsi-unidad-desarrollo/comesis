@@ -236,7 +236,7 @@ class RecepcionController extends Controller
             ->value('sex_descripcion');
 
         // Determinar cargo predominante (último activo) y nombre del cargo
-        $cargo = DB::connection('mysql_third')
+        return $cargo = DB::connection('mysql_third')
             ->table('rrhh_personal_cargo as pc')
             ->join('rrhh_cargo as c', 'c.car_codigo', '=', 'pc.perc_carcodigo')
             ->where('pc.perc_percodigo', $comensal->per_codigo)
