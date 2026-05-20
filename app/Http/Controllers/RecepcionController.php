@@ -214,14 +214,6 @@ class RecepcionController extends Controller
         return $comensal = DB::connection('mysql_third')
             ->table('rrhh_vista_personal')
             ->where('per_cedula', $cedula)
-            ->select(
-                'per_nombres',
-                'per_apellidos',
-                'per_cedula',
-                'vicn_descripcion',
-                DB::raw("CONCAT(per_direccion, ' ', per_direccion2) as Nombre_Completo")
-            )
-    
             ->first();
 
         // obtenermos los tipos de cargos para determinar el tipo de empleado
