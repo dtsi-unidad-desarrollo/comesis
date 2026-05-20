@@ -18,7 +18,7 @@
                     <div class="col-6 mb-4">
                         <div class="card shadow-sm border-0">
                             <div class="card-header bg-primary text-white">
-                                <h5 class="mb-0"><i class="bi bi-calendar-day"></i> Entradas de Hoy {{ Carbon\Carbon::now()->format('d-m-Y') }}</h5>
+                                <h5 class="mb-0"><i class="bi bi-calendar-day"></i> Bandejas entregadas Hoy {{ Carbon\Carbon::now()->format('d-m-Y') }}</h5>
                             </div>
                             <div class="card-body">
                                 <canvas id="todayChart" width="400" height="200"></canvas>
@@ -38,7 +38,7 @@
                     <div class="col-12 mb-4">
                         <div class="card shadow-sm border-0">
                             <div class="card-header bg-success text-white">
-                                <h5 class="mb-0"><i class="bi bi-calendar-week"></i> Entradas de Esta Semana</h5>
+                                <h5 class="mb-0"><i class="bi bi-calendar-week"></i> Bandejas entregadas de Esta Semana</h5>
                             </div>
                             <div class="card-body">
                                 <canvas id="weeklyChart" width="400" height="200"></canvas>
@@ -87,20 +87,23 @@
         const todayChart = new Chart(ctxToday, {
             type: 'pie',
             data: {
-                labels: ['ESTUDIANTE', 'EMPLEADO'],
+                labels: ['ESTUDIANTE', 'EMPLEADO', 'BANDEJAS NO ENTREGADAS'],
                 datasets: [{
                     label: '',
                     data: [
                         {{ $stats['hoy']['ESTUDIANTE'] }},
-                        {{ $stats['hoy']['EMPLEADO'] }}
+                        {{ $stats['hoy']['EMPLEADO'] }},
+                        {{ (($stats['hoy']['ESTUDIANTE'] + $stats['hoy']['EMPLEADO']) - $stats['hoy']['total']) }}
                     ],
                     backgroundColor: [
                         'rgba(54, 162, 235, 0.7)',
                         'rgba(255, 99, 132, 0.7)',
+                        'rgba(128, 128, 128, 0.7)'
                     ],
                     borderColor: [
                         'rgba(54, 162, 235, 1)',
                         'rgba(255, 99, 132, 1)',
+                        'rgba(128, 128, 128, 1)'
                     ],
                     borderWidth: 1
                 }]
@@ -139,12 +142,10 @@
                         ],
                         backgroundColor: [
                             'rgba(54, 162, 235, 0.7)',
-                            'rgba(255, 99, 132, 0.7)',
-
                         ],
                         borderColor: [
                             'rgba(54, 162, 235, 1)',
-                            'rgba(255, 99, 132, 1)',
+                           
                         ],
                         borderWidth: 1
                     },
@@ -160,11 +161,9 @@
                         ],
                         backgroundColor: [
                             'rgba(255, 99, 132, 0.7)',
-                            'rgba(54, 162, 235, 0.7)',
                         ],
                         borderColor: [
                             'rgba(255, 99, 132, 1)',
-                            'rgba(54, 162, 235, 1)',
                         ],
                         borderWidth: 1
                     }
