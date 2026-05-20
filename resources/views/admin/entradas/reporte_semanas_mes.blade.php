@@ -68,8 +68,11 @@
     <table class="header-table">
         <tr>
             <td style="width: 10%; background: white;">
-                <div class="logo-placeholder">LOGO</div>
+                <div class="logo-placeholder">
+                    <img src="{{ asset('/assets/img/logo.png') }}" alt="logo" style="height: 125%;">
+                </div>
             </td>
+
             <td style="font-size: 16px;">REPORTE DE COMEDOR - RESUMEN SEMANAL</td>
         </tr>
         <tr>

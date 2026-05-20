@@ -84,7 +84,7 @@
             <table style="width: 100%; border: none; margin-bottom: 20px;">
                 <tr>
                     <td style="text-align: left; vertical-align: middle; border: none;">
-                        <img src="{{ asset('assets/img/logo.png') }}" alt="Logo" style="height: 90px;">
+                        <img src="{{ asset('/assets/img/logo.png') }}" alt="Logo" style="height: 100px;">
                     </td>
                     <td style="text-align: center; vertical-align: middle; border: none;">
                         <h2 style="margin: 0; font-size: 18px;">Reporte del comedor</h2>

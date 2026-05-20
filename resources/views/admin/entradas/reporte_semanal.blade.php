@@ -159,7 +159,7 @@
         <div class="hdr">
             <table class="logos">
                 <tr>
-                    <td style="text-align:left; width: 25%;"><img src="{{ asset('assets/img/logo.png') }}" alt="logo" style="height: 70px;"></td>
+                    <td style="text-align:left; width: 25%;"><img src="{{ asset('/assets/img/logo.png') }}" alt="logo" style="height: 100px;"></td>
                     <td style="text-align:center; width: 50%;">
                         <h2>UNIVERSIDAD NACIONAL EXPERIMENTAL<br>DE LOS LLANOS OCCIDENTALES EZEQUIEL ZAMORA</h2>
                         <p>UNELLEZ</p>
