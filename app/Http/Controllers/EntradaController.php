@@ -184,6 +184,17 @@ class EntradaController extends Controller
             ->where('comida', $servicio)
             ->count();
 
+        // Capacidad diaria del servicio seleccionado (o suma de todos si es "Todos")
+        $capacidadDiaria = 0;
+        if ($servicio && $servicio != 0) {
+            $capacidadDiaria = (int) Servicio::where('nombre', $servicio)->value('disponibilidad');
+        } else {
+            $capacidadDiaria = Servicio::sum('disponibilidad');
+        }
+
+        // Bandejas sin entregar = capacidad diaria − bandejas realmente entregadas
+        $bandejasSinEntregar = max(0, $capacidadDiaria - $totalComidas);
+
         // Si se solicitó un tipo concreto, sólo ese tipo debe aparecer con su total; los demás serán 0
         if ($tipo && $tipo != 'TODOS') {
             foreach ($this->tiposDeComensales as $tipoComensal) {
@@ -212,6 +223,8 @@ class EntradaController extends Controller
         $pdf = Pdf::loadView('admin.entradas.reporte', [
             'fecha' => Helpers::normalizarFecha($fecha),
             'totalComidas' => $totalComidas,
+            'capacidadDiaria' => $capacidadDiaria,
+            'bandejasSinEntregar' => $bandejasSinEntregar,
             'reporte' => $reporte,
             'tipoSeleccionado' => $tipo,
             'servicioSeleccionado' => $servicio,
@@ -271,6 +284,15 @@ class EntradaController extends Controller
             ->pluck('cantidad', 'fecha')
             ->toArray();
 
+        // Calcular capacidad semanal (bandejas posibles por día × días de la semana)
+        $serviciosDelRango = Servicio::when($servicio && $servicio != 0, fn($q) => $q->where('nombre', $servicio))->get();
+        $capacidadSemanal = 0;
+        foreach ($fechasRango as $fecha) {
+            foreach ($serviciosDelRango as $s) {
+                $capacidadSemanal += (int) $s->disponibilidad;
+            }
+        }
+
         $diario = collect();
         foreach ($fechasRango as $fecha) {
             $fechaCarbon = Carbon::parse($fecha);
@@ -296,12 +318,17 @@ class EntradaController extends Controller
 
         $totalComidas = array_sum($conteosPorFecha);
 
+        // Bandejas sin entregar = capacidad total de la semana − bandejas realmente entregadas
+        $bandejasSinEntregar = max(0, $capacidadSemanal - $totalComidas);
+
         $pdf = Pdf::loadView('admin.entradas.reporte_semanal', [
             'fecha' => $inicio->format('d/m/Y'),
             'desde' => $inicio->format('d/m/Y'),
             'hasta' => $fin->format('d/m/Y'),
             'diario' => $diario,
             'totalComidas' => $totalComidas,
+            'capacidadSemanal' => $capacidadSemanal,
+            'bandejasSinEntregar' => $bandejasSinEntregar,
         ]);
 
         return $pdf->stream('reporte_semanal_' . $inicio->toDateString() . '.pdf');

@@ -115,6 +115,10 @@
                     <td style="align-content: right;"><strong>Total</strong></td>
                     <td><strong>{{ $totalComidas ?? 0 }}</strong></td>
                 </tr>
+                <tr>
+                    <td style="align-content: right;"><strong>Bandejas sin entregar</strong></td>
+                    <td><strong>{{ $bandejasSinEntregar ?? 0 }}</strong></td>
+                </tr>
             </tbody>
         </table>
         <table class="signatures-table" role="presentation">

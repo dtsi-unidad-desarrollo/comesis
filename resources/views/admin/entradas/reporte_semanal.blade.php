@@ -204,6 +204,10 @@
                         <td colspan="2" style="text-align: right;">TOTAL</td>
                         <td>{{ number_format($totalComidas ?? 0) }}</td>
                     </tr>
+                    <tr class="total-row">
+                        <td colspan="2" style="text-align: right;">BANDEJAS SIN ENTREGAR</td>
+                        <td>{{ number_format($bandejasSinEntregar ?? 0) }}</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
