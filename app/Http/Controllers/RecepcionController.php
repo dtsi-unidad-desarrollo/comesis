@@ -208,37 +208,60 @@ class RecepcionController extends Controller
 
     public function getEmpleados($cedula)
     {
-        $comensal['vista_carga_fam'] = DB::connection('mysql_third')
-        ->table('vista_carga_fam')->get();
-        return $comensal;
-         $comensal = DB::connection('mysql_third')
+        // Obtener datos básicos desde la vista
+        $comensal = DB::connection('mysql_third')
             ->table('rrhh_vista_personal')
             ->where('per_cedula', $cedula)
             ->first();
 
-
-
-        if ($comensal) {
-            // obtenemos el estatus del empleado 1:ACTIVO
-            $comensal->estatus = DB::connection('mysql_third')
-                ->table('rrhh_personal')
-                ->where('per_cedula', $cedula)
-                ->first()->per_status;
-
-            $comensal->sexo = DB::connection('mysql_third')
-                ->table('rrhh_personal')
-                ->join('tools_sexo', 'tools_sexo.sex_codigo', '=', 'per_sexo')
-                ->where('per_cedula', $cedula)
-                ->first()->sex_descripcion;
-
-
-            if ($comensal) {
-                $comensal->tipo_comensal = "EMPLEADO";
-            }
-
-            $comensal = $this->adaptadorDeComensal($comensal);
+        if (!$comensal) {
+            return null;
         }
 
+        // Traer carga familiar
+        $cargaFamiliar = DB::connection('mysql_third')
+            ->table('vista_carga_fam')
+            ->where('cargt_percodigo', $comensal->per_codigo)
+            ->get();
+
+        // Obtener estatus y sexo desde rrhh_personal
+        $comensal->estatus = DB::connection('mysql_third')
+            ->table('rrhh_personal')
+            ->where('per_cedula', $cedula)
+            ->value('per_status') ?? 0;
+
+        $comensal->sexo = DB::connection('mysql_third')
+            ->table('rrhh_personal')
+            ->join('tools_sexo', 'tools_sexo.sex_codigo', '=', 'per_sexo')
+            ->where('per_cedula', $cedula)
+            ->value('sex_descripcion');
+
+        // Determinar cargo predominante (último activo) y nombre del cargo
+        $cargo = DB::connection('mysql_third')
+            ->table('rrhh_personal_cargo as pc')
+            ->join('rrhh_cargo as c', 'c.car_codigo', '=', 'pc.perc_carcodigo')
+            ->where('pc.perc_percodigo', $comensal->per_codigo)
+            ->where('pc.perc_status', 1)
+            ->orderByDesc('pc.perc_desde')
+            ->select('c.car_nombre')
+            ->first();
+
+        $tipoEmpleado = 'OTRO';
+        if ($cargo && isset($cargo->car_nombre)) {
+            $nombreCargo = strtolower($cargo->car_nombre);
+            if (str_contains($nombreCargo, 'admin') || str_contains($nombreCargo, 'administr')) {
+                $tipoEmpleado = 'ADMINISTRATIVO';
+            } elseif (str_contains($nombreCargo, 'obrero')) {
+                $tipoEmpleado = 'OBRERO';
+            } elseif (str_contains($nombreCargo, 'profesor') || str_contains($nombreCargo, 'docente') || str_contains($nombreCargo, 'catedr')) {
+                $tipoEmpleado = 'PROFESOR';
+            }
+        }
+
+        // Adaptar comensal al formato esperado por la aplicación
+        $comensal = $this->adaptadorDeComensal($comensal);
+        $comensal->tipo_empleado = $tipoEmpleado;
+        $comensal->vista_carga_fam = $cargaFamiliar;
 
         return $comensal;
     }
