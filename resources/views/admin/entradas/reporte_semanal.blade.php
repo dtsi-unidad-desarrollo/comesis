@@ -216,14 +216,13 @@
 
         <div class="firma">
             <span class="line"></span>
-            <p><strong>Lcda. Yelitza Pirela B.</strong></p>
-            <p>Coordinadora de Enlace de Bienestar Estudiantil del VPDS</p>
+            <p><strong>JOSÉ ANDRES VALDERRAMA CRIMI</strong></p>
+            <p>Coordinador de Enlace de Bienestar Estudiantil del VPDS</p>
             <p>Designado mediante resolución N0102-2025</p>
         </div>
 
         <div class="footer">
-            <p>Fecha 27/10/25</p>
-            <p>0416-9729308 / yelitza.pirela27@gmail.com</p>
+            <p>Fecha: {{ now()->format('d/m/Y') }}</p>
         </div>
 
         <table class="sellos">

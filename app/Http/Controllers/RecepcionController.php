@@ -43,8 +43,6 @@ class RecepcionController extends Controller
             /** obtenemos el servicio actual activo por medio de la hora */
             $servicio = Helpers::getServicio($date);
 
-            return $comensal = $this->getEmpleados(24823972);
-
             /** Obtenemos el total de entradas */
             if ($servicio) $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre);
 
@@ -209,62 +207,32 @@ class RecepcionController extends Controller
 
     public function getEmpleados($cedula)
     {
-        // Obtener datos básicos desde la vista
-        // obtenermos los tipos de cargos para determinar el tipo de empleado
-        $comensal['cargos'] = DB::connection('mysql_third')
-            ->table('rrhh_cargo_tipo')
-            ->get();
-
-        $comensal['data'] = DB::connection('mysql_third')
-            ->table('rrhh_personal')
+        $comensal = DB::connection('mysql_third')
+            ->table('rrhh_vista_personal')
             ->where('per_cedula', $cedula)
-            ->get();
+            ->first();
 
-        $comensal['rrhh_personal_cargo'] = DB::connection('mysql_third')
-            ->table('rrhh_personal_cargo')
-            ->where('perc_percodigo', $comensal['data'][0]->per_codigo)
-            ->get();
+        if ($comensal) {
+            // obtenemos el estatus del empleado 1:ACTIVO
+            $comensal->estatus = DB::connection('mysql_third')
+                ->table('rrhh_personal')
+                ->where('per_cedula', $cedula)
+                ->first()->per_status;
 
-        $comensal['data_nomina'] = DB::connection('mysql_third')
-            ->table('rrhh_personal_nomina')
-            ->where('pern_percodigo', $comensal['data'][0]->per_codigo)
-            ->get();
-
-
-        $comensal['empleado'] = DB::connection('mysql_third')
-            ->table('rrhh_personal_actualizacion')
-            ->where('act_percodigo', $comensal['data'][0]->per_codigo)
-            ->get();
-        return $comensal;
+            $comensal->sexo = DB::connection('mysql_third')
+                ->table('rrhh_personal')
+                ->join('tools_sexo', 'tools_sexo.sex_codigo', '=', 'per_sexo')
+                ->where('per_cedula', $cedula)
+                ->first()->sex_descripcion;
 
 
-        if (!$comensal) {
-            return null;
+            if ($comensal) {
+                $comensal->tipo_comensal = "EMPLEADO";
+            }
+
+            $comensal = $this->adaptadorDeComensal($comensal);
         }
 
-        // Obtener estatus y sexo desde rrhh_personal
-        $comensal->estatus = DB::connection('mysql_third')
-            ->table('rrhh_personal')
-            ->where('per_cedula', $cedula)
-            ->value('per_status') ?? 0;
-
-        $comensal->sexo = DB::connection('mysql_third')
-            ->table('rrhh_personal')
-            ->join('tools_sexo', 'tools_sexo.sex_codigo', '=', 'per_sexo')
-            ->where('per_cedula', $cedula)
-            ->value('sex_descripcion');
-
-        $cargoEmpleado = DB::connection('mysql_third')
-            ->table('rrhh_cargo_personal')
-            ->where('per_cedula', $cedula)
-            ->value('car_codigo');
-
-
-        // Marcar tipo de comensal para que el adaptador no falle
-
-        // Adaptar comensal al formato esperado por la aplicación
-        $comensal = $this->adaptadorDeComensal($comensal);
-        $comensal->tipo_comensal = $tipoEmpleado;
 
         return $comensal;
     }

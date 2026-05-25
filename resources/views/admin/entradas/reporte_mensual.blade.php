@@ -129,7 +129,7 @@
         <div class="signature-box">
             <br><br><br>
             <div class="line"></div>
-            <strong>Yelitza Pineda B.</strong><br>
+            <strong>JOSÉ ANDRES VALDERRAMA CRIMI</strong><br>
             Coord. Bienestar Estudiantil VPDS
         </div>
     </div>
