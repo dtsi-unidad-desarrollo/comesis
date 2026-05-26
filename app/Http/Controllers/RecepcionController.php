@@ -50,7 +50,8 @@ class RecepcionController extends Controller
 
             /** Se valida si hay una cedula  */
             if ($request->filled('cedula')) {
-                /** Si no se detecta un servicio, el comedor esta fuera de servicio */
+
+            /** Si no se detecta un servicio, el comedor esta fuera de servicio */
                 if (!$servicio) {
                     $mensaje = "Comedor inactivo, está fuera del horario de servicio.";
                     $estatus = Response::HTTP_UNAUTHORIZED;
@@ -65,7 +66,7 @@ class RecepcionController extends Controller
                     }
 
                     /** PRIMERO BUSCAMOS EN COMESIS */
-                    $comensal = Comensale::where('cedula', $request->cedula)->first();
+                    return $comensal = Comensale::where('cedula', $request->cedula)->first();
 
                     if (!$comensal) {
                         /** CONSULTAMOS DUX  para los ESTUDIANTES */
