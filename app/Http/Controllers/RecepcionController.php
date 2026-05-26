@@ -66,8 +66,8 @@ class RecepcionController extends Controller
                     }
 
                     /** PRIMERO BUSCAMOS EN COMESIS */
-                    return $comensal = Comensale::where('cedula', $request->cedula)->first();
-
+                    $comensal = Comensale::where('cedula', $request->cedula)->first();
+                    dd($comensal);
                     if (!$comensal) {
                         /** CONSULTAMOS DUX  para los ESTUDIANTES */
                         $comensal = $this->getEstudiantes($request->cedula);
