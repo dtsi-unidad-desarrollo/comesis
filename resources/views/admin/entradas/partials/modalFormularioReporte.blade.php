@@ -37,9 +37,12 @@
                            <div class="col-6">
                                <label for="servicio" class="form-label">Servicio</label>
                                <select name="servicio" id="servicio" class="form-select">
-                                   <option value="0">Todos los servicios</option>
-                                   <option value="ALMUERZO" selected>ALMUERZO</option>
+                                   <!-- <option value="0">Todos los servicios</option> -->
+                                   <!-- <option value="ALMUERZO" selected>ALMUERZO</option> -->
                                    @foreach ($servicios as $servicio)
+                                   @if ($servicio->nombre == 'ALMUERZO')
+                                       <option value="{{ $servicio->nombre }}" selected>{{ $servicio->nombre }}</option>
+                                   @endif
                                    <option value="{{ $servicio->nombre }}">{{ $servicio->nombre }}</option>
                                    @endforeach
                                </select>
@@ -127,8 +130,11 @@
              <div class="col-md-6">
                <label class="form-label">Servicio</label>
                <select name="servicio" class="form-select">
-                 <option value="0">Todos</option>
+                 <!-- <option value="0">Todos</option> -->
                  @foreach ($servicios as $servicio)
+                 @if ($servicio->nombre == 'ALMUERZO')
+                     <option value="{{ $servicio->nombre }}" selected>{{ $servicio->nombre }}</option>
+                  @endif
                    <option value="{{ $servicio->nombre }}">{{ $servicio->nombre }}</option>
                  @endforeach
                </select>
@@ -312,8 +318,11 @@
                     <div class="col-md-6">
                       <label class="form-label">Servicio</label>
                       <select name="servicio" class="form-select">
-                        <option value="0">Todos</option>
+                        <!-- <option value="0">Todos</option> -->
                         @foreach ($servicios as $servicio)
+                         @if ($servicio->nombre == 'ALMUERZO')
+                             <option value="{{ $servicio->nombre }}" selected>{{ $servicio->nombre }}</option>
+                          @endif
                           <option value="{{ $servicio->nombre }}">{{ $servicio->nombre }}</option>
                         @endforeach
                       </select>
@@ -384,8 +393,11 @@
                     <div class="col-md-6">
                       <label class="form-label">Servicio</label>
                       <select name="servicio" class="form-select">
-                        <option value="0">Todos</option>
+                        <!-- <option value="0">Todos</option> -->
                         @foreach ($servicios as $servicio)
+                          @if ($servicio->nombre == 'ALMUERZO')
+                              <option value="{{ $servicio->nombre }}" selected>{{ $servicio->nombre }}</option>
+                          @endif
                           <option value="{{ $servicio->nombre }}">{{ $servicio->nombre }}</option>
                         @endforeach
                       </select>
