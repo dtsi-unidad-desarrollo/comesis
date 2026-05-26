@@ -66,5 +66,16 @@ class ServicioController extends Controller
 
     }
 
-    public function destroy(){}
+    public function destroy(Servicio $servicio){
+        try {
+            $servicio->delete();
+            $mensaje = "Servicio eliminado correctamente";
+            $estatus = Response::HTTP_OK;
+        } catch (\Throwable $th) {
+            $mensaje = Helpers::getMensajeError($th, "Error al eliminar el servicio.");
+            $estatus = Response::HTTP_INTERNAL_SERVER_ERROR;
+        } finally {
+            return back()->with(compact('mensaje', 'estatus'));
+        }
+    }
 }
