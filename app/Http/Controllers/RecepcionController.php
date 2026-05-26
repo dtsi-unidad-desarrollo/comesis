@@ -67,7 +67,7 @@ class RecepcionController extends Controller
 
                     /** PRIMERO BUSCAMOS EN COMESIS */
                     $comensal = Comensale::where('cedula', $request->cedula)->first();
-                    dd($comensal);
+                
                     if (!$comensal) {
                         /** CONSULTAMOS DUX  para los ESTUDIANTES */
                         $comensal = $this->getEstudiantes($request->cedula);
@@ -87,7 +87,7 @@ class RecepcionController extends Controller
 
                     if (!$comensal) {
                         /** Buscamos en TEREPAIMA */
-                        return $comensal = $this->getEmpleados($request->cedula);
+                        $comensal = $this->getEmpleados($request->cedula);
                     }
 
                     /** Validamos si existe el comensal */
