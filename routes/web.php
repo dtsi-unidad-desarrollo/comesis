@@ -12,6 +12,9 @@ use App\Http\Controllers\{
     RecepcionController,
     RepresentanteController,
     ServicioController,
+    AtmController,
+    RoleController,
+    PermisoController,
 };
 
 
@@ -53,6 +56,13 @@ Route::middleware('auth', 'validarRol')->group(function () {
 
     /** Control de servicios */
     Route::resource('/servicios', ServicioController::class)->names('admin.servicios');
+    /** Control de ATMs */
+    Route::resource('/atms', AtmController::class)->names('admin.atms');
+    Route::post('/atms/{atm}/open', [AtmController::class, 'open'])->name('admin.atms.open');
+    
+    /** Control de roles y permisos */
+    Route::resource('/roles', RoleController::class)->names('admin.roles');
+    Route::resource('/permisos', PermisoController::class)->names('admin.permisos');
     
     /** Rutas de controlador usuarios */
     Route::resource('/users', UserController::class)->names('admin.users');

@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateRoleRequest extends FormRequest
+class UpdateAtmRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,10 +24,11 @@ class UpdateRoleRequest extends FormRequest
     public function rules()
     {
         return [
-            'nombre' => 'required|string|max:155',
-            'estatus' => 'nullable|in:0,1',
-            'permisos' => 'nullable|array',
-            'permisos.*' => 'exists:permisos,id',
+            'nombre' => 'sometimes|required|string|max:255',
+            'mac_address' => 'nullable|string|max:50',
+            'ip_address' => 'nullable|ip',
+            'torniquete_id' => 'nullable|exists:torniquetes,id',
+            'descripcion' => 'nullable|string',
         ];
     }
 }

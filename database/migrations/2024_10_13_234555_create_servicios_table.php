@@ -19,7 +19,7 @@ class CreateServiciosTable extends Migration
             $table->string('hora_inicio', 255);
             $table->string('hora_cierre', 255);
             $table->integer('disponibilidad');
-            $table->boolean('estatus', 55)->default(true);
+            $table->boolean('estatus')->default(true);
             $table->timestamps();
         });
     }

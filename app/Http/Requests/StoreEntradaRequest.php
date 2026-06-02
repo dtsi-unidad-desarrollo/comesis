@@ -24,7 +24,10 @@ class StoreEntradaRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'cedula' => 'nullable|string',
+            'marcar' => 'nullable|string',
+            'atm_id' => 'nullable|exists:atms,id',
+            'allowed_by_user_id' => 'nullable|exists:users,id',
         ];
     }
 }

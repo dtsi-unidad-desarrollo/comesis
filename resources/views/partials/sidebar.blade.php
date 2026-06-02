@@ -59,12 +59,12 @@ $subcategoria = 'LISTA';
 
         <!-- Start Components Nav | configuraciones -->
         <li class="nav-item">
-            <a class="nav-link {{ url()->current() == route('admin.users.index') ? 'collapse show' : 'collapsed' }}"
+            <a class="nav-link {{ in_array(url()->current(), [route('admin.users.index'), route('admin.users.create'), route('admin.roles.index'), route('admin.permisos.index'), route('admin.atms.index')]) ? 'collapse show' : 'collapsed' }}"
                 data-bs-target="#components-nav-10" data-bs-toggle="collapse" href="#">
                 <i class="bi bi-gear"></i><span>Configuración</span><i class="bi bi-chevron-down ms-auto"></i>
             </a>
             <ul id="components-nav-10"
-                class="nav-content {{ (url()->current() == route('admin.users.index')) || (url()->current() == route('admin.users.create'))  ? 'collapse show' : 'collapse' }} "
+                class="nav-content {{ in_array(url()->current(), [route('admin.users.index'), route('admin.users.create'), route('admin.roles.index'), route('admin.permisos.index'), route('admin.atms.index')]) ? 'collapse show' : 'collapse' }} "
                 data-bs-parent=" #sidebar-nav">
 
                 <!-- Start Components Nav | Servicios -->
@@ -100,6 +100,33 @@ $subcategoria = 'LISTA';
 
                     </ul>
                 </li><!-- End Components Nav | usuarios -->
+                
+                <!-- Start Components Nav | roles -->
+                <li class="nav-item">
+                    <a class="nav-link {{ url()->current() == route('admin.roles.index') ? 'bg-primary text-white' : 'collapsed' }}" 
+                        href="{{ route('admin.roles.index') }}" >
+                        <i class="bi bi-person-badge fs-3"></i>
+                        <span>Roles</span>
+                    </a>
+                </li><!-- End Components Nav | roles-->
+
+                <!-- Start Components Nav | permisos -->
+                <li class="nav-item">
+                    <a class="nav-link {{ url()->current() == route('admin.permisos.index') ? 'bg-primary text-white' : 'collapsed' }}" 
+                        href="{{ route('admin.permisos.index') }}" >
+                        <i class="bi bi-key fs-3"></i>
+                        <span>Permisos</span>
+                    </a>
+                </li><!-- End Components Nav | permisos-->
+
+                <!-- Start Components Nav | ATMs -->
+                <li class="nav-item">
+                    <a class="nav-link {{ url()->current() == route('admin.atms.index') ? 'bg-primary text-white' : 'collapsed' }}" 
+                        href="{{ route('admin.atms.index') }}" >
+                        <i class="bi bi-cpu fs-3"></i>
+                        <span>ATMs</span>
+                    </a>
+                </li><!-- End Components Nav | ATMs-->
 
             </ul>
         </li><!-- End Components Nav | configuraciones -->

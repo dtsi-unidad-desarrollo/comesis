@@ -19,11 +19,17 @@ class PermisoSeeder extends Seeder
             "panel",
             "comensales",
             "users",
+            "roles",
+            "permisos",
             "entradas",
             "recepcion",
             "reportes",
+            "reportes-semanal",
+            "reportes-mensual",
+            "reportes-semanas-mes",
             "sincronizarData",
             "servicios",
+            "atms",
         ];
 
         foreach ($permisos as $key => $value) {

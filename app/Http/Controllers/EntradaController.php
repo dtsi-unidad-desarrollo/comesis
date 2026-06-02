@@ -144,6 +144,8 @@ class EntradaController extends Controller
                 "comida" => $comida,
                 'fecha' => $date->format('Y-m-d'),
                 'hora' => $date->format('h:ia'),
+                'atm_id' => $request->input('atm_id'),
+                'allowed_by_user_id' => $request->input('allowed_by_user_id'),
             ]);
 
             $mensaje = "Comensal marcado como: " . $request->marcar;

@@ -5,82 +5,47 @@ namespace App\Http\Controllers;
 use App\Models\Permiso;
 use App\Http\Requests\StorePermisoRequest;
 use App\Http\Requests\UpdatePermisoRequest;
+use Illuminate\Support\Facades\DB;
 
 class PermisoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function index()
     {
-        //
+        $permisos = Permiso::orderBy('id', 'desc')->paginate(20);
+        return view('admin.permisos.index', compact('permisos'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function create()
     {
-        //
+        return redirect()->route('admin.permisos.index');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \App\Http\Requests\StorePermisoRequest  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(StorePermisoRequest $request)
     {
-        //
+        Permiso::create($request->validated());
+        return redirect()->route('admin.permisos.index')->with('mensaje', 'Permiso creado correctamente.');
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Permiso  $permiso
-     * @return \Illuminate\Http\Response
-     */
     public function show(Permiso $permiso)
     {
-        //
+        return redirect()->route('admin.permisos.edit', $permiso->id);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Permiso  $permiso
-     * @return \Illuminate\Http\Response
-     */
     public function edit(Permiso $permiso)
     {
-        //
+        return view('admin.permisos.edit', compact('permiso'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \App\Http\Requests\UpdatePermisoRequest  $request
-     * @param  \App\Models\Permiso  $permiso
-     * @return \Illuminate\Http\Response
-     */
     public function update(UpdatePermisoRequest $request, Permiso $permiso)
     {
-        //
+        $permiso->update($request->validated());
+        return redirect()->route('admin.permisos.index')->with('mensaje', 'Permiso actualizado correctamente.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Permiso  $permiso
-     * @return \Illuminate\Http\Response
-     */
     public function destroy(Permiso $permiso)
     {
-        //
+        DB::table('rol_permisos')->where('id_permiso', $permiso->id)->delete();
+        $permiso->delete();
+        return redirect()->route('admin.permisos.index')->with('mensaje', 'Permiso eliminado correctamente.');
     }
 }

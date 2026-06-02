@@ -23,14 +23,15 @@ class UserSeeder extends Seeder
         $user->save();
 
         $user = new User();
-        $user->nombre = "Super usuario";
-        $user->rol = 1;
-        $user->email = "@root";
-        $user->password = Hash::make("Dtsi2024/*/*");
+        $user->nombre = env('ROOT_NAME', 'Super usuario');
+        $user->rol = env('ROOT_ROLE', 1);
+        $user->email = env('ROOT_EMAIL', 'root@example.com');
+        $user->password = Hash::make(env('ROOT_PASSWORD', 'change_me'));
         $user->save();
 
         $userDos = new User();
         $userDos->nombre = "Cajero";
+        $userDos->rol = 3;
         $userDos->email = "@cajero";
         $userDos->password = Hash::make(12345678);
         $userDos->save();

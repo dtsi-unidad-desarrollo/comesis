@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\RolPermiso;
+use App\Models\Role;
+use App\Models\Permiso;
 use Illuminate\Database\Seeder;
 
 class RolPermisoSeeder extends Seeder
@@ -15,40 +17,58 @@ class RolPermisoSeeder extends Seeder
     public function run()
     {
         $roles = [
-            "administrador" => 2,
-            "cajero" => 3
+            'root' => Role::where('nombre', 'ROOT')->value('id'),
+            'administrador' => Role::where('nombre', 'ADMINISTRADOR')->value('id'),
+            'cajero' => Role::where('nombre', 'CAJERO')->value('id'),
         ];
 
-        $permososDeAdminitrador = [
-            "panel",
-            "comensales",
-            "users",
-            "recepcion",
-            "reportes",
-            "reportes-semanal",
-            "entradas",
-            "sincronizarData",
-            "servicios",
+        $permisosRoot = Permiso::pluck('id')->toArray();
+
+        $permisosAdministrador = [
+            'panel',
+            'comensales',
+            'users',
+            'roles',
+            'permisos',
+            'recepcion',
+            'entradas',
+            'reportes',
+            'reportes-semanal',
+            'reportes-mensual',
+            'reportes-semanas-mes',
+            'sincronizarData',
+            'servicios',
+            'atms',
         ];
 
-        $permososDeCajero = [
-            "recepcion",
-            "reportes",
-            "entradas",
+        $permisosCajero = [
+            'recepcion',
+            'reportes',
+            'entradas',
         ];
 
-        foreach ($permososDeAdminitrador as $key => $value) {
-            $permiso = new RolPermiso();
-            $permiso->id_rol = $roles['administrador'];
-            $permiso->id_permiso = $value;
-            $permiso->save();
+        if ($roles['root']) {
+            foreach ($permisosRoot as $permisoId) {
+                RolPermiso::create(['id_rol' => $roles['root'], 'id_permiso' => $permisoId]);
+            }
         }
 
-        foreach ($permososDeCajero as $key => $value) {
-            $permiso = new RolPermiso();
-            $permiso->id_rol = $roles['cajero'];
-            $permiso->id_permiso = $value;
-            $permiso->save();
+        if ($roles['administrador']) {
+            foreach ($permisosAdministrador as $permisoNombre) {
+                $permisoId = Permiso::where('nombre', $permisoNombre)->value('id');
+                if ($permisoId) {
+                    RolPermiso::create(['id_rol' => $roles['administrador'], 'id_permiso' => $permisoId]);
+                }
+            }
+        }
+
+        if ($roles['cajero']) {
+            foreach ($permisosCajero as $permisoNombre) {
+                $permisoId = Permiso::where('nombre', $permisoNombre)->value('id');
+                if ($permisoId) {
+                    RolPermiso::create(['id_rol' => $roles['cajero'], 'id_permiso' => $permisoId]);
+                }
+            }
         }
     }
 }
