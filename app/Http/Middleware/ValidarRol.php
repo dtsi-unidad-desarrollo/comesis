@@ -6,6 +6,8 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\RolPermiso;
+use App\Models\Role;
+use App\Models\Permiso;
 use Illuminate\Http\Response;
 
 class ValidarRol
@@ -19,19 +21,27 @@ class ValidarRol
      */
     public function handle(Request $request, Closure $next)
     {
+       
         if (Auth::user()->rol != 1) {
             if (Auth::user()->rol) {
-                $rolPermisos = RolPermiso::select('id_permiso')->where('id_rol', Auth::user()->rol)->get();
+                $role = Role::find(Auth::user()->rol);
 
                 $permisos = [];
-                foreach ($rolPermisos as $key => $value) {
-                    array_push($permisos, $value->id_permiso);
+                if ($role) {
+                    $permisos = $role->permisos()->pluck('nombre')->toArray();
                 }
 
-                $path = explode('/', $request->path())[0];
-                $pathBase = explode('-', $path)[0]; // reportes-semanal -> reportes
+                $path = $request->path();
+                $segments = explode('/', $path);
+                $first = $segments[0] ?? '';
+                $pathBase = explode('-', $first)[0]; // reportes-semanal -> reportes
 
                 if (!in_array($pathBase, $permisos)) {
+                    // If the user is already on recepcion, avoid redirect loop
+                    if ($request->route() && $request->route()->getName() === 'admin.recepcion.index') {
+                        return $next($request);
+                    }
+
                     return redirect()->route('admin.recepcion.index')->with([
                         "mensaje" => "No tiene autorización para acceder al modulo: " . $path,
                         "estatus" => Response::HTTP_UNAUTHORIZED
@@ -39,7 +49,7 @@ class ValidarRol
                 }
             }
         }
-
+       
         return $next($request);
     }
 }

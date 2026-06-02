@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Role;
 
 class LoginController extends Controller
 {
@@ -47,11 +48,25 @@ class LoginController extends Controller
 
         if (Auth::attempt($credenciales, $recuerdame)) {
             $request->session()->regenerate();
-            if(Auth::user()->rol == 1 || Auth::user()->rol == 2 ){
-                return redirect()->route('admin.panel.index');
-            }else{
-                return redirect()->route('admin.recepcion.index');
+            // Cargar permisos del rol del usuario en la sesión para validaciones
+            $user = Auth::user();
+            $permisos = [];
+            if ($user && $user->rol) {
+                $role = Role::find($user->rol);
+                if ($role) {
+                    $permisos = $role->permisos()->pluck('nombre')->toArray();
+                }
             }
+
+            // Guardar lista y mapa para checks rápidos
+            $request->session()->put('user_permisos', $permisos);
+            $request->session()->put('user_permisos_map', array_flip($permisos));
+            
+            if ($user->rol == 1 || $user->rol == 2) {
+                return redirect()->route('admin.panel.index');
+            }
+
+            return redirect()->route('admin.recepcion.index');
         }
 
         return back()->withErrors([

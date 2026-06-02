@@ -16,10 +16,10 @@ class UserSeeder extends Seeder
     public function run()
     {
         $user = new User();
-        $user->nombre = "Administrador";
-        $user->rol = 2;
-        $user->email = "@administrador";
-        $user->password = Hash::make(12345678);
+        $user->nombre = env('ADMIN_NAME', 'Administrador');
+        $user->rol = env('ADMIN_ROLE', 2);
+        $user->email = env('ADMIN_EMAIL', 'admin@comedor.dtsi');
+        $user->password = Hash::make(env('ADMIN_PASSWORD', '12345678'));
         $user->save();
 
         $user = new User();
@@ -30,10 +30,10 @@ class UserSeeder extends Seeder
         $user->save();
 
         $userDos = new User();
-        $userDos->nombre = "Cajero";
-        $userDos->rol = 3;
-        $userDos->email = "@cajero";
-        $userDos->password = Hash::make(12345678);
+        $userDos->nombre = env('CAJERO_NAME', 'Cajero');
+        $userDos->rol = env('CAJERO_ROLE', 3);
+        $userDos->email = env('CAJERO_EMAIL', 'cajero@comedor.dtsi');
+        $userDos->password = Hash::make(env('CAJERO_PASSWORD', '12345678'));
         $userDos->save();
     }
 }

@@ -34,12 +34,13 @@ Route::get('/', [LoginController::class, 'index'])->middleware('guest');
 Route::get('/login', [LoginController::class, 'index'])->name('login.index')->middleware('guest');
 Route::post('/login', [LoginController::class, 'store'])->name('login.store');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+Route::get('/logout', [LoginController::class, 'logout'])->name('logout.get');
 
 // Route::resource('/login', LoginController::class)->names('login')->middleware('guest');
 
 
 
-Route::middleware('auth', 'validarRol')->group(function () {
+Route::middleware(['auth', 'validarRol'])->group(function () {
     /** Tablero estadistico */
     Route::get('/panel', [DashboardController::class, 'index'])->name('admin.panel.index');
     Route::get('/api/dashboard-stats', [DashboardController::class, 'getStats'])->name('admin.dashboard.stats');
