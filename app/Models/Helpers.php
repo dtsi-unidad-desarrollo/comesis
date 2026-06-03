@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http as HttpClient;
 
 class Helpers extends Model
 {
@@ -98,6 +99,38 @@ class Helpers extends Model
             $mensaje = Helpers::getMensajeError($th, ", ¡Error interno al intentar registrar la entrada del comensal!");
             $estatus = Response::HTTP_INTERNAL_SERVER_ERROR;
             return back()->with(compact('mensaje', 'estatus'));
+        }
+    }
+
+    /**
+     * Envia comando al endpoint del torniquete asignado al ATM.
+     * Retorna array con resultado.
+     */
+    public static function openAtmDoor($atm, $payload = []){
+        try {
+            if (!$atm) return ['ok' => false, 'message' => 'ATM not found'];
+
+            $atm->load('torniquete');
+            if (! $atm->torniquete) return ['ok' => false, 'message' => 'No torniquete assigned'];
+
+            $endpoint = $atm->torniquete->endpoint_url;
+            if (! $endpoint) return ['ok' => false, 'message' => 'Torniquete has no endpoint configured'];
+
+            $body = [
+                'id' => $payload['id'] ?? (string) time(),
+                'name' => $payload['name'] ?? ($payload['nombre'] ?? 'system'),
+                'allowed' => $payload['allowed'] ?? true,
+                'doorId' => $atm->torniquete->id,
+            ];
+
+            $resp = HttpClient::withHeaders([
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json',
+            ])->post($endpoint, $body);
+
+            return ['ok' => true, 'status' => $resp->status(), 'body' => $resp->body()];
+        } catch (\Throwable $th) {
+            return ['ok' => false, 'message' => $th->getMessage()];
         }
     }
 
@@ -336,5 +369,72 @@ class Helpers extends Model
             }
         }
         return number_format($n, $def);
+    }
+
+    /**
+     * Intenta resolver la MAC asociada a una IP en la red local.
+     * Devuelve la MAC en formato xx-xx-xx-xx-xx-xx en mayuculas o null si no se encuentra.
+     */
+    public static function getMacFromIp($ip)
+    {
+        if (empty($ip)) return null;
+
+        // If localhost, try to get a local interface MAC
+        if ($ip === '127.0.0.1' || $ip === '::1') {
+            // try platform-specific commands
+            if (PHP_OS_FAMILY === 'Windows') {
+                $out = shell_exec('getmac /NH 2>&1');
+                if ($out) {
+                    if (preg_match_all('/([0-9A-Fa-f]{2}(-[0-9A-Fa-f]{2}){5})/', $out, $m)) {
+                        $mac = $m[1][0];
+                        return strtoupper(str_replace(':', '-', $mac));
+                    }
+                }
+            } else {
+                $out = shell_exec("ip link 2>/dev/null || ifconfig -a 2>/dev/null");
+                if ($out) {
+                    if (preg_match_all('/([0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5})/', $out, $m)) {
+                        return strtoupper(str_replace(':', '-', $m[1][0]));
+                    }
+                }
+            }
+            return null;
+        }
+
+        $escapedIp = escapeshellarg($ip);
+
+        // First try ip neighbor (Linux)
+        if (PHP_OS_FAMILY !== 'Windows') {
+            $cmd = "ip neigh show $escapedIp 2>/dev/null";
+            $out = trim(shell_exec($cmd));
+            if ($out) {
+                if (preg_match('/lladdr\s+([0-9a-fA-F:]{17})/', $out, $m)) {
+                    return strtoupper($m[1]);
+                }
+                if (preg_match('/([0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5})/', $out, $m)) {
+                    return strtoupper($m[1]);
+                }
+            }
+
+            // fallback to arp
+            $cmd = "arp -n $escapedIp 2>/dev/null";
+            $out = trim(shell_exec($cmd));
+            if ($out) {
+                if (preg_match('/([0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5})/', $out, $m)) {
+                    return strtoupper($m[1]);
+                }
+            }
+        } else {
+            // Windows arp
+            $cmd = "arp -a $escapedIp 2>&1";
+            $out = trim(shell_exec($cmd));
+            if ($out) {
+                if (preg_match('/([0-9A-Fa-f]{2}(-[0-9A-Fa-f]{2}){5})/', $out, $m)) {
+                    return strtoupper(str_replace(':', '-', $m[1]));
+                }
+            }
+        }
+
+        return null;
     }
 } // end

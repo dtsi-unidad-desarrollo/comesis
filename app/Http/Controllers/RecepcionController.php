@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Atm;
 use App\Models\Comensale;
 use App\Models\DataDev;
 use App\Models\Entrada;
@@ -26,12 +27,13 @@ class RecepcionController extends Controller
     {
         /** Variable global para los alertas */
         $respuesta =  $this->data->respuesta;
-
+         // intentar resolver MAC por IP (ARP) como fallback
         try {
 
             /** se declaran las variables */
             $comensal = null;
             $mensaje_comensal = '';
+            $mensaje_torniquete = 'Cerrado';
             $date = Carbon::now();
             $entradas = null;
             $tipoComida = '';
@@ -79,7 +81,8 @@ class RecepcionController extends Controller
                                 if ($comensal == null) {
                                     /** Se valdiad si el comensal esta activo en el sistema  */
                                     $mensaje_comensal = "<strong>¡NO PERMITIR EL ACCESO!</strong> El comensal está inactivo, no puede ingresar.";
-                                    return view('admin.recepcion.index', compact('comensal', 'respuesta', 'mensaje_comensal', 'cantidadDeEntradas', 'servicio', 'request'));
+                                    $mensaje_torniquete = 'Cerrado';
+                                    return view('admin.recepcion.index', compact('comensal', 'respuesta', 'mensaje_comensal', 'mensaje_torniquete', 'cantidadDeEntradas', 'servicio', 'request'));
                                 }
                             }
                         }
@@ -94,6 +97,7 @@ class RecepcionController extends Controller
                     if ($comensal == null) {
                         /** MENSAJE DE FALLO BUSQUEDA DE COMENSALES */
                         $mensaje_comensal = "<strong>¡NO PERMITIR EL ACCESO!</strong> Comensal no registrado .";
+                        $mensaje_torniquete = 'Cerrado';
                     } else {
                         /** Validamos si el comensal tiene estatus activo o no */
                         if ($comensal->estatus == 0) {
@@ -131,6 +135,27 @@ class RecepcionController extends Controller
 
                                 /** obtener las entradas actualizadas */
                                 $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre ?? '');
+
+                                // Intentar abrir el torniquete asociado a la PC de recepción (si se detecta su MAC)
+                               
+                                    // intentar resolver MAC por IP (ARP) como fallback
+                                $clientMac = Helpers::getMacFromIp($request->ip());
+                            
+                                if ($clientMac) {
+                                    $atm = Atm::where('mac_address', $clientMac)->first();
+                                    if ($atm) {
+                                        $openResp = Helpers::openAtmDoor($atm, [
+                                            'id' => $comensal->cedula,
+                                            'name' => $comensal->nombres . ' ' . $comensal->apellidos,
+                                            'allowed' => true,
+                                        ]);
+                                        if (!empty($openResp['ok']) && $openResp['ok']) {
+                                            $mensaje_torniquete = ' Comando de apertura enviado al torniquete.';
+                                        } else {
+                                            $mensaje_torniquete = ' No se pudo enviar comando al torniquete: ' . ($openResp['message'] ?? json_encode($openResp));
+                                        }
+                                    }
+                                }
                             }
                         } else {
                             /** Se valdiad si el comensal esta activo en el sistema  */
@@ -142,7 +167,7 @@ class RecepcionController extends Controller
                 }
             }
 
-            return view('admin.recepcion.index', compact('comensal', 'respuesta', 'mensaje_comensal', 'cantidadDeEntradas', 'servicio', 'request'));
+            return view('admin.recepcion.index', compact('comensal', 'respuesta', 'mensaje_comensal', 'mensaje_torniquete', 'cantidadDeEntradas', 'servicio', 'request'));
         } catch (\Throwable $th) {
             $mensaje = Helpers::getMensajeError($th, ", ¡Error interno al intentar consultar los comensal!");
             $estatus = Response::HTTP_INTERNAL_SERVER_ERROR;

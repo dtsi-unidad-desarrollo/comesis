@@ -138,6 +138,16 @@
 
                             </div>
                         </div>
+                        <div class="d-flex align-items-center mt-3">
+                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                <i class="bi {{ $mensaje_torniquete == 'Cerrado' ? 'bi-door-closed' : 'bi-door-open' }} fs-2"></i>
+                            </div>
+                            <div class="ps-3">
+                                <p class="text-primary">Estatus torniquete:</p>
+                                <h2 class="text-secondary fs-6 {{ $mensaje_torniquete == 'Cerrado' ? 'text-danger' : 'text-success' }}  ">
+                                    {{ $mensaje_torniquete }}
+                                </h2>
+                            </div>
 
                     </div>
 
@@ -155,4 +165,37 @@
 
 
 
+@endsection
+
+@section('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    const form = document.querySelector('form[action="{{ route('admin.recepcion.index') }}"]');
+    if (!form) return;
+
+    form.addEventListener('submit', async function(e){
+        // try to get client MAC from local agent
+        try {
+            const resp = await fetch('http://localhost:3000/client-info', { method: 'GET' });
+            if (resp.ok) {
+                const data = await resp.json();
+                if (data.mac) {
+                    let input = form.querySelector('input[name="client_mac"]');
+                    if (!input) {
+                        input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'client_mac';
+                        form.appendChild(input);
+                    }
+                    input.value = data.mac;
+                }
+            }
+        } catch (err) {
+            // agente local no disponible, continuar de todas formas
+            // console.warn('Local agent not available', err);
+        }
+        // allow form to submit normally
+    });
+});
+</script>
 @endsection
