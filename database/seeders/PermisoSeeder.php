@@ -29,6 +29,7 @@ class PermisoSeeder extends Seeder
             "reportes-semanas-mes",
             "sincronizarData",
             "servicios",
+            "torniquetes",
             "atms",
         ];
 

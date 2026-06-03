@@ -373,65 +373,61 @@ class Helpers extends Model
 
     /**
      * Intenta resolver la MAC asociada a una IP en la red local.
-     * Devuelve la MAC en formato xx-xx-xx-xx-xx-xx en mayuculas o null si no se encuentra.
+     * Devuelve la MAC en formato xx:xx:xx:xx:xx:xx o null si no se encuentra.
      */
     public static function getMacFromIp($ip)
     {
-        if (empty($ip)) return null;
+        if (empty($ip)) {
+            return null;
+        }
+
+        // Si no se pueden ejecutar comandos del sistema, no intentar ARP/ifconfig.
+        $canRunShell = function_exists('shell_exec') && is_callable('shell_exec');
+        if (! $canRunShell) {
+            return null;
+        }
 
         // If localhost, try to get a local interface MAC
         if ($ip === '127.0.0.1' || $ip === '::1') {
-            // try platform-specific commands
             if (PHP_OS_FAMILY === 'Windows') {
                 $out = shell_exec('getmac /NH 2>&1');
-                if ($out) {
-                    if (preg_match_all('/([0-9A-Fa-f]{2}(-[0-9A-Fa-f]{2}){5})/', $out, $m)) {
-                        $mac = $m[1][0];
-                        return strtoupper(str_replace(':', '-', $mac));
-                    }
+                if ($out && preg_match_all('/([0-9A-Fa-f]{2}(-[0-9A-Fa-f]{2}){5})/', $out, $m)) {
+                    return strtolower(str_replace('-', ':', $m[1][0]));
                 }
             } else {
-                $out = shell_exec("ip link 2>/dev/null || ifconfig -a 2>/dev/null");
-                if ($out) {
-                    if (preg_match_all('/([0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5})/', $out, $m)) {
-                        return strtoupper(str_replace(':', '-', $m[1][0]));
-                    }
+                $out = shell_exec('ip link 2>/dev/null || ifconfig -a 2>/dev/null');
+                if ($out && preg_match_all('/([0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5})/', $out, $m)) {
+                    return strtolower($m[1][0]);
                 }
             }
+
             return null;
         }
 
         $escapedIp = escapeshellarg($ip);
 
-        // First try ip neighbor (Linux)
         if (PHP_OS_FAMILY !== 'Windows') {
             $cmd = "ip neigh show $escapedIp 2>/dev/null";
             $out = trim(shell_exec($cmd));
             if ($out) {
                 if (preg_match('/lladdr\s+([0-9a-fA-F:]{17})/', $out, $m)) {
-                    return strtoupper($m[1]);
+                    return strtolower($m[1]);
                 }
                 if (preg_match('/([0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5})/', $out, $m)) {
-                    return strtoupper($m[1]);
+                    return strtolower($m[1]);
                 }
             }
 
-            // fallback to arp
             $cmd = "arp -n $escapedIp 2>/dev/null";
             $out = trim(shell_exec($cmd));
-            if ($out) {
-                if (preg_match('/([0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5})/', $out, $m)) {
-                    return strtoupper($m[1]);
-                }
+            if ($out && preg_match('/([0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5})/', $out, $m)) {
+                return strtolower($m[1]);
             }
         } else {
-            // Windows arp
             $cmd = "arp -a $escapedIp 2>&1";
             $out = trim(shell_exec($cmd));
-            if ($out) {
-                if (preg_match('/([0-9A-Fa-f]{2}(-[0-9A-Fa-f]{2}){5})/', $out, $m)) {
-                    return strtoupper(str_replace(':', '-', $m[1]));
-                }
+            if ($out && preg_match('/([0-9A-Fa-f]{2}(-[0-9A-Fa-f]{2}){5})/', $out, $m)) {
+                return strtolower(str_replace('-', ':', $m[1]));
             }
         }
 
