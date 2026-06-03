@@ -90,7 +90,14 @@ Route::middleware(['auth', 'validarRol'])->group(function () {
         return response()->json(['message' => 'ok']);
     })->name('client.register');
 
+    // Ruta para detectar la MAC del cliente desde el servidor usando la IP (ARP)
+    Route::get('/detect-client-mac', function(\Illuminate\Http\Request $request){
+        $ip = $request->ip();
+        $mac = \App\Models\Helpers::getMacFromIp($ip);
+        return response()->json(['mac' => $mac, 'ip' => $ip]);
+    })->name('client.detect');
+
     /** Ruta para sincronizar data con dux actualmente desactivada */
     Route::post('/sincronizarData', [ComensaleController::class, 'sincronizarData'])->name('admin.sincronizarData');
- 
+
 });

@@ -6,6 +6,7 @@ use App\Models\Atm;
 use App\Models\Torniquete;
 use App\Http\Requests\StoreAtmRequest;
 use App\Http\Requests\UpdateAtmRequest;
+use App\Models\Helpers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http as HttpClient;
 use Illuminate\Http\Response;
@@ -32,7 +33,9 @@ class AtmController extends Controller
     public function create()
     {
         $torniquetes = Torniquete::all();
-        return view('admin.atm.create', compact('torniquetes'));
+        $ip = request()->ip();
+        $mac = Helpers::getMacFromIp($ip);
+        return view('admin.atm.create', compact('torniquetes', 'ip', 'mac'));
     }
 
     /**
