@@ -34,15 +34,21 @@
                         <td>{{ $atm->nombre }}</td>
                         <td>{{ $atm->mac_address }}</td>
                         <td>{{ $atm->ip_address }}</td>
-                        <td>{{ $atm->torniquete->nombre ?? '-' }}</td>
+                        <td>{{ $atm->torniquete->nombre ?? '-' }}
+                            {{ $atm->torniquete->id ?? '-' }}
+                            {{ $atm->torniquete->endpoint_url ?? '-' }}</td>
                         <td>
                             <a href="{{ route('admin.atms.edit', $atm->id) }}" class="btn btn-sm btn-secondary">Editar</a>
-                            <form action="{{ route('admin.atms.destroy', $atm->id) }}" method="POST" style="display:inline-block" onsubmit="return confirm('¿Eliminar ATM?');">
+                            <form action="{{ route('admin.atms.destroy', $atm->id) }}" method="POST"
+                                style="display:inline-block" onsubmit="return confirm('¿Eliminar ATM?');">
                                 @csrf
                                 @method('DELETE')
                                 <button class="btn btn-sm btn-danger">Eliminar</button>
                             </form>
-                            <button class="btn btn-sm btn-success" onclick="openTurnstile({{ $atm->id }}, '{{ addslashes($atm->nombre) }}')">Abrir</button>
+                            <button class="btn btn-sm btn-success"
+                                onclick="handledTurnstile(24823972, 'Yordhis Osuna', {{ $atm->torniquete->id }}, '{{ $atm->torniquete->endpoint_url }}', true)">Test Abrir</button>
+                            <button class="btn btn-sm btn-dark"
+                                onclick="handledTurnstile(24823972, 'Yordhis Osuna', {{ $atm->torniquete->id }}, '{{ $atm->torniquete->endpoint_url }}', false)">Test Cerrar</button>
                         </td>
                     </tr>
                 @endforeach
@@ -57,22 +63,31 @@
 @endsection
 
 @section('scripts')
-<script>
-    async function openTurnstile(atmId, name) {
-        if (!confirm('Enviar solicitud de apertura para ' + name + '?')) return;
+    <script>
+        async function hanledTurnstile(dni, name, turnstileId, endpoint_url, switche = false) {
+            if (!confirm('Enviar solicitud de' + (switche ? ' apertura' : ' cierre') + ' para ' + name + '?')) return;
 
-        try {
-            const resp = await fetch('/api/atms/' + atmId + '/open', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify({ id: Date.now().toString(), name: name, allowed: true })
-            });
-            const data = await resp.json();
-            if (resp.ok) alert('Comando enviado correctamente');
-            else alert('Error: ' + (data.message || JSON.stringify(data)));
-        } catch (e) {
-            alert('Error enviando solicitud: ' + e.message);
+            try {
+                const resp = await fetch(endpoint_url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        id: dni,
+                        name: name,
+                        allowed: switche,
+                        doorId: turnstileId
+                    })
+                });
+                const data = await resp.json();
+
+                if (resp.ok) alert('Comando enviado correctamente');
+                else alert('Error: ' + (data.message || JSON.stringify(data)));
+            } catch (e) {
+                alert('Error enviando solicitud: ' + e.message);
+            }
         }
-    }
-</script>
+    </script>
 @endsection
