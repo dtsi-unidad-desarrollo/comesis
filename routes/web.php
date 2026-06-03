@@ -13,6 +13,7 @@ use App\Http\Controllers\{
     RepresentanteController,
     ServicioController,
     AtmController,
+    TorniqueteController,
     RoleController,
     PermisoController,
 };
@@ -60,6 +61,9 @@ Route::middleware(['auth', 'validarRol'])->group(function () {
     /** Control de ATMs */
     Route::resource('/atms', AtmController::class)->names('admin.atms');
     Route::post('/atms/{atm}/open', [AtmController::class, 'open'])->name('admin.atms.open');
+
+    /** Control de torniquetes */
+    Route::resource('/torniquetes', TorniqueteController::class)->names('admin.torniquetes');
     
     /** Control de roles y permisos */
     Route::resource('/roles', RoleController::class)->names('admin.roles');

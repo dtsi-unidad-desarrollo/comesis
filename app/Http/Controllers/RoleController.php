@@ -31,7 +31,9 @@ class RoleController extends Controller
             $role->permisos()->sync($request->input('permisos'));
         }
 
-        return redirect()->route('admin.roles.index')->with('mensaje', 'Rol creado correctamente.');
+        return redirect()->route('admin.roles.index')
+            ->with('mensaje', 'Rol creado correctamente.')
+            ->with('estatus', 200);
     }
 
     public function show(Role $role)
@@ -54,7 +56,9 @@ class RoleController extends Controller
         $permisos = $request->input('permisos', []);
         $role->permisos()->sync($permisos);
 
-        return redirect()->route('admin.roles.index')->with('mensaje', 'Rol actualizado correctamente.');
+        return redirect()->route('admin.roles.index')
+            ->with('mensaje', 'Rol actualizado correctamente.')
+            ->with('estatus', 200);
     }
 
     public function destroy(Role $role)
@@ -62,6 +66,8 @@ class RoleController extends Controller
         DB::table('rol_permisos')->where('id_rol', $role->id)->delete();
         $role->delete();
 
-        return redirect()->route('admin.roles.index')->with('mensaje', 'Rol eliminado correctamente.');
+        return redirect()->route('admin.roles.index')
+            ->with('mensaje', 'Rol eliminado correctamente.')
+            ->with('estatus', 200);
     }
 }

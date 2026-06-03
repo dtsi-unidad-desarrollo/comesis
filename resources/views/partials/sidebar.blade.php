@@ -59,12 +59,12 @@ $subcategoria = 'LISTA';
 
         <!-- Start Components Nav | configuraciones -->
         <li class="nav-item">
-            <a class="nav-link {{ in_array(url()->current(), [route('admin.users.index'), route('admin.users.create'), route('admin.roles.index'), route('admin.permisos.index'), route('admin.atms.index')]) ? 'collapse show' : 'collapsed' }}"
+            <a class="nav-link {{ ( in_array(url()->current(), [route('admin.users.index'), route('admin.users.create'), route('admin.roles.index'), route('admin.permisos.index'), route('admin.atms.index')]) || request()->routeIs('admin.torniquetes.*') ) ? 'collapse show' : 'collapsed' }}"
                 data-bs-target="#components-nav-10" data-bs-toggle="collapse" href="#">
                 <i class="bi bi-gear"></i><span>Configuración</span><i class="bi bi-chevron-down ms-auto"></i>
             </a>
             <ul id="components-nav-10"
-                class="nav-content {{ in_array(url()->current(), [route('admin.users.index'), route('admin.users.create'), route('admin.roles.index'), route('admin.permisos.index'), route('admin.atms.index')]) ? 'collapse show' : 'collapse' }} "
+                class="nav-content {{ ( in_array(url()->current(), [route('admin.users.index'), route('admin.users.create'), route('admin.roles.index'), route('admin.permisos.index'), route('admin.atms.index')]) || request()->routeIs('admin.torniquetes.*') ) ? 'collapse show' : 'collapse' }} "
                 data-bs-parent=" #sidebar-nav">
 
                 <!-- Start Components Nav | Servicios -->
@@ -118,6 +118,15 @@ $subcategoria = 'LISTA';
                         <span>Permisos</span>
                     </a>
                 </li><!-- End Components Nav | permisos-->
+
+                <!-- Start Components Nav | torniquetes -->
+                <li class="nav-item">
+                    <a class="nav-link {{ url()->current() == route('admin.torniquetes.index') ? 'bg-primary text-white' : 'collapsed' }}" 
+                        href="{{ route('admin.torniquetes.index') }}" >
+                        <i class="bi bi-door-open fs-3"></i>
+                        <span>Torniquetes</span>
+                    </a>
+                </li><!-- End Components Nav | torniquetes-->
 
                 <!-- Start Components Nav | ATMs -->
                 <li class="nav-item">
