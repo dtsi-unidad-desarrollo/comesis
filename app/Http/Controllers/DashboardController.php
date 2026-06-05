@@ -106,6 +106,10 @@ class DashboardController extends Controller
      */
     public function index(Request $request)
     {
+        $personal['NOMINA'] = DB::connection('mysql_third')
+                ->table('rrhh_nomina')
+                ->get();
+
         $personal['ADMINISTRATIVO'] = DB::connection('mysql_third')
                 ->table('personal')
                 ->where('per_cedula', 24823972)
@@ -114,7 +118,7 @@ class DashboardController extends Controller
                 ->table('personal')
                 ->where('per_cedula', 23033493)
                 ->get();
-                
+
         $personal['ADMINISTRATIVO_JUBILADO'] = DB::connection('mysql_third')
                 ->table('personal')
                 ->where('per_cedula', 8141226)
