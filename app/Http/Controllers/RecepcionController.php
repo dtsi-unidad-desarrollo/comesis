@@ -284,7 +284,7 @@ class RecepcionController extends Controller
     public function selectAtm(Request $request)
     {
         if ($request->input('change', false) === 'true') {
-
+            Atm::where('id', session('selectedAtm.id'))->update(['en_uso' => false]);
             session()->forget('selectedAtm');
             return back()->with([
                 'mensaje' => 'ATM/Torniquete deseleccionado.',
@@ -296,9 +296,8 @@ class RecepcionController extends Controller
         $selectedAtm = $atms->where('id', $request->atm_id)->first();
 
         if ($selectedAtm) {
-            $selectedAtm->update([
-                'en_uso' => true,
-            ]);
+            // actualizamos el campo en_uso 
+            Atm::where('id', $selectedAtm->id)->update(['en_uso' => true]);
             session(['selectedAtm' => $selectedAtm]);
             return back()->with([
                 'mensaje' => 'ATM/Torniquete seleccionado: ' . $selectedAtm->nombre . ' - ' . ($selectedAtm->torniquete->nombre ?? 'Sin torniquete asociado'),
