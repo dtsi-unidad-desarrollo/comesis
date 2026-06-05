@@ -25,8 +25,6 @@ class StoreAtmRequest extends FormRequest
     {
         return [
             'nombre' => 'required|string|max:255|unique:atms,nombre',
-            'mac_address' => 'nullable|string|max:50|unique:atms,mac_address',
-            'ip_address' => 'nullable|ip|unique:atms,ip_address',
             'torniquete_id' => 'nullable|exists:torniquetes,id',
             'descripcion' => 'nullable|string',
         ];

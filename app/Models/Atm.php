@@ -14,8 +14,6 @@ class Atm extends Model
 
     protected $fillable = [
         'nombre',
-        'mac_address',
-        'ip_address',
         'torniquete_id',
         'descripcion',
     ];

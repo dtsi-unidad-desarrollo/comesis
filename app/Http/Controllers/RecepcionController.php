@@ -48,6 +48,30 @@ class RecepcionController extends Controller
             /** Obtenemos el total de entradas */
             if ($servicio) $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre);
 
+            $atms = Atm::with('torniquete')->get();
+            $selectedAtm = null;
+
+            if ($request->has('clear_atm')) {
+                session()->forget('selectedAtmId');
+            }
+
+            if ($request->filled('atm_id')) {
+                $selectedAtm = $atms->firstWhere('id', $request->atm_id);
+                if ($selectedAtm) {
+                    session(['selectedAtmId' => $selectedAtm->id]);
+                } else {
+                    session()->forget('selectedAtmId');
+                }
+            } elseif (session()->has('selectedAtmId')) {
+                $selectedAtm = $atms->firstWhere('id', session('selectedAtmId'));
+                if (!$selectedAtm) {
+                    session()->forget('selectedAtmId');
+                }
+            } elseif ($atms->count() === 1) {
+                $selectedAtm = $atms->first();
+                session(['selectedAtmId' => $selectedAtm->id]);
+            }
+
             // llamada de prueba eliminada para evitar respuestas inesperadas en producción
 
             /** Se valida si hay una cedula  */
@@ -82,7 +106,7 @@ class RecepcionController extends Controller
                                     /** Se valdiad si el comensal esta activo en el sistema  */
                                     $mensaje_comensal = "<strong>¡NO PERMITIR EL ACCESO!</strong> El comensal está inactivo, no puede ingresar.";
                                     $mensaje_torniquete = 'Cerrado';
-                                    return view('admin.recepcion.index', compact('comensal', 'respuesta', 'mensaje_comensal', 'mensaje_torniquete', 'cantidadDeEntradas', 'servicio', 'request'));
+                                    return view('admin.recepcion.index', compact('comensal', 'respuesta', 'mensaje_comensal', 'mensaje_torniquete', 'cantidadDeEntradas', 'servicio', 'request', 'atms', 'selectedAtm'));
                                 }
                             }
                         }
@@ -136,25 +160,19 @@ class RecepcionController extends Controller
                                 /** obtener las entradas actualizadas */
                                 $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre ?? '');
 
-                                // Intentar abrir el torniquete asociado a la PC de recepción (si se detecta su MAC)
-                               
-                                    // intentar resolver MAC por IP (ARP) como fallback
-                                $clientMac = Helpers::getMacFromIp($request->ip());
-                            
-                                if ($clientMac) {
-                                    $atm = Atm::where('mac_address', $clientMac)->first();
-                                    if ($atm) {
-                                        $openResp = Helpers::openAtmDoor($atm, [
-                                            'id' => $comensal->cedula,
-                                            'name' => $comensal->nombres . ' ' . $comensal->apellidos,
-                                            'allowed' => true,
-                                        ]);
-                                        if (!empty($openResp['ok']) && $openResp['ok']) {
-                                            $mensaje_torniquete = ' Comando de apertura enviado al torniquete.';
-                                        } else {
-                                            $mensaje_torniquete = ' No se pudo enviar comando al torniquete: ' . ($openResp['message'] ?? json_encode($openResp));
-                                        }
+                                if ($selectedAtm) {
+                                    $openResp = Helpers::openAtmDoor($selectedAtm, [
+                                        'id' => $comensal->cedula,
+                                        'name' => $comensal->nombres . ' ' . $comensal->apellidos,
+                                        'allowed' => true,
+                                    ]);
+                                    if (!empty($openResp['ok']) && $openResp['ok']) {
+                                        $mensaje_torniquete = ' Comando de apertura enviado al torniquete.';
+                                    } else {
+                                        $mensaje_torniquete = ' No se pudo enviar comando al torniquete: ' . ($openResp['message'] ?? json_encode($openResp));
                                     }
+                                } else {
+                                    $mensaje_torniquete = ' No se ha seleccionado una ATM/torniquete en recepción.';
                                 }
                             }
                         } else {
@@ -167,7 +185,7 @@ class RecepcionController extends Controller
                 }
             }
 
-            return view('admin.recepcion.index', compact('comensal', 'respuesta', 'mensaje_comensal', 'mensaje_torniquete', 'cantidadDeEntradas', 'servicio', 'request'));
+            return view('admin.recepcion.index', compact('comensal', 'respuesta', 'mensaje_comensal', 'mensaje_torniquete', 'cantidadDeEntradas', 'servicio', 'request', 'atms', 'selectedAtm'));
         } catch (\Throwable $th) {
             $mensaje = Helpers::getMensajeError($th, ", ¡Error interno al intentar consultar los comensal!");
             $estatus = Response::HTTP_INTERNAL_SERVER_ERROR;

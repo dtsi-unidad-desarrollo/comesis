@@ -25,8 +25,6 @@ class UpdateAtmRequest extends FormRequest
     {
         return [
             'nombre' => 'sometimes|required|string|max:255',
-            'mac_address' => 'nullable|string|max:50',
-            'ip_address' => 'nullable|ip',
             'torniquete_id' => 'nullable|exists:torniquetes,id',
             'descripcion' => 'nullable|string',
         ];

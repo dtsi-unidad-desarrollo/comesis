@@ -33,9 +33,7 @@ class AtmController extends Controller
     public function create()
     {
         $torniquetes = Torniquete::all();
-        $ip = request()->ip();
-        $mac = Helpers::getMacFromIp($ip);
-        return view('admin.atm.create', compact('torniquetes', 'ip', 'mac'));
+        return view('admin.atm.create', compact('torniquetes'));
     }
 
     /**

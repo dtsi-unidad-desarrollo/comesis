@@ -5,19 +5,6 @@
     <input type="text" name="nombre" value="{{ old('nombre', $atm->nombre ?? '') }}" class="form-control" required>
 </div>
 
-<div class="mb-3">
-    <label class="form-label">MAC address</label>
-    <div class="input-group">
-        <input type="text" name="mac_address" value="{{ old('mac_address', $atm->mac_address ?? $mac) }}" class="form-control">
-    </div>
-</div>
-
-<div class="mb-3">
-    <label class="form-label">IP address</label>
-    <div class="input-group">
-        <input type="text" name="ip_address" value="{{ old('ip_address', $atm->ip_address ?? $ip) }}" class="form-control">
-    </div>
-</div>
 
 <div class="mb-3">
     <label class="form-label">Torniquete</label>

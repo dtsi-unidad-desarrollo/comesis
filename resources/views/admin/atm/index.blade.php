@@ -21,8 +21,6 @@
                 <tr class="bg-primary text-white">
                     <th>ID</th>
                     <th>Nombre</th>
-                    <th>MAC</th>
-                    <th>IP</th>
                     <th>Torniquete</th>
                     <th>Acciones</th>
                 </tr>
@@ -32,8 +30,6 @@
                     <tr>
                         <td>{{ $atm->id }}</td>
                         <td>{{ $atm->nombre }}</td>
-                        <td>{{ $atm->mac_address }}</td>
-                        <td>{{ $atm->ip_address }}</td>
                         <td>{{ $atm->torniquete->nombre ?? '-' }}
                             {{ $atm->torniquete->id ?? '-' }}
                             {{ $atm->torniquete->endpoint_url ?? '-' }}</td>
@@ -46,9 +42,8 @@
                                 <button class="btn btn-sm btn-danger">Eliminar</button>
                             </form>
                             <button class="btn btn-sm btn-success"
-                                onclick="handledTurnstile(24823972, 'Yordhis Osuna', {{ $atm->torniquete->id }}, '{{ $atm->torniquete->endpoint_url }}', true)">Test Abrir</button>
-                            <button class="btn btn-sm btn-dark"
-                                onclick="handledTurnstile(24823972, 'Yordhis Osuna', {{ $atm->torniquete->id }}, '{{ $atm->torniquete->endpoint_url }}', false)">Test Cerrar</button>
+                                onclick="handledTurnstile(27123456, 'Juan Gomez (Prueba)', {{ $atm->torniquete->id }}, '{{ $atm->torniquete->endpoint_url }}', true)">Test Abrir</button>
+                           
                         </td>
                     </tr>
                 @endforeach
@@ -64,7 +59,7 @@
 
 @section('scripts')
     <script>
-        async function hanledTurnstile(dni, name, turnstileId, endpoint_url, switche = false) {
+        async function handledTurnstile(dni, name, turnstileId, endpoint_url, switche = false) {
             if (!confirm('Enviar solicitud de' + (switche ? ' apertura' : ' cierre') + ' para ' + name + '?')) return;
 
             try {
