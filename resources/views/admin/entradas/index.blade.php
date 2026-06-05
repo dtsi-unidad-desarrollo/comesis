@@ -77,6 +77,8 @@
                             <th scope="col">comida</th>
                             <th scope="col">fecha</th>
                             <th scope="col">hora</th>
+                            <th scope="col">Taquilla</th>
+                            <th scope="col">Taquillero</th>
                             <th scope="col"></th>
                         </tr>
                     </thead>
@@ -93,6 +95,8 @@
                                 <td class="">{{ $entrada->comida }}</td>
                                 <td>{{ \Carbon\Carbon::parse($entrada->fecha)->format('d/m/Y') }}</td>
                                 <td>{{ $entrada->hora }}</td>
+                                <td>{{ $entrada->atm->nombre ?? 'N/A' }}</td>
+                                <td>{{ $entrada->user->nombre ?? 'N/A' }}</td>
                                 <td>
                                     @if (Auth::user()->rol <= 2)
                                         @include('admin.entradas.partials.modal')
@@ -107,7 +111,7 @@
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="7" class="text-center table-secondary">
+                            <td colspan="9" class="text-center table-secondary">
                                 Total de entradas: {{ $entradas->total() }} |
                                 <a href="{{ route('admin.entradas.index') }}" class="text-primary">
                                     Ver todo

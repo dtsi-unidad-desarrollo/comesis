@@ -22,6 +22,7 @@ class CreateUsersTable extends Migration
             $table->string('rol', 55)->default(3); // 2:admin 3:cajero
             $table->string('password', 255)->nullable();
             $table->string('foto', 255)->default('/assets/img/avatar.png');
+
             $table->timestamps();
         });
     }

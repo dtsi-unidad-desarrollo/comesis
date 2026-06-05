@@ -36,7 +36,6 @@ class CreateEntradasTable extends Migration
             $table->string('municipio', 255)->nullable();
             $table->string('direccion', 255)->nullable();
             $table->timestamps();
-            // $table->string('marcado', 55)->comment('esto indica si se acepto la entra o se rechaso: RECHAZADO | ACEPTADO'); 
         });
     }
 

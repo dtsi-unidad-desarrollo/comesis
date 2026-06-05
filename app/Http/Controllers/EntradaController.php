@@ -92,10 +92,11 @@ class EntradaController extends Controller
                     $entradas = Entrada::whereDate('fecha', $request->fecha)->orderBy('nombres', 'ASC')->paginate(12);
                 }
             } else {
-                $entradas = Entrada::orderBy('created_at', 'DESC')->paginate(12);
+                $entradas = Entrada::with('atm')->with('user')->orderBy('created_at', 'DESC')->paginate(12);
             }
 
             $respuesta =  $this->data->respuesta;
+
             return view('admin.entradas.index', compact('servicios', 'entradas', 'tipos', 'respuesta', 'request'));
         } catch (\Throwable $th) {
             $mensaje = Helpers::getMensajeError($th, ", ¡Error interno al intentar consultar las entradas!");

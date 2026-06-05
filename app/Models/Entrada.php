@@ -44,4 +44,10 @@ class Entrada extends Model
     {
         return $this->belongsTo(User::class, 'allowed_by_user_id');
     }
+
+    // Compatibility alias used in controllers/views
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'allowed_by_user_id');
+    }
 }
