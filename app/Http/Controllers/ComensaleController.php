@@ -78,47 +78,58 @@ class ComensaleController extends Controller
         $progressKey = $this->getSincronizarProgressKey('estudiantes');
 
         try {
-            $datosEstudiantes = DB::connection('mysql_second')
+            $totalRecords = DB::connection('mysql_second')
                 ->table('estudiantes')
-                ->select('nombres', 'apellidos', 'nacionalidad', 'Cedula as cedula', 'Sexo as sexo')
-                ->get();
-
-            $totalRecords = $datosEstudiantes->count();
+                ->count();
+            $batchSize = max(1, intval(ceil($totalRecords / 3)));
             $processed = 0;
 
             $this->initSincronizarDataProgress($progressKey, $totalRecords, 'Preparando', 'Iniciando sincronización de estudiantes...');
 
-            foreach ($datosEstudiantes as $comensal) {
-                $estatusEstudiante = 0;
-                $carreras = DB::connection('mysql_second')
-                    ->table('carreras_est')
-                    ->where('ConexEst', $comensal->cedula)
-                    ->select('Status', 'CodCar')
+            for ($batch = 0; $batch < 3; $batch++) {
+                if ($processed >= $totalRecords) {
+                    break;
+                }
+
+                $datosEstudiantes = DB::connection('mysql_second')
+                    ->table('estudiantes')
+                    ->select('nombres', 'apellidos', 'nacionalidad', 'Cedula as cedula', 'Sexo as sexo')
+                    ->offset($batch * $batchSize)
+                    ->limit($batchSize)
                     ->get();
 
-                foreach ($carreras as $carrera) {
-                    if ($carrera->Status === 'A') {
-                        $estatusEstudiante = 1;
-                        break;
+                foreach ($datosEstudiantes as $comensal) {
+                    $estatusEstudiante = 0;
+                    $carreras = DB::connection('mysql_second')
+                        ->table('carreras_est')
+                        ->where('ConexEst', $comensal->cedula)
+                        ->select('Status', 'CodCar')
+                        ->get();
+
+                    foreach ($carreras as $carrera) {
+                        if ($carrera->Status === 'A') {
+                            $estatusEstudiante = 1;
+                            break;
+                        }
                     }
-                }
 
-                if ($estatusEstudiante) {
-                    Comensale::updateOrCreate(
-                        ['cedula' => $comensal->cedula],
-                        [
-                            'nombres' => $comensal->nombres,
-                            'apellidos' => $comensal->apellidos,
-                            'nacionalidad' => $comensal->nacionalidad,
-                            'sexo' => strtoupper(substr(trim($comensal->sexo), 0, 1)) === 'F' ? 'F' : 'M',
-                            'tipo_comensal' => 'ESTUDIANTE',
-                            'estatus' => $estatusEstudiante,
-                        ]
-                    );
-                }
+                    if ($estatusEstudiante) {
+                        Comensale::updateOrCreate(
+                            ['cedula' => $comensal->cedula],
+                            [
+                                'nombres' => $comensal->nombres,
+                                'apellidos' => $comensal->apellidos,
+                                'nacionalidad' => $comensal->nacionalidad,
+                                'sexo' => strtoupper(substr(trim($comensal->sexo), 0, 1)) === 'F' ? 'F' : 'M',
+                                'tipo_comensal' => 'ESTUDIANTE',
+                                'estatus' => $estatusEstudiante,
+                            ]
+                        );
+                    }
 
-                $processed++;
-                $this->setSincronizarDataProgress($progressKey, $processed, $totalRecords, 'Sincronizando estudiantes');
+                    $processed++;
+                    $this->setSincronizarDataProgress($progressKey, $processed, $totalRecords, 'Sincronizando estudiantes');
+                }
             }
 
             $this->setSincronizarDataProgress($progressKey, $totalRecords, $totalRecords, 'Sincronización de estudiantes completada');
@@ -150,33 +161,48 @@ class ComensaleController extends Controller
         $progressKey = $this->getSincronizarProgressKey('empleados');
 
         try {
-            $datosEmpleados = DB::connection('mysql_third')
+            $totalRecords = DB::connection('mysql_third')
                 ->table('personal')
-                ->select('per_nombres', 'per_apellidos', 'per_nacionalidad', 'per_cedula', 'per_sexo', 'per_status', 'nom_nombre')
-                ->get();
-
-            $totalRecords = $datosEmpleados->count();
+                ->where('per_status', 1)
+                ->whereNotIn('nom_nombre', ['DOCENTE FALLECIDO', 'OBRERO FALLECIDO', 'ADMINISTRATIVO FALLECIDO'])
+                ->count();
+            $batchSize = max(1, intval(ceil($totalRecords / 3)));
             $processed = 0;
 
             $this->initSincronizarDataProgress($progressKey, $totalRecords, 'Preparando', 'Iniciando sincronización de empleados...');
 
-            foreach ($datosEmpleados as $empleado) {
-                if ($empleado->per_status == 1) {
-                    Comensale::updateOrCreate(
-                        ['cedula' => $empleado->per_cedula],
-                        [
-                            'nombres' => $empleado->per_nombres,
-                            'apellidos' => $empleado->per_apellidos,
-                            'nacionalidad' => $empleado->per_nacionalidad == 'venezolano' ? 'V' : 'E',
-                            'sexo' => $empleado->per_sexo === 1 ? 'M' : 'F',
-                            'tipo_comensal' => $empleado->nom_nombre,
-                            'estatus' => 1,
-                        ]
-                    );
+            for ($batch = 0; $batch < 3; $batch++) {
+                if ($processed >= $totalRecords) {
+                    break;
                 }
 
-                $processed++;
-                $this->setSincronizarDataProgress($progressKey, $processed, $totalRecords, 'Sincronizando empleados');
+                $datosEmpleados = DB::connection('mysql_third')
+                    ->table('personal')
+                    ->select('per_nombres', 'per_apellidos', 'per_nacionalidad', 'per_cedula', 'per_sexo', 'per_status', 'nom_nombre')
+                    ->where('per_status', 1)
+                    ->whereNotIn('nom_nombre', ['DOCENTE FALLECIDO', 'OBRERO FALLECIDO', 'ADMINISTRATIVO FALLECIDO'])
+                    ->offset($batch * $batchSize)
+                    ->limit($batchSize)
+                    ->get();
+
+                foreach ($datosEmpleados as $empleado) {
+                    if ($empleado->per_status == 1) {
+                        Comensale::updateOrCreate(
+                            ['cedula' => $empleado->per_cedula],
+                            [
+                                'nombres' => $empleado->per_nombres,
+                                'apellidos' => $empleado->per_apellidos,
+                                'nacionalidad' => 'V',
+                                'sexo' => $empleado->per_sexo === 1 ? 'M' : 'F',
+                                'tipo_comensal' => $empleado->nom_nombre,
+                                'estatus' => 1,
+                            ]
+                        );
+                    }
+
+                    $processed++;
+                    $this->setSincronizarDataProgress($progressKey, $processed, $totalRecords, 'Sincronizando empleados');
+                }
             }
 
             $this->setSincronizarDataProgress($progressKey, $totalRecords, $totalRecords, 'Sincronización de empleados completada');
@@ -208,71 +234,97 @@ class ComensaleController extends Controller
         $progressKey = $this->getSincronizarProgressKey('global');
 
         try {
-            $datosEstudiantes = DB::connection('mysql_second')
+            $totalEstudiantes = DB::connection('mysql_second')
                 ->table('estudiantes')
-                ->select('nombres', 'apellidos', 'nacionalidad', 'Cedula as cedula', 'Sexo as sexo')
-                ->get();
+                ->count();
 
-            $datosEmpleados = DB::connection('mysql_third')
+            $totalEmpleados = DB::connection('mysql_third')
                 ->table('personal')
-                ->select('per_nombres', 'per_apellidos', 'per_nacionalidad', 'per_cedula', 'per_sexo', 'per_status', 'nom_nombre')
-                ->get();
+                ->count();
 
-            $totalRecords = $datosEstudiantes->count() + $datosEmpleados->count();
+            $totalRecords = $totalEstudiantes + $totalEmpleados;
+            $batchSizeEstudiantes = max(1, intval(ceil($totalEstudiantes / 3)));
+            $batchSizeEmpleados = max(1, intval(ceil($totalEmpleados / 3)));
             $processed = 0;
 
             $this->initSincronizarDataProgress($progressKey, $totalRecords, 'Preparando', 'Iniciando sincronización completa...');
 
-            foreach ($datosEstudiantes as $comensal) {
-                $estatusEstudiante = 0;
-                $carreras = DB::connection('mysql_second')
-                    ->table('carreras_est')
-                    ->where('ConexEst', $comensal->cedula)
-                    ->select('Status', 'CodCar')
+            for ($batch = 0; $batch < 3; $batch++) {
+                if ($processed >= $totalEstudiantes) {
+                    break;
+                }
+
+                $datosEstudiantes = DB::connection('mysql_second')
+                    ->table('estudiantes')
+                    ->select('nombres', 'apellidos', 'nacionalidad', 'Cedula as cedula', 'Sexo as sexo')
+                    ->offset($batch * $batchSizeEstudiantes)
+                    ->limit($batchSizeEstudiantes)
                     ->get();
 
-                foreach ($carreras as $carrera) {
-                    if ($carrera->Status === 'A') {
-                        $estatusEstudiante = 1;
-                        break;
+                foreach ($datosEstudiantes as $comensal) {
+                    $estatusEstudiante = 0;
+                    $carreras = DB::connection('mysql_second')
+                        ->table('carreras_est')
+                        ->where('ConexEst', $comensal->cedula)
+                        ->select('Status', 'CodCar')
+                        ->get();
+
+                    foreach ($carreras as $carrera) {
+                        if ($carrera->Status === 'A') {
+                            $estatusEstudiante = 1;
+                            break;
+                        }
                     }
-                }
 
-                if ($estatusEstudiante) {
-                    Comensale::updateOrCreate(
-                        ['cedula' => $comensal->cedula],
-                        [
-                            'nombres' => $comensal->nombres,
-                            'apellidos' => $comensal->apellidos,
-                            'nacionalidad' => $comensal->nacionalidad,
-                            'sexo' => strtoupper(substr(trim($comensal->sexo), 0, 1)) === 'F' ? 'F' : 'M',
-                            'tipo_comensal' => 'ESTUDIANTE',
-                            'estatus' => $estatusEstudiante,
-                        ]
-                    );
-                }
+                    if ($estatusEstudiante) {
+                        Comensale::updateOrCreate(
+                            ['cedula' => $comensal->cedula],
+                            [
+                                'nombres' => $comensal->nombres,
+                                'apellidos' => $comensal->apellidos,
+                                'nacionalidad' => $comensal->nacionalidad,
+                                'sexo' => strtoupper(substr(trim($comensal->sexo), 0, 1)) === 'F' ? 'F' : 'M',
+                                'tipo_comensal' => 'ESTUDIANTE',
+                                'estatus' => $estatusEstudiante,
+                            ]
+                        );
+                    }
 
-                $processed++;
-                $this->setSincronizarDataProgress($progressKey, $processed, $totalRecords, 'Sincronizando estudiantes');
+                    $processed++;
+                    $this->setSincronizarDataProgress($progressKey, $processed, $totalRecords, 'Sincronizando estudiantes');
+                }
             }
 
-            foreach ($datosEmpleados as $empleado) {
-                if ($empleado->per_status == 1) {
-                    Comensale::updateOrCreate(
-                        ['cedula' => $empleado->per_cedula],
-                        [
-                            'nombres' => $empleado->per_nombres,
-                            'apellidos' => $empleado->per_apellidos,
-                            'nacionalidad' => $empleado->per_nacionalidad == 'venezolano' ? 'V' : 'E',
-                            'sexo' => $empleado->per_sexo === 1 ? 'M' : 'F',
-                            'tipo_comensal' => $empleado->nom_nombre,
-                            'estatus' => 1,
-                        ]
-                    );
+            for ($batch = 0; $batch < 3; $batch++) {
+                if ($processed - $totalEstudiantes >= $totalEmpleados) {
+                    break;
                 }
 
-                $processed++;
-                $this->setSincronizarDataProgress($progressKey, $processed, $totalRecords, 'Sincronizando empleados');
+                $datosEmpleados = DB::connection('mysql_third')
+                    ->table('personal')
+                    ->select('per_nombres', 'per_apellidos', 'per_nacionalidad', 'per_cedula', 'per_sexo', 'per_status', 'nom_nombre')
+                    ->offset($batch * $batchSizeEmpleados)
+                    ->limit($batchSizeEmpleados)
+                    ->get();
+
+                foreach ($datosEmpleados as $empleado) {
+                    if ($empleado->per_status == 1) {
+                        Comensale::updateOrCreate(
+                            ['cedula' => $empleado->per_cedula],
+                            [
+                                'nombres' => $empleado->per_nombres,
+                                'apellidos' => $empleado->per_apellidos,
+                                'nacionalidad' => $empleado->per_nacionalidad == 'venezolano' ? 'V' : 'E',
+                                'sexo' => $empleado->per_sexo === 1 ? 'M' : 'F',
+                                'tipo_comensal' => $empleado->nom_nombre,
+                                'estatus' => 1,
+                            ]
+                        );
+                    }
+
+                    $processed++;
+                    $this->setSincronizarDataProgress($progressKey, $processed, $totalRecords, 'Sincronizando empleados');
+                }
             }
 
             $this->setSincronizarDataProgress($progressKey, $totalRecords, $totalRecords, 'Sincronización completa');
