@@ -20,7 +20,8 @@ class CreateComensalesTable extends Migration
             $table->string('nacionalidad', 25);
             $table->string('cedula', 35)->unique();
             $table->string('sexo', 35);
-            $table->string('tipo_comensal', 100)->comment('ESTUDIANTE, PROFESOR, ADMINISTRATIVO, OBRERO Y EVENTUAL');
+            $table->string('tipo_comensal', 255)->comment('ESTUDIANTE, PROFESOR, ADMINISTRATIVO, OBRERO Y EVENTUAL');
+            $table->string('sub_tipo', 255)->comment('cargos de la universidad');
             $table->string('observacion', 500)->nullable();
             $table->string('foto')->default('/assets/img/avatar.png');
             $table->text('datos_extras')->nullable();

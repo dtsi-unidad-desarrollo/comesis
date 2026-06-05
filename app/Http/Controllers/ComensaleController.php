@@ -73,6 +73,30 @@ class ComensaleController extends Controller
         return $this->executeSincronizarGlobal($request);
     }
 
+    public function executeSincronizarEstudiantesCron()
+    {
+        for ($step = 1; $step <= 3; $step++) {
+            $request = Request::create('/sincronizar-data', 'POST', [
+                'type' => 'estudiantes',
+                'step' => $step,
+            ]);
+
+            $this->executeSincronizarEstudiantes($request);
+        }
+    }
+
+    public function executeSincronizarEmpleadosCron()
+    {
+        for ($step = 1; $step <= 3; $step++) {
+            $request = Request::create('/sincronizar-data', 'POST', [
+                'type' => 'empleados',
+                'step' => $step,
+            ]);
+
+            $this->executeSincronizarEmpleados($request);
+        }
+    }
+
     private function executeSincronizarEstudiantes(Request $request)
     {
         $progressKey = $this->getSincronizarProgressKey('estudiantes');
@@ -403,7 +427,8 @@ class ComensaleController extends Controller
 
     private function getSincronizarProgressKey(string $type)
     {
-        return "sincronizar_data_{$type}_progress_" . auth()->id();
+        $userId = auth()->id() ?: 'cron';
+        return "sincronizar_data_{$type}_progress_{$userId}";
     }
 
     private function initSincronizarDataProgress(string $progressKey, int $totalRecords, string $status, string $message)
