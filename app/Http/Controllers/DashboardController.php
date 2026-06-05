@@ -108,6 +108,7 @@ class DashboardController extends Controller
     {
         return DB::connection('mysql_third')
                 ->table('personal')
+                ->limit(10)
                 ->get();
         $respuesta = $this->data->respuesta;
         $stats = $this->getFormattedStats();
