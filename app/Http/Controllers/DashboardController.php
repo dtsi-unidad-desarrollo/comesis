@@ -113,12 +113,12 @@ class DashboardController extends Controller
 
         $personal['OBRERO'] = DB::connection('mysql_third')
                 ->table('personal')
-                ->where('per_cedula', 24823972)
+                ->where('per_cedula', 14002861)
                 ->get();
 
         $personal['DOCENTE'] = DB::connection('mysql_third')
                 ->table('personal')
-                ->where('per_cedula', 24823972)
+                ->where('per_cedula', 16791197)
                 ->get();
 
         return $personal;
