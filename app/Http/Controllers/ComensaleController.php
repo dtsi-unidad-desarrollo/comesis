@@ -82,57 +82,82 @@ class ComensaleController extends Controller
                 ->table('estudiantes')
                 ->count();
             $batchSize = max(1, intval(ceil($totalRecords / 3)));
-            $processed = 0;
+            $step = intval($request->input('step', 0));
 
-            $this->initSincronizarDataProgress($progressKey, $totalRecords, 'Preparando', 'Iniciando sincronización de estudiantes...');
+            if ($step < 1 || $step > 3) {
+                $this->initSincronizarDataProgress($progressKey, $totalRecords, 'Preparado', 'Sincronización de estudiantes preparada en 3 pasos.');
 
-            for ($batch = 0; $batch < 3; $batch++) {
-                if ($processed >= $totalRecords) {
-                    break;
+                $mensaje = 'Sincronización de estudiantes preparada. Ejecuta cada tramo con los botones 1/3, 2/3 y 3/3.';
+                $estatus = Response::HTTP_OK;
+
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'mensaje' => $mensaje,
+                        'estatus' => $estatus,
+                        'total' => $totalRecords,
+                        'batchSize' => $batchSize,
+                        'steps' => 3,
+                    ], $estatus);
                 }
 
-                $datosEstudiantes = DB::connection('mysql_second')
-                    ->table('estudiantes')
-                    ->select('nombres', 'apellidos', 'nacionalidad', 'Cedula as cedula', 'Sexo as sexo')
-                    ->offset($batch * $batchSize)
-                    ->limit($batchSize)
-                    ->get();
-
-                foreach ($datosEstudiantes as $comensal) {
-                    $estatusEstudiante = 0;
-                    $carreras = DB::connection('mysql_second')
-                        ->table('carreras_est')
-                        ->where('ConexEst', $comensal->cedula)
-                        ->select('Status', 'CodCar')
-                        ->get();
-
-                    foreach ($carreras as $carrera) {
-                        if ($carrera->Status === 'A') {
-                            $estatusEstudiante = 1;
-                            break;
-                        }
-                    }
-
-                    if ($estatusEstudiante) {
-                        Comensale::updateOrCreate(
-                            ['cedula' => $comensal->cedula],
-                            [
-                                'nombres' => $comensal->nombres,
-                                'apellidos' => $comensal->apellidos,
-                                'nacionalidad' => $comensal->nacionalidad,
-                                'sexo' => strtoupper(substr(trim($comensal->sexo), 0, 1)) === 'F' ? 'F' : 'M',
-                                'tipo_comensal' => 'ESTUDIANTE',
-                                'estatus' => $estatusEstudiante,
-                            ]
-                        );
-                    }
-
-                    $processed++;
-                    $this->setSincronizarDataProgress($progressKey, $processed, $totalRecords, 'Sincronizando estudiantes');
-                }
+                return back()->with(compact('mensaje', 'estatus'));
             }
 
-            $this->setSincronizarDataProgress($progressKey, $totalRecords, $totalRecords, 'Sincronización de estudiantes completada');
+            $offset = ($step - 1) * $batchSize;
+            $processedInChunk = 0;
+            $this->initSincronizarDataProgress($progressKey, $totalRecords, 'Ejecutando', "Ejecutando paso {$step} de estudiantes...");
+
+            $datosEstudiantes = DB::connection('mysql_second')
+                ->table('estudiantes')
+                ->select('nombres', 'apellidos', 'nacionalidad', 'Cedula as cedula', 'Sexo as sexo')
+                ->offset($offset)
+                ->limit($batchSize)
+                ->get();
+
+            foreach ($datosEstudiantes as $comensal) {
+                $estatusEstudiante = 0;
+                $carreras = DB::connection('mysql_second')
+                    ->table('carreras_est')
+                    ->where('ConexEst', $comensal->cedula)
+                    ->select('Status', 'CodCar')
+                    ->get();
+
+                foreach ($carreras as $carrera) {
+                    if ($carrera->Status === 'A') {
+                        $estatusEstudiante = 1;
+                        break;
+                    }
+                }
+
+                if ($estatusEstudiante) {
+                    Comensale::updateOrCreate(
+                        ['cedula' => $comensal->cedula],
+                        [
+                            'nombres' => $comensal->nombres,
+                            'apellidos' => $comensal->apellidos,
+                            'nacionalidad' => $comensal->nacionalidad,
+                            'sexo' => strtoupper(substr(trim($comensal->sexo), 0, 1)) === 'F' ? 'F' : 'M',
+                            'tipo_comensal' => 'ESTUDIANTE',
+                            'estatus' => $estatusEstudiante,
+                        ]
+                    );
+                }
+
+                $processedInChunk++;
+                $cumulativeProcessed = min($offset + $processedInChunk, $totalRecords);
+                $this->setSincronizarDataProgress($progressKey, $cumulativeProcessed, $totalRecords, "Sincronizando estudiantes (paso {$step})");
+            }
+
+            $this->setSincronizarDataProgress($progressKey, min($offset + $processedInChunk, $totalRecords), $totalRecords, "Sincronización de estudiantes paso {$step} completada");
+
+            $mensaje = "Paso {$step} de sincronización de estudiantes completado correctamente.";
+            $estatus = Response::HTTP_OK;
+
+            if ($request->expectsJson()) {
+                return response()->json(['mensaje' => $mensaje, 'estatus' => $estatus], $estatus);
+            }
+
+            return back()->with(compact('mensaje', 'estatus'));
 
             $mensaje = 'Sincronización de estudiantes completada correctamente.';
             $estatus = Response::HTTP_OK;
@@ -167,45 +192,70 @@ class ComensaleController extends Controller
                 ->whereNotIn('nom_nombre', ['DOCENTE FALLECIDO', 'OBRERO FALLECIDO', 'ADMINISTRATIVO FALLECIDO'])
                 ->count();
             $batchSize = max(1, intval(ceil($totalRecords / 3)));
-            $processed = 0;
+            $step = intval($request->input('step', 0));
 
-            $this->initSincronizarDataProgress($progressKey, $totalRecords, 'Preparando', 'Iniciando sincronización de empleados...');
+            if ($step < 1 || $step > 3) {
+                $this->initSincronizarDataProgress($progressKey, $totalRecords, 'Preparado', 'Sincronización de empleados preparada en 3 pasos.');
 
-            for ($batch = 0; $batch < 3; $batch++) {
-                if ($processed >= $totalRecords) {
-                    break;
+                $mensaje = 'Sincronización de empleados preparada. Ejecuta cada tramo con los botones 1/3, 2/3 y 3/3.';
+                $estatus = Response::HTTP_OK;
+
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'mensaje' => $mensaje,
+                        'estatus' => $estatus,
+                        'total' => $totalRecords,
+                        'batchSize' => $batchSize,
+                        'steps' => 3,
+                    ], $estatus);
                 }
 
-                $datosEmpleados = DB::connection('mysql_third')
-                    ->table('personal')
-                    ->select('per_nombres', 'per_apellidos', 'per_nacionalidad', 'per_cedula', 'per_sexo', 'per_status', 'nom_nombre')
-                    ->where('per_status', 1)
-                    ->whereNotIn('nom_nombre', ['DOCENTE FALLECIDO', 'OBRERO FALLECIDO', 'ADMINISTRATIVO FALLECIDO'])
-                    ->offset($batch * $batchSize)
-                    ->limit($batchSize)
-                    ->get();
-
-                foreach ($datosEmpleados as $empleado) {
-                    if ($empleado->per_status == 1) {
-                        Comensale::updateOrCreate(
-                            ['cedula' => $empleado->per_cedula],
-                            [
-                                'nombres' => $empleado->per_nombres,
-                                'apellidos' => $empleado->per_apellidos,
-                                'nacionalidad' => 'V',
-                                'sexo' => $empleado->per_sexo === 1 ? 'M' : 'F',
-                                'tipo_comensal' => $empleado->nom_nombre,
-                                'estatus' => 1,
-                            ]
-                        );
-                    }
-
-                    $processed++;
-                    $this->setSincronizarDataProgress($progressKey, $processed, $totalRecords, 'Sincronizando empleados');
-                }
+                return back()->with(compact('mensaje', 'estatus'));
             }
 
-            $this->setSincronizarDataProgress($progressKey, $totalRecords, $totalRecords, 'Sincronización de empleados completada');
+            $offset = ($step - 1) * $batchSize;
+            $processedInChunk = 0;
+            $this->initSincronizarDataProgress($progressKey, $totalRecords, 'Ejecutando', "Ejecutando paso {$step} de empleados...");
+
+            $datosEmpleados = DB::connection('mysql_third')
+                ->table('personal')
+                ->select('per_nombres', 'per_apellidos', 'per_nacionalidad', 'per_cedula', 'per_sexo', 'per_status', 'nom_nombre')
+                ->where('per_status', 1)
+                ->whereNotIn('nom_nombre', ['DOCENTE FALLECIDO', 'OBRERO FALLECIDO', 'ADMINISTRATIVO FALLECIDO'])
+                ->offset($offset)
+                ->limit($batchSize)
+                ->get();
+
+            foreach ($datosEmpleados as $empleado) {
+                if ($empleado->per_status == 1) {
+                    Comensale::updateOrCreate(
+                        ['cedula' => $empleado->per_cedula],
+                        [
+                            'nombres' => $empleado->per_nombres,
+                            'apellidos' => $empleado->per_apellidos,
+                            'nacionalidad' => 'V',
+                            'sexo' => $empleado->per_sexo === 1 ? 'M' : 'F',
+                            'tipo_comensal' => $empleado->nom_nombre,
+                            'estatus' => 1,
+                        ]
+                    );
+                }
+
+                $processedInChunk++;
+                $cumulativeProcessed = min($offset + $processedInChunk, $totalRecords);
+                $this->setSincronizarDataProgress($progressKey, $cumulativeProcessed, $totalRecords, "Sincronizando empleados (paso {$step})");
+            }
+
+            $this->setSincronizarDataProgress($progressKey, min($offset + $processedInChunk, $totalRecords), $totalRecords, "Sincronización de empleados paso {$step} completada");
+
+            $mensaje = "Paso {$step} de sincronización de empleados completado correctamente.";
+            $estatus = Response::HTTP_OK;
+
+            if ($request->expectsJson()) {
+                return response()->json(['mensaje' => $mensaje, 'estatus' => $estatus], $estatus);
+            }
+
+            return back()->with(compact('mensaje', 'estatus'));
 
             $mensaje = 'Sincronización de empleados completada correctamente.';
             $estatus = Response::HTTP_OK;
