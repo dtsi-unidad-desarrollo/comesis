@@ -73,29 +73,6 @@ class RecepcionController extends Controller
                     /** PRIMERO BUSCAMOS EN COMESIS */
                     $comensal = Comensale::where('cedula', $request->cedula)->first();
 
-                    // if (!$comensal) {
-                    //     /** CONSULTAMOS DUX  para los ESTUDIANTES */
-                    //     $comensal = $this->getEstudiantes($request->cedula);
-
-                    //     if ($comensal) {
-                    //         if ($comensal->estatus == 0) {
-                    //             $comensal = $this->getEmpleados($request->cedula);
-                    //             /** Validamos si el comensal tiene estatus activo o no */
-                    //             if ($comensal == null) {
-                    //                 /** Se valdiad si el comensal esta activo en el sistema  */
-                    //                 $mensaje_comensal = "<strong>¡NO PERMITIR EL ACCESO!</strong> El comensal está inactivo, no puede ingresar.";
-                    //                 $mensaje_torniquete = 'Cerrado';
-                    //                 return view('admin.recepcion.index', compact('comensal', 'respuesta', 'mensaje_comensal', 'mensaje_torniquete', 'cantidadDeEntradas', 'servicio', 'request', 'atms', 'selectedAtm'));
-                    //             }
-                    //         }
-                    //     }
-                    // }
-
-                    // if (!$comensal) {
-                    //     /** Buscamos en TEREPAIMA */
-                    //     $comensal = $this->getEmpleados($request->cedula);
-                    // }
-
                     /** Validamos si existe el comensal */
                     if ($comensal == null) {
                         /** MENSAJE DE FALLO BUSQUEDA DE COMENSALES */
@@ -110,14 +87,7 @@ class RecepcionController extends Controller
                             return back()->with(compact('mensaje', 'estatus'));
                         }
 
-                        /** si el comensal es del sistema se le push un elemento ficticio */
-                        if ($comensal->tipo_comensal !== 'ESTUDIANTE') {
-                            $comensal->carreras  = [false];
-                        }
-
-
-                        /** Validamos si esta activo en una carrera de pregrago */
-                        if (count($comensal->carreras)) {
+            
 
                             /** obtenemos las entradas del dia del comensal  para validar que coma una ves por servicio */
                             $entradas = Entrada::where([
@@ -156,12 +126,12 @@ class RecepcionController extends Controller
                                     $mensaje_torniquete = ' No se ha seleccionado una ATM/torniquete en recepción.';
                                 }
                             }
-                        } else {
-                            /** Se valdiad si el comensal esta activo en el sistema  */
-                            $mensaje = "El comensal " . $comensal->nombres . " " . $comensal->apellidos . " está inactivo, no puede ingresar.";
-                            $estatus = Response::HTTP_NOT_FOUND;
-                            return back()->with(compact('mensaje', 'estatus'));
-                        }
+                        // } else {
+                        //     /** Se valdiad si el comensal esta activo en el sistema  */
+                        //     $mensaje = "El comensal " . $comensal->nombres . " " . $comensal->apellidos . " está inactivo, no puede ingresar.";
+                        //     $estatus = Response::HTTP_NOT_FOUND;
+                        //     return back()->with(compact('mensaje', 'estatus'));
+                        // }
                     }
                 }
             }
