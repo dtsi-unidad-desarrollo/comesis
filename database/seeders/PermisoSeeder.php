@@ -31,6 +31,7 @@ class PermisoSeeder extends Seeder
             "servicios",
             "torniquetes",
             "select", // permiso para seleccionar el ATM en recepción
+            "configuracion",
             "atms",
         ];
 
