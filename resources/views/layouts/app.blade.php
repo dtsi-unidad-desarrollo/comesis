@@ -13,7 +13,7 @@
 
     @include('partials.pagetitle')
 
-    <div class="container">
+    <div class="container" id="preload-container">
       @yield('content')
     </div>
   </main><!-- End #main -->

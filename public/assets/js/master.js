@@ -54,3 +54,22 @@ const quitarFormato = (numeroString) =>{
 const quitarComaAlFinal = async (input) => {
     input.value = input.value.slice(0, input.value.length - 1);
 };  
+
+// preload cada vez que se envie un formulario o se recargue la pagina
+window.addEventListener('DOMContentLoaded', () => {
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        form.addEventListener('submit', () => {
+            const submitButton = form.querySelector('button[type="submit"]');
+
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.innerHTML = preload;
+                setTimeout(() => {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = 'Submit';
+                }, 3000); // Simula un tiempo de carga de 3 segundos
+            }
+        });
+    });
+});
