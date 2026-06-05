@@ -21,6 +21,7 @@ class ComensaleSeeder extends Seeder
         $comensal->cedula = "24753788";
         $comensal->sexo = "M";
         $comensal->tipo_comensal = "EVENTUAL";
+        $comensal->sub_tipo = "";
         $comensal->save();
     }
 }

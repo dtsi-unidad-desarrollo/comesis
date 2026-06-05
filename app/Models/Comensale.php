@@ -9,16 +9,21 @@ class Comensale extends Model
 {
     use HasFactory;
 
+    protected $attributes = [
+        'sub_tipo' => '',
+    ];
+
     protected $fillable = [
         'nombres',
         'apellidos',
-        'nacionalidad', 
-        'cedula', 
-        'sexo', 
+        'nacionalidad',
+        'cedula',
+        'sexo',
         'tipo_comensal',
-        'observacion', 
+        'sub_tipo',
+        'observacion',
         'foto',
         'datos_extras',
         'estatus',
-     ];
+    ];
 }

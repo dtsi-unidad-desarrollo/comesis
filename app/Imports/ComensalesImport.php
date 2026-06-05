@@ -30,6 +30,7 @@ class ComensalesImport implements ToCollection, WithHeadingRow, WithChunkReading
                 'sexo' => isset($row['sexo']) ? strtoupper(trim($row['sexo'])) : '',
                 // map "tipo" column to the DB column `tipo_comensal`
                 'tipo_comensal' => isset($row['tipo']) ? strtoupper(trim($row['tipo'])) : 'ESTUDIANTE',
+                'sub_tipo' => isset($row['sub_tipo']) ? trim($row['sub_tipo']) : '',
                 // descripcion en la plantilla -> campo 'observacion' en DB (opcional)
                 'observacion' => isset($row['descripcion']) ? trim($row['descripcion']) : null,
                 // estatus siempre sera 1 al importar desde plantilla

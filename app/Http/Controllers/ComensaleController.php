@@ -589,6 +589,8 @@ class ComensaleController extends Controller
                 $request['foto'] = Helpers::setFile($request);
             }
 
+            $request['sub_tipo'] = $request->input('sub_tipo', '');
+
             // registramos el estudiante
             $estatusCreate = Comensale::create($request->all());
 
