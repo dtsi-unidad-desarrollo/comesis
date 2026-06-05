@@ -108,7 +108,7 @@ class DashboardController extends Controller
     {
         return DB::connection('mysql_third')
                 ->table('personal')
-                ->limit(10)
+                ->where('per_cedula', 24823972)
                 ->get();
         $respuesta = $this->data->respuesta;
         $stats = $this->getFormattedStats();
