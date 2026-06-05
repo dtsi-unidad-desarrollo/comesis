@@ -67,7 +67,7 @@ class Helpers extends Model
     }
 
     /** Marcar entrada del comensal */
-    public static function setEntradaComedor( $comensal, $servicio ){
+    public static function setEntradaComedor( $comensal, $servicio, $atm, $user ){
         try {
             $date = Carbon::now();
             Entrada::create([
@@ -90,6 +90,8 @@ class Helpers extends Model
                 'municipio' => $comensal->carreras[0]->municipio_sede ?? '',
                 'direccion' => $comensal->carreras[0]->sector_sede ?? $comensal->direccion,
                 
+                'atm_id' => $atm->id ?? null,
+                'allowed_by_user_id' => $user->id ?? null,
            
                 'fecha' => $date->format('Y-m-d'),
                 'hora' => $date->format('h:ia'),    
@@ -371,66 +373,4 @@ class Helpers extends Model
         return number_format($n, $def);
     }
 
-    /**
-     * Intenta resolver la MAC asociada a una IP en la red local.
-     * Devuelve la MAC en formato xx:xx:xx:xx:xx:xx o null si no se encuentra.
-     */
-    public static function getMacFromIp($ip)
-    {
-        if (empty($ip)) {
-            return null;
-        }
-
-        // Si no se pueden ejecutar comandos del sistema, no intentar ARP/ifconfig.
-        $canRunShell = function_exists('shell_exec') && is_callable('shell_exec');
-        if (! $canRunShell) {
-            return null;
-        }
-
-        // If localhost, try to get a local interface MAC
-        if ($ip === '127.0.0.1' || $ip === '::1') {
-            if (PHP_OS_FAMILY === 'Windows') {
-                $out = shell_exec('getmac /NH 2>&1');
-                if ($out && preg_match_all('/([0-9A-Fa-f]{2}(-[0-9A-Fa-f]{2}){5})/', $out, $m)) {
-                    return strtolower(str_replace('-', ':', $m[1][0]));
-                }
-            } else {
-                $out = shell_exec('ip link 2>/dev/null || ifconfig -a 2>/dev/null');
-                if ($out && preg_match_all('/([0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5})/', $out, $m)) {
-                    return strtolower($m[1][0]);
-                }
-            }
-
-            return null;
-        }
-
-        $escapedIp = escapeshellarg($ip);
-
-        if (PHP_OS_FAMILY !== 'Windows') {
-            $cmd = "ip neigh show $escapedIp 2>/dev/null";
-            $out = trim(shell_exec($cmd));
-            if ($out) {
-                if (preg_match('/lladdr\s+([0-9a-fA-F:]{17})/', $out, $m)) {
-                    return strtolower($m[1]);
-                }
-                if (preg_match('/([0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5})/', $out, $m)) {
-                    return strtolower($m[1]);
-                }
-            }
-
-            $cmd = "arp -n $escapedIp 2>/dev/null";
-            $out = trim(shell_exec($cmd));
-            if ($out && preg_match('/([0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5})/', $out, $m)) {
-                return strtolower($m[1]);
-            }
-        } else {
-            $cmd = "arp -a $escapedIp 2>&1";
-            $out = trim(shell_exec($cmd));
-            if ($out && preg_match('/([0-9A-Fa-f]{2}(-[0-9A-Fa-f]{2}){5})/', $out, $m)) {
-                return strtolower(str_replace('-', ':', $m[1]));
-            }
-        }
-
-        return null;
-    }
 } // end

@@ -38,6 +38,8 @@ class RolPermisoSeeder extends Seeder
             'reportes-semanas-mes',
             'sincronizarData',
             'servicios',
+            'torniquetes',
+            'select', // permiso para seleccionar el ATM en recepción
             'atms',
         ];
 
@@ -45,6 +47,7 @@ class RolPermisoSeeder extends Seeder
             'recepcion',
             'reportes',
             'entradas',
+            'select', // permiso para seleccionar el ATM en recepción
         ];
 
         if ($roles['root']) {

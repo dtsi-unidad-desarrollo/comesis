@@ -10,12 +10,7 @@ class TorniqueteController extends Controller
 {
     public function index(Request $request)
     {
-        $torniquetes = Torniquete::orderBy('id', 'desc')->paginate(20);
-
-        if ($request->wantsJson()) {
-            return response()->json($torniquetes);
-        }
-
+        $torniquetes = Torniquete::orderBy('id', 'desc')->paginate(12);
         return view('admin.torniquetes.index', compact('torniquetes'));
     }
 
@@ -45,9 +40,6 @@ class TorniqueteController extends Controller
 
     public function show(Request $request, Torniquete $torniquete)
     {
-        if ($request->wantsJson()) {
-            return response()->json($torniquete);
-        }
 
         return view('admin.torniquetes.show', compact('torniquete'));
     }
@@ -69,21 +61,12 @@ class TorniqueteController extends Controller
 
         $torniquete->update($data);
 
-        if ($request->wantsJson()) {
-            return response()->json($torniquete);
-        }
-
         return redirect()->route('admin.torniquetes.index')->with('mensaje', 'Torniquete actualizado correctamente');
     }
 
     public function destroy(Request $request, Torniquete $torniquete)
     {
         $torniquete->delete();
-
-        if ($request->wantsJson()) {
-            return response()->json(null, Response::HTTP_NO_CONTENT);
-        }
-
         return redirect()->route('admin.torniquetes.index')->with('mensaje', 'Torniquete eliminado correctamente');
     }
 }

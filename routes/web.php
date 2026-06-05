@@ -48,6 +48,7 @@ Route::middleware(['auth', 'validarRol'])->group(function () {
 
     /** Vista de recepción */
     Route::get('/recepcion', [RecepcionController::class, 'index'])->name('admin.recepcion.index');
+    Route::get('select-atm', [RecepcionController::class, 'selectAtm'])->name('admin.recepcion.selectAtm');
 
     /** Control de entrada */
     Route::post('reportes', [EntradaController::class, 'getReporte'])->name('admin.entradas.reporte');

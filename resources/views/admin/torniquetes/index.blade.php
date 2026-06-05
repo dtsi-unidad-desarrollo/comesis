@@ -26,31 +26,39 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach ($torniquetes as $torniquete)
+                @if ($torniquetes->isEmpty())
                     <tr>
-                        <td>{{ $torniquete->id }}</td>
-                        <td>{{ $torniquete->nombre }}</td>
-                        <td>{{ $torniquete->tipo ?? '-' }}</td>
-                        <td class="{{ $torniquete->estatus ? 'table-success' : 'table-danger' }}">
-                            {{ $torniquete->estatus ? 'ACTIVO' : 'INACTIVO' }}
-                        </td>
-                        <td>{{ $torniquete->endpoint_url ?? '-' }}</td>
-                        <td>
-                            <a href="{{ route('admin.torniquetes.edit', $torniquete->id) }}" class="btn btn-sm btn-secondary">Editar</a>
-                            <form action="{{ route('admin.torniquetes.destroy', $torniquete->id) }}" method="POST" style="display:inline-block" onsubmit="return confirm('¿Eliminar torniquete?');">
-                                @csrf
-                                @method('DELETE')
-                                <button class="btn btn-sm btn-danger">Eliminar</button>
-                            </form>
-                        </td>
+                        <td colspan="6" class="text-center">No hay torniquetes registrados.</td>
                     </tr>
-                @endforeach
+                @else
+                    @foreach ($torniquetes as $torniquete)
+                        <tr>
+                            <td>{{ $torniquete->id }}</td>
+                            <td>{{ $torniquete->nombre }}</td>
+                            <td>{{ $torniquete->tipo ?? '-' }}</td>
+                            <td class="{{ $torniquete->estatus ? 'table-success' : 'table-danger' }}">
+                                {{ $torniquete->estatus ? 'ACTIVO' : 'INACTIVO' }}
+                            </td>
+                            <td>{{ $torniquete->endpoint_url ?? '-' }}</td>
+                            <td>
+                                <a href="{{ route('admin.torniquetes.edit', $torniquete->id) }}"
+                                    class="btn btn-sm btn-secondary">Editar</a>
+                                <form action="{{ route('admin.torniquetes.destroy', $torniquete->id) }}" method="POST"
+                                    style="display:inline-block" onsubmit="return confirm('¿Eliminar torniquete?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="btn btn-sm btn-danger">Eliminar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    @endforeach
+                @endif
             </tbody>
         </table>
 
-        <div class="mt-3">
+        {{-- <div class="mt-3">
             {{ $torniquetes->links() }}
-        </div>
+        </div> --}}
     </div>
 
 @endsection

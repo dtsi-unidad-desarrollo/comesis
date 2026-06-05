@@ -11,6 +11,7 @@ use App\Models\Helpers;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class RecepcionController extends Controller
@@ -25,9 +26,10 @@ class RecepcionController extends Controller
 
     public function index(Request $request)
     {
+
         /** Variable global para los alertas */
         $respuesta =  $this->data->respuesta;
-         // intentar resolver MAC por IP (ARP) como fallback
+        // intentar resolver MAC por IP (ARP) como fallback
         try {
 
             /** se declaran las variables */
@@ -36,9 +38,6 @@ class RecepcionController extends Controller
             $mensaje_torniquete = 'Cerrado';
             $date = Carbon::now();
             $entradas = null;
-            $tipoComida = '';
-            $estatusEstudiante =  0;
-            $codigoCarrera = "";
             $cantidadDeEntradas = 0;
             $estatus = Response::HTTP_OK;
 
@@ -48,36 +47,16 @@ class RecepcionController extends Controller
             /** Obtenemos el total de entradas */
             if ($servicio) $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre);
 
-            $atms = Atm::with('torniquete')->get();
-            $selectedAtm = null;
-
-            if ($request->has('clear_atm')) {
-                session()->forget('selectedAtmId');
-            }
-
-            if ($request->filled('atm_id')) {
-                $selectedAtm = $atms->firstWhere('id', $request->atm_id);
-                if ($selectedAtm) {
-                    session(['selectedAtmId' => $selectedAtm->id]);
-                } else {
-                    session()->forget('selectedAtmId');
-                }
-            } elseif (session()->has('selectedAtmId')) {
-                $selectedAtm = $atms->firstWhere('id', session('selectedAtmId'));
-                if (!$selectedAtm) {
-                    session()->forget('selectedAtmId');
-                }
-            } elseif ($atms->count() === 1) {
-                $selectedAtm = $atms->first();
-                session(['selectedAtmId' => $selectedAtm->id]);
-            }
+            $atms = Atm::with('torniquete')->where('en_uso', false)->get();
+            $user = Auth::user();
+            $selectedAtm = session('selectedAtm');
 
             // llamada de prueba eliminada para evitar respuestas inesperadas en producción
 
             /** Se valida si hay una cedula  */
             if ($request->filled('cedula')) {
 
-            /** Si no se detecta un servicio, el comedor esta fuera de servicio */
+                /** Si no se detecta un servicio, el comedor esta fuera de servicio */
                 if (!$servicio) {
                     $mensaje = "Comedor inactivo, está fuera del horario de servicio.";
                     $estatus = Response::HTTP_UNAUTHORIZED;
@@ -93,7 +72,7 @@ class RecepcionController extends Controller
 
                     /** PRIMERO BUSCAMOS EN COMESIS */
                     $comensal = Comensale::where('cedula', $request->cedula)->first();
-                
+
                     if (!$comensal) {
                         /** CONSULTAMOS DUX  para los ESTUDIANTES */
                         $comensal = $this->getEstudiantes($request->cedula);
@@ -155,19 +134,21 @@ class RecepcionController extends Controller
                             } else {
 
                                 /** Marcar entrada automaticamente */
-                                Helpers::setEntradaComedor($comensal, $servicio);
+                                Helpers::setEntradaComedor($comensal, $servicio, $selectedAtm, $user);
 
                                 /** obtener las entradas actualizadas */
                                 $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre ?? '');
 
                                 if ($selectedAtm) {
+                                    /** Enviar comando para abrir la puerta del ATM */
                                     $openResp = Helpers::openAtmDoor($selectedAtm, [
                                         'id' => $comensal->cedula,
                                         'name' => $comensal->nombres . ' ' . $comensal->apellidos,
                                         'allowed' => true,
                                     ]);
+
                                     if (!empty($openResp['ok']) && $openResp['ok']) {
-                                        $mensaje_torniquete = ' Comando de apertura enviado al torniquete.';
+                                        $mensaje_torniquete = ' Comando de apertura enviado al ' . $selectedAtm->torniquete->nombre ?? '' . '.';
                                     } else {
                                         $mensaje_torniquete = ' No se pudo enviar comando al torniquete: ' . ($openResp['message'] ?? json_encode($openResp));
                                     }
@@ -298,5 +279,33 @@ class RecepcionController extends Controller
         $comensalObj->carreras = [false];
 
         return $comensalObj;
+    }
+
+    public function selectAtm(Request $request)
+    {
+        if ($request->input('change', false) === 'true') {
+
+            session()->forget('selectedAtm');
+            return back()->with([
+                'mensaje' => 'ATM/Torniquete deseleccionado.',
+                'estatus' => Response::HTTP_OK
+            ]);
+        }
+
+        $atms = Atm::with('torniquete')->get();
+        $selectedAtm = $atms->where('id', $request->atm_id)->first();
+
+        if ($selectedAtm) {
+            $selectedAtm->update([
+                'en_uso' => true,
+            ]);
+            session(['selectedAtm' => $selectedAtm]);
+            return back()->with([
+                'mensaje' => 'ATM/Torniquete seleccionado: ' . $selectedAtm->nombre . ' - ' . ($selectedAtm->torniquete->nombre ?? 'Sin torniquete asociado'),
+                'estatus' => Response::HTTP_OK
+            ]);
+        } else {
+            return back()->with('error', 'ATM no encontrada');
+        }
     }
 }

@@ -30,6 +30,7 @@ class PermisoSeeder extends Seeder
             "sincronizarData",
             "servicios",
             "torniquetes",
+            "select", // permiso para seleccionar el ATM en recepción
             "atms",
         ];
 

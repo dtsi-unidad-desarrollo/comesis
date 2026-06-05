@@ -30,9 +30,7 @@
                     <tr>
                         <td>{{ $atm->id }}</td>
                         <td>{{ $atm->nombre }}</td>
-                        <td>{{ $atm->torniquete->nombre ?? '-' }}
-                            {{ $atm->torniquete->id ?? '-' }}
-                            {{ $atm->torniquete->endpoint_url ?? '-' }}</td>
+                        <td>{{ $atm->torniquete->nombre ?? '-' }}</td>
                         <td>
                             <a href="{{ route('admin.atms.edit', $atm->id) }}" class="btn btn-sm btn-secondary">Editar</a>
                             <form action="{{ route('admin.atms.destroy', $atm->id) }}" method="POST"

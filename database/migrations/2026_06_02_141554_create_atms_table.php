@@ -11,11 +11,10 @@ class CreateAtmsTable extends Migration
         Schema::create('atms', function (Blueprint $table) {
             $table->id();
             $table->string('nombre', 255);
-            $table->string('mac_address', 50)->nullable();
-            $table->string('ip_address', 50)->nullable();
             $table->unsignedBigInteger('torniquete_id')->nullable();
             $table->text('descripcion')->nullable();
-
+            $table->boolean('en_uso')->default(false)->comment('Indica si el ATM está en uso o no'); // Nuevo campo para indicar si el ATM está en uso o no
+            
             $table->foreign('torniquete_id')->references('id')->on('torniquetes')->onDelete('set null');
         });
     }
