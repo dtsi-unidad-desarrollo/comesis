@@ -311,14 +311,16 @@ class Helpers extends Model
 
     public static function addDatosDeRelacion($array, $arrayKey, $sqlExtra = "")
     {
-        if (count($array)) {
+        if (is_countable($array) && count($array)) {
             foreach ($array as $key => $value) {
                 foreach ($arrayKey as $keyTable => $valueKey) {
                     $llave = explode("_", $valueKey);
-                    // return DB::select("select * from {$keyTable} where {$llave[0]} = :{$valueKey} {$sqlExtra}", [$value[$valueKey]]);
-                    $array[$key][$llave[1]] = count(DB::select("select * from {$keyTable} where {$llave[0]} = :{$valueKey} {$sqlExtra}", [$value[$valueKey]])) > 1
-                        ? DB::select("select * from {$keyTable} where {$llave[0]} = :{$valueKey} {$sqlExtra}", [$value[$valueKey]])
-                        : DB::select("select * from {$keyTable} where {$llave[0]} = :{$valueKey} {$sqlExtra}", [$value[$valueKey]])[0] ?? [];
+                    $rows = DB::select("select * from {$keyTable} where {$llave[0]} = :{$valueKey} {$sqlExtra}", [$value[$valueKey]]);
+                    if (is_countable($rows) && count($rows) > 1) {
+                        $array[$key][$llave[1]] = $rows;
+                    } else {
+                        $array[$key][$llave[1]] = $rows[0] ?? [];
+                    }
                 }
             }
         }
@@ -345,9 +347,11 @@ class Helpers extends Model
 
     public static function datoExiste($data, $array = ["tabla" => ["campo", "sqlExtra", "key"]])
     {
+        if (!is_countable($array)) return false;
         foreach ($array as $key => $value) {
-            return $result = count(DB::select("select * from {$key} where {$value[0]} = :codigo {$value[1]}", [$data[$value[2]]]))
-                ? DB::select("select * from {$key} where {$value[0]} = :codigo {$value[1]}", [$data[$value[2]]])[0]
+            $rows = DB::select("select * from {$key} where {$value[0]} = :codigo {$value[1]}", [$data[$value[2]]]);
+            return $result = (is_countable($rows) && count($rows))
+                ? $rows[0]
                 : false;
         }
     }
