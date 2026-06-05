@@ -35,6 +35,7 @@ class ValidarRol
                 $segments = explode('/', $path);
                 $first = $segments[0] ?? '';
                 $pathBase = explode('-', $first)[0]; // reportes-semanal -> reportes
+                // dd($permisos, $pathBase);
                 if (!in_array($pathBase, $permisos)) {
                     // If the user is already on recepcion, avoid redirect loop
                     if ($request->route() && $request->route()->getName() === 'admin.recepcion.index') {

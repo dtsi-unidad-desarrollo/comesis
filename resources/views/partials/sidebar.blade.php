@@ -59,12 +59,12 @@ $subcategoria = 'LISTA';
 
         <!-- Start Components Nav | configuraciones -->
         <li class="nav-item">
-            <a class="nav-link {{ ( in_array(url()->current(), [route('admin.users.index'), route('admin.users.create'), route('admin.roles.index'), route('admin.permisos.index'), route('admin.atms.index')]) || request()->routeIs('admin.torniquetes.*') ) ? 'collapse show' : 'collapsed' }}"
+            <a class="nav-link {{ ( in_array(url()->current(), [route('admin.users.index'), route('admin.users.create'), route('admin.roles.index'), route('admin.permisos.index'), route('admin.atms.index'), route('admin.servicios.index'), route('admin.sincronizar.data.index')]) || request()->routeIs('admin.torniquetes.*') ) ? 'collapse show' : 'collapsed' }}"
                 data-bs-target="#components-nav-10" data-bs-toggle="collapse" href="#">
                 <i class="bi bi-gear"></i><span>Configuración</span><i class="bi bi-chevron-down ms-auto"></i>
             </a>
             <ul id="components-nav-10"
-                class="nav-content {{ ( in_array(url()->current(), [route('admin.users.index'), route('admin.users.create'), route('admin.roles.index'), route('admin.permisos.index'), route('admin.atms.index')]) || request()->routeIs('admin.torniquetes.*') ) ? 'collapse show' : 'collapse' }} "
+                class="nav-content {{ ( in_array(url()->current(), [route('admin.users.index'), route('admin.users.create'), route('admin.roles.index'), route('admin.permisos.index'), route('admin.atms.index'), route('admin.servicios.index'), route('admin.sincronizar.data.index')]) || request()->routeIs('admin.torniquetes.*') ) ? 'collapse show' : 'collapse' }} "
                 data-bs-parent=" #sidebar-nav">
 
                 <!-- Start Components Nav | Servicios -->
@@ -75,6 +75,15 @@ $subcategoria = 'LISTA';
                         <span>Servicios</span>
                     </a>
                 </li><!-- End Dashboard Nav | Servicios-->
+
+                <!-- Start Components Nav | Sincronizar Data -->
+                <li class="nav-item">
+                    <a class="nav-link {{ url()->current() == route('admin.sincronizar.data.index') ? 'bg-primary text-white' : 'collapsed' }}" 
+                        href="{{ route('admin.sincronizar.data.index') }}" >
+                        <i class="bi bi-arrow-repeat fs-3"></i>
+                        <span>Sincronizar Data</span>
+                    </a>
+                </li><!-- End Dashboard Nav | Sincronizar Data-->
                 
                 <!-- Start Components Nav | usuarios -->
                 <li class="nav-item">

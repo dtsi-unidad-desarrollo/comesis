@@ -9,6 +9,7 @@ use App\Models\DataDev;
 use App\Models\Helpers;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\ComensalesImport;
@@ -36,7 +37,7 @@ class ComensaleController extends Controller
     {
         try {
             $comensales = [];
-    
+
             if ($request->filtro) {
                 $comensales = Comensale::where('cedula', 'like', "%{$request->filtro}%")
                     ->orWhere('nombres', 'like', "%{$request->filtro}%")
@@ -46,9 +47,9 @@ class ComensaleController extends Controller
             } else {
                 $comensales = Comensale::paginate(12);
             }
-    
+
             $respuesta =  $this->data->respuesta;
-    
+
             return view('admin.comensales.index', compact('comensales', 'request', 'respuesta'));
         } catch (\Throwable $th) {
             $mensaje = Helpers::getMensajeError($th, ", ¡Error interno al intentar consultar los comensal!");
@@ -56,21 +57,45 @@ class ComensaleController extends Controller
             return back()->with(compact('mensaje', 'estatus'));
         }
     }
-    
-    public function sincronizarData()
+
+    public function sincronizarData(Request $request)
     {
+        $progressKey = 'sincronizar_data_progress_' . auth()->id();
         try {
-            // Sincronizar estudiantes desde dux_mock
+            Cache::put($progressKey, [
+                'percent' => 0,
+                'status' => 'Preparando',
+                'message' => 'Iniciando sincronización...',
+                'processed' => 0,
+                'total' => 0,
+            ], now()->addMinutes(30));
+
             $datosEstudiantes = DB::connection('mysql_second')
                 ->table('estudiantes')
-                ->select('nombres', 'apellidos', 'nacionalidad', 'Cedula', 'Sexo')
+                ->select('nombres', 'apellidos', 'nacionalidad', 'Cedula as cedula', 'Sexo as sexo')
                 ->get();
+
+            $datosEmpleados = DB::connection('mysql_third')
+                ->table('personal')
+                ->select('per_nombres', 'per_apellidos', 'per_nacionalidad', 'per_cedula', 'per_sexo', 'per_status', 'nom_nombre')
+                ->get();
+
+            $totalRecords = $datosEstudiantes->count() + $datosEmpleados->count();
+            $processed = 0;
+
+            Cache::put($progressKey, [
+                'percent' => 0,
+                'status' => 'Calculando registros',
+                'message' => "Registros totales: {$totalRecords}",
+                'processed' => 0,
+                'total' => $totalRecords,
+            ], now()->addMinutes(30));
 
             foreach ($datosEstudiantes as $comensal) {
                 $estatusEstudiante = 0;
                 $carreras = DB::connection('mysql_second')
                     ->table('carreras_est')
-                    ->where('ConexEst', $comensal->Cedula)
+                    ->where('ConexEst', $comensal->cedula)
                     ->select('Status', 'CodCar')
                     ->get();
 
@@ -82,57 +107,103 @@ class ComensaleController extends Controller
                 }
 
                 Comensale::updateOrCreate(
-                    ['cedula' => $comensal->Cedula],
+                    ['cedula' => $comensal->cedula],
                     [
                         'nombres' => $comensal->nombres,
                         'apellidos' => $comensal->apellidos,
                         'nacionalidad' => $comensal->nacionalidad,
-                        'sexo' => strtoupper(substr(trim($comensal->Sexo), 0, 1)) === 'F' ? 'F' : 'M',
+                        'sexo' => strtoupper(substr(trim($comensal->sexo), 0, 1)) === 'F' ? 'F' : 'M',
                         'tipo_comensal' => 'ESTUDIANTE',
                         'estatus' => $estatusEstudiante,
                     ]
                 );
+
+                $processed++;
+                $this->setSincronizarDataProgress($progressKey, $processed, $totalRecords, 'Sincronizando estudiantes');
             }
 
-            // Sincronizar empleados desde comedor_empleados_mock
-            $datosEmpleados = DB::connection('mysql_third')
-                ->table('rrhh_vista_personal')
-                ->select('per_nombres', 'per_apellidos', 'per_cedula')
-                ->get();
-
             foreach ($datosEmpleados as $empleado) {
-                $estatusEmpleado = DB::connection('mysql_third')
-                    ->table('rrhh_personal')
-                    ->where('per_cedula', $empleado->per_cedula)
-                    ->value('per_status');
-
-                $sexoEmpleado = DB::connection('mysql_third')
-                    ->table('rrhh_personal')
-                    ->join('tools_sexo', 'tools_sexo.sex_codigo', '=', 'per_sexo')
-                    ->where('per_cedula', $empleado->per_cedula)
-                    ->value('sex_descripcion');
-
                 Comensale::updateOrCreate(
                     ['cedula' => $empleado->per_cedula],
                     [
                         'nombres' => $empleado->per_nombres,
                         'apellidos' => $empleado->per_apellidos,
-                        'nacionalidad' => 'V',
-                        'sexo' => strtoupper(trim($sexoEmpleado)) === 'MASCULINO' ? 'M' : 'F',
-                        'tipo_comensal' => 'EMPLEADO',
-                        'estatus' => $estatusEmpleado == 1 ? 1 : 0,
+                        'nacionalidad' => $empleado->per_nacionalidad == 'venezolano' ? 'V' : 'E',
+                        'sexo' => $empleado->per_sexo === 1 ? 'M' : 'F',
+                        'tipo_comensal' => $empleado->nom_nombre,
+                        'estatus' => $empleado->per_status == 1 ? 1 : 0,
                     ]
                 );
+
+                $processed++;
+                $this->setSincronizarDataProgress($progressKey, $processed, $totalRecords, 'Sincronizando empleados');
             }
+
+            Cache::put($progressKey, [
+                'percent' => 100,
+                'status' => 'Completado',
+                'message' => 'Datos sincronizados correctamente!',
+                'processed' => $totalRecords,
+                'total' => $totalRecords,
+            ], now()->addMinutes(10));
 
             $mensaje = "Datos sincronizados correctamente!";
             $estatus = Response::HTTP_OK;
+
+            if ($request->expectsJson()) {
+                return response()->json(['mensaje' => $mensaje, 'estatus' => $estatus], $estatus);
+            }
+
             return back()->with(compact('mensaje', 'estatus'));
         } catch (\Throwable $th) {
+            Cache::put($progressKey, [
+                'percent' => 100,
+                'status' => 'Error',
+                'message' => Helpers::getMensajeError($th, "Error interno de sincronización"),
+                'processed' => 0,
+                'total' => 0,
+            ], now()->addMinutes(10));
+
             $mensaje = Helpers::getMensajeError($th, ", ¡Error interno al intentar sincronizar los comensales!");
             $estatus = Response::HTTP_INTERNAL_SERVER_ERROR;
+
+            if ($request->expectsJson()) {
+                return response()->json(['mensaje' => $mensaje, 'estatus' => $estatus], $estatus);
+            }
+
             return back()->with(compact('mensaje', 'estatus'));
         }
+    }
+
+    public function sincronizarDataPage()
+    {
+        return view('admin.configuracion.sincronizar-data');
+    }
+
+    public function sincronizarDataStatus(Request $request)
+    {
+        $progressKey = 'sincronizar_data_progress_' . auth()->id();
+        $progress = Cache::get($progressKey, [
+            'percent' => 0,
+            'status' => 'No iniciado',
+            'message' => 'Sincronización no iniciada',
+            'processed' => 0,
+            'total' => 0,
+        ]);
+
+        return response()->json($progress);
+    }
+
+    private function setSincronizarDataProgress(string $progressKey, int $processed, int $totalRecords, string $status)
+    {
+        $percent = $totalRecords > 0 ? intval(round(($processed / $totalRecords) * 100)) : 0;
+        Cache::put($progressKey, [
+            'percent' => $percent,
+            'status' => $status,
+            'message' => "{$status}: {$processed} / {$totalRecords}",
+            'processed' => $processed,
+            'total' => $totalRecords,
+        ], now()->addMinutes(30));
     }
 
     /**
@@ -314,7 +385,7 @@ class ComensaleController extends Controller
                 $comensale->update(["estatus" => 0]);
                 $mensaje = "El comensal {$comensale->nombre}, fue desactivado correctamente.";
             }
-            
+
             $estatus = 200;
             return back()->with(compact('mensaje', 'estatus'));
         } catch (\Throwable $th) {

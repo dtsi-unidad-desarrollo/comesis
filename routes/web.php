@@ -83,7 +83,9 @@ Route::middleware(['auth', 'validarRol'])->group(function () {
    
     Route::resource('/comensales', ComensaleController::class)->names('admin.comensales');
 
-    /** Ruta para sincronizar data con dux actualmente desactivada */
+    /** Sincronización de datos */
+    Route::get('/configuracion/sincronizar-data', [ComensaleController::class, 'sincronizarDataPage'])->name('admin.sincronizar.data.index');
+    Route::get('/sincronizarData/status', [ComensaleController::class, 'sincronizarDataStatus'])->name('admin.sincronizarData.status');
     Route::post('/sincronizarData', [ComensaleController::class, 'sincronizarData'])->name('admin.sincronizarData');
 
 });
