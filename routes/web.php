@@ -83,21 +83,6 @@ Route::middleware(['auth', 'validarRol'])->group(function () {
    
     Route::resource('/comensales', ComensaleController::class)->names('admin.comensales');
 
-    /** Registrar MAC de la PC de recepción en sesión (por agente local) */
-    Route::post('/register-client', function(\Illuminate\Http\Request $request){
-        $mac = $request->input('mac') ?? $request->header('X-Client-Mac');
-        if (! $mac) return response()->json(['message' => 'No mac provided'], 400);
-        session(['client_mac' => $mac]);
-        return response()->json(['message' => 'ok']);
-    })->name('client.register');
-
-    // Ruta para detectar la MAC del cliente desde el servidor usando la IP (ARP)
-    Route::get('/detect-client-mac', function(\Illuminate\Http\Request $request){
-        $ip = $request->ip();
-        $mac = \App\Models\Helpers::getMacFromIp($ip);
-        return response()->json(['mac' => $mac, 'ip' => $ip]);
-    })->name('client.detect');
-
     /** Ruta para sincronizar data con dux actualmente desactivada */
     Route::post('/sincronizarData', [ComensaleController::class, 'sincronizarData'])->name('admin.sincronizarData');
 

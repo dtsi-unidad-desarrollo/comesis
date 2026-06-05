@@ -60,46 +60,69 @@ class ComensaleController extends Controller
     public function sincronizarData()
     {
         try {
+            // Sincronizar estudiantes desde dux_mock
+            $datosEstudiantes = DB::connection('mysql_second')
+                ->table('estudiantes')
+                ->select('nombres', 'apellidos', 'nacionalidad', 'Cedula', 'Sexo')
+                ->get();
 
-
-            $datos = DB::connection('mysql_second')->table('estudiantes')->select('nombres', 'apellidos', 'nacionalidad', 'Cedula', 'Sexo')->get();
-
-            foreach ($datos as $key => $comensal) {
+            foreach ($datosEstudiantes as $comensal) {
                 $estatusEstudiante = 0;
-                $carreras = DB::connection('mysql_second')->table('carreras_est')->where('ConexEst',  $comensal->Cedula)->select('Status', 'CodCar')->get();
+                $carreras = DB::connection('mysql_second')
+                    ->table('carreras_est')
+                    ->where('ConexEst', $comensal->Cedula)
+                    ->select('Status', 'CodCar')
+                    ->get();
 
-                if (count($carreras)) {
-                    foreach ($carreras as $key => $carrera) {
-                        if ($carrera->Status == "A") {
-                            $estatusEstudiante = 1;
-                            break;
-                        }
+                foreach ($carreras as $carrera) {
+                    if ($carrera->Status === 'A') {
+                        $estatusEstudiante = 1;
+                        break;
                     }
                 }
 
+                Comensale::updateOrCreate(
+                    ['cedula' => $comensal->Cedula],
+                    [
+                        'nombres' => $comensal->nombres,
+                        'apellidos' => $comensal->apellidos,
+                        'nacionalidad' => $comensal->nacionalidad,
+                        'sexo' => strtoupper(substr(trim($comensal->Sexo), 0, 1)) === 'F' ? 'F' : 'M',
+                        'tipo_comensal' => 'ESTUDIANTE',
+                        'estatus' => $estatusEstudiante,
+                    ]
+                );
+            }
 
-                $siExiste = Comensale::where('cedula', $comensal->Cedula)->first();
-                if ($siExiste) {
-                    // actualizamos los datos
-                    $siExiste->update([
-                        "nombres" => $comensal->nombres,
-                        "apellidos" => $comensal->apellidos,
-                        'nacionalidad' => $comensal->nacionalidad,
-                        'cedula' => $comensal->Cedula,
-                        'tipo' => 'ESTUDIANTE',
-                        'estatus' => $estatusEstudiante
-                    ]);
-                } else {
-                    // registramos en el sistema
-                    Comensale::create([
-                        "nombres" => $comensal->nombres,
-                        "apellidos" => $comensal->apellidos,
-                        'nacionalidad' => $comensal->nacionalidad,
-                        'cedula' => $comensal->Cedula,
-                        'tipo' => 'ESTUDIANTE',
-                        'estatus' => $estatusEstudiante
-                    ]);
-                }
+            // Sincronizar empleados desde comedor_empleados_mock
+            $datosEmpleados = DB::connection('mysql_third')
+                ->table('rrhh_vista_personal')
+                ->select('per_nombres', 'per_apellidos', 'per_cedula')
+                ->get();
+
+            foreach ($datosEmpleados as $empleado) {
+                $estatusEmpleado = DB::connection('mysql_third')
+                    ->table('rrhh_personal')
+                    ->where('per_cedula', $empleado->per_cedula)
+                    ->value('per_status');
+
+                $sexoEmpleado = DB::connection('mysql_third')
+                    ->table('rrhh_personal')
+                    ->join('tools_sexo', 'tools_sexo.sex_codigo', '=', 'per_sexo')
+                    ->where('per_cedula', $empleado->per_cedula)
+                    ->value('sex_descripcion');
+
+                Comensale::updateOrCreate(
+                    ['cedula' => $empleado->per_cedula],
+                    [
+                        'nombres' => $empleado->per_nombres,
+                        'apellidos' => $empleado->per_apellidos,
+                        'nacionalidad' => 'V',
+                        'sexo' => strtoupper(trim($sexoEmpleado)) === 'MASCULINO' ? 'M' : 'F',
+                        'tipo_comensal' => 'EMPLEADO',
+                        'estatus' => $estatusEmpleado == 1 ? 1 : 0,
+                    ]
+                );
             }
 
             $mensaje = "Datos sincronizados correctamente!";

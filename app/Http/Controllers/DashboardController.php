@@ -106,6 +106,9 @@ class DashboardController extends Controller
      */
     public function index(Request $request)
     {
+        return DB::connection('mysql_third')
+                ->table('personal')
+                ->get();
         $respuesta = $this->data->respuesta;
         $stats = $this->getFormattedStats();
         return view('admin.dashboard', compact('respuesta', 'stats', 'stats'));
