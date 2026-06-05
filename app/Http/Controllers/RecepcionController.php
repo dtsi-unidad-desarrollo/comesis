@@ -72,6 +72,9 @@ class RecepcionController extends Controller
 
                     /** PRIMERO BUSCAMOS EN COMESIS */
                     $comensal = Comensale::where('cedula', $request->cedula)->first();
+                    if ($comensal) {
+                        $comensal->carreras = $comensal->carreras ?? [];
+                    }
 
                     /** Validamos si existe el comensal */
                     if ($comensal == null) {

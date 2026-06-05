@@ -32,25 +32,6 @@
                                 {{ $comensal->nacionalidad . '-' . $comensal->cedula }}
                             </li>
 
-                            @if ($comensal->carreras[0])
-                                <li class="list-group-item p-0 border-0">
-                                    <ul class="list-group list-group-flush">
-                                        @foreach ($comensal->carreras as $carrera)
-                                            <li class="list-group-item">
-                                                <strong>Carrera:</strong>
-                                                {{ $carrera->codigo_carrera . ' - ' . $carrera->nombre_carrera }} <br>
-                                                <strong>Programa:</strong>
-                                                {{ $carrera->codigo_programa . ' - ' . $carrera->nombre_programa }} <br>
-                                                <strong>Sede:</strong>
-                                                {{ $carrera->codigo_sede . ' - ' . $carrera->nombre_sede }} <br>
-                                                <strong>Estatus:</strong>
-                                                {{ $carrera->estatus_estudiante == 'A' ? 'Activo' : 'Inactivo' }} <br>
-                                            </li>
-                                        @endforeach
-                                    </ul>
-                                </li>
-                            @endif
-
                             <li class="list-group-item">
                                 <a class="btn btn-success" href="{{ route('admin.recepcion.index') }}">
                                     Continuar
