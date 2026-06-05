@@ -89,6 +89,15 @@
             syncMessage.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
         };
 
+        const parseJsonResponse = async (response) => {
+            const text = await response.text();
+            try {
+                return JSON.parse(text);
+            } catch (error) {
+                throw new Error(`Respuesta inválida del servidor: ${text}`);
+            }
+        };
+
         const fetchStatus = async (type = currentType) => {
             try {
                 const response = await fetch(`${syncStatusUrl}?type=${type}`, {
@@ -99,14 +108,15 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('No se pudo obtener el estado de sincronización.');
+                    const text = await response.text();
+                    throw new Error(`Error de estado: ${response.status} ${text}`);
                 }
 
-                const data = await response.json();
+                const data = await parseJsonResponse(response);
                 setSyncState(data.percent ?? 0, data.status ?? 'Desconocido', data.message ?? `Progreso ${data.percent ?? 0}%`, type);
             } catch (error) {
                 console.error(error);
-                setAlert('Error al obtener el estado de sincronización.', 'danger');
+                setAlert(error.message || 'Error al obtener el estado de sincronización.', 'danger');
             }
         };
 
@@ -145,10 +155,10 @@
                     body: JSON.stringify({ type }),
                 });
 
-                const data = await response.json();
+                const data = await parseJsonResponse(response);
 
                 if (!response.ok) {
-                    throw new Error(data.mensaje || 'Error al sincronizar los datos.');
+                    throw new Error(data.mensaje || `Error al sincronizar los datos: ${response.status}`);
                 }
 
                 setSyncState(100, 'Completado', data.mensaje || 'Sincronización completada', type);
