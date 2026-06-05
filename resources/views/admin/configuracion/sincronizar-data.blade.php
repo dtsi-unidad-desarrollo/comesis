@@ -22,7 +22,8 @@
                     <div id="syncMessage"></div>
 
                     <div class="d-flex gap-2 mb-4">
-                        <button id="startSync" class="btn btn-primary">Iniciar sincronización</button>
+                        <button id="startStudentsSync" class="btn btn-primary">Sincronizar estudiantes</button>
+                        <button id="startEmployeesSync" class="btn btn-secondary">Sincronizar empleados</button>
                         <button id="refreshSync" class="btn btn-outline-secondary">Actualizar estado</button>
                     </div>
 
@@ -38,14 +39,16 @@
                     <div class="alert alert-info">
                         <strong>Estado:</strong>
                         <span id="syncStatus">Sincronización no iniciada</span>
+                        <br>
+                        <small>Proceso actual: <span id="syncCurrentType">Ninguno</span></small>
                     </div>
 
                     <div class="border rounded p-3 bg-light">
                         <p class="mb-1"><strong>Instrucciones:</strong></p>
                         <ul class="mb-0">
-                            <li>Presiona "Iniciar sincronización" para traer y actualizar los datos.</li>
-                            <li>El progreso se actualiza automáticamente durante el proceso.</li>
-                            <li>Si la sincronización ya está en curso, presiona "Actualizar estado".</li>
+                            <li>Presiona "Sincronizar estudiantes" o "Sincronizar empleados" para ejecutar el proceso en ese orden.</li>
+                            <li>La barra de progreso y el estado se actualizan automáticamente.</li>
+                            <li>Si ya hay un proceso iniciándose, usa "Actualizar estado".</li>
                         </ul>
                     </div>
                 </div>
@@ -60,8 +63,10 @@
         const syncProgressBar = document.getElementById('syncProgressBar');
         const syncProgressText = document.getElementById('syncProgressText');
         const syncStatusLabel = document.getElementById('syncStatus');
+        const syncCurrentTypeLabel = document.getElementById('syncCurrentType');
         const syncMessage = document.getElementById('syncMessage');
-        const startSyncButton = document.getElementById('startSync');
+        const startStudentsSyncButton = document.getElementById('startStudentsSync');
+        const startEmployeesSyncButton = document.getElementById('startEmployeesSync');
         const refreshSyncButton = document.getElementById('refreshSync');
 
         const syncStatusUrl = '{{ route("admin.sincronizarData.status") }}';
@@ -69,22 +74,24 @@
         const csrfToken = '{{ csrf_token() }}';
 
         let pollTimer = null;
+        let currentType = 'estudiantes';
 
-        const setSyncState = (percent, status, message) => {
+        const setSyncState = (percent, status, message, type = null) => {
             const value = Math.min(Math.max(percent, 0), 100);
             syncProgressBar.style.width = value + '%';
             syncProgressBar.textContent = value + '%';
             syncProgressText.textContent = message || `${status} (${value}%)`;
             syncStatusLabel.textContent = status;
+            syncCurrentTypeLabel.textContent = type ? (type === 'estudiantes' ? 'Estudiantes' : 'Empleados') : 'Ninguno';
         };
 
         const setAlert = (message, type = 'info') => {
             syncMessage.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
         };
 
-        const fetchStatus = async () => {
+        const fetchStatus = async (type = currentType) => {
             try {
-                const response = await fetch(syncStatusUrl, {
+                const response = await fetch(`${syncStatusUrl}?type=${type}`, {
                     method: 'GET',
                     headers: {
                         'Accept': 'application/json',
@@ -96,9 +103,10 @@
                 }
 
                 const data = await response.json();
-                setSyncState(data.percent ?? 0, data.status ?? 'Desconocido', data.message ?? `Progreso ${data.percent ?? 0}%`);
+                setSyncState(data.percent ?? 0, data.status ?? 'Desconocido', data.message ?? `Progreso ${data.percent ?? 0}%`, type);
             } catch (error) {
                 console.error(error);
+                setAlert('Error al obtener el estado de sincronización.', 'danger');
             }
         };
 
@@ -106,8 +114,8 @@
             if (pollTimer) {
                 clearInterval(pollTimer);
             }
-            pollTimer = setInterval(fetchStatus, 1200);
-            fetchStatus();
+            pollTimer = setInterval(() => fetchStatus(currentType), 1200);
+            fetchStatus(currentType);
         };
 
         const stopPolling = () => {
@@ -117,13 +125,13 @@
             }
         };
 
-        refreshSyncButton.addEventListener('click', fetchStatus);
-
-        startSyncButton.addEventListener('click', async () => {
-            startSyncButton.disabled = true;
+        const startSync = async (type) => {
+            currentType = type;
+            startStudentsSyncButton.disabled = true;
+            startEmployeesSyncButton.disabled = true;
             refreshSyncButton.disabled = true;
             setAlert('Sincronización iniciada. Espera un momento mientras se procesa.', 'info');
-            setSyncState(0, 'Inicializando', 'Solicitando sincronización...');
+            setSyncState(0, 'Inicializando', 'Solicitando sincronización...', type);
             startPolling();
 
             try {
@@ -134,7 +142,7 @@
                         'Accept': 'application/json',
                         'X-CSRF-TOKEN': csrfToken,
                     },
-                    body: JSON.stringify({}),
+                    body: JSON.stringify({ type }),
                 });
 
                 const data = await response.json();
@@ -143,20 +151,25 @@
                     throw new Error(data.mensaje || 'Error al sincronizar los datos.');
                 }
 
-                setSyncState(100, 'Completado', data.mensaje || 'Sincronización completada');
+                setSyncState(100, 'Completado', data.mensaje || 'Sincronización completada', type);
                 setAlert(data.mensaje || 'Sincronización completada correctamente.', 'success');
             } catch (error) {
-                setSyncState(100, 'Error', error.message || 'Error en la sincronización');
+                setSyncState(100, 'Error', error.message || 'Error en la sincronización', type);
                 setAlert(error.message || 'Ocurrió un error durante la sincronización.', 'danger');
             } finally {
                 stopPolling();
-                startSyncButton.disabled = false;
+                startStudentsSyncButton.disabled = false;
+                startEmployeesSyncButton.disabled = false;
                 refreshSyncButton.disabled = false;
-                fetchStatus();
+                fetchStatus(currentType);
             }
-        });
+        };
 
-        fetchStatus();
+        startStudentsSyncButton.addEventListener('click', () => startSync('estudiantes'));
+        startEmployeesSyncButton.addEventListener('click', () => startSync('empleados'));
+        refreshSyncButton.addEventListener('click', () => fetchStatus(currentType));
+
+        fetchStatus(currentType);
     });
 </script>
 @endsection
