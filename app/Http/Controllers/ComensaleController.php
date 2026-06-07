@@ -251,7 +251,7 @@ class ComensaleController extends Controller
                             'nacionalidad' => 'V',
                             'sexo' => $empleado->per_sexo === 1 ? 'M' : 'F',
                             'tipo_comensal' => 'EMPLEADO',
-                            'sub_tipo' => $empleado->nom_nombre,
+                            'sub_tipo' => $empleado->nom_nombre ?? 'N/A',
                             'estatus' => 1,
                         ]
                     );
@@ -273,14 +273,6 @@ class ComensaleController extends Controller
 
             return back()->with(compact('mensaje', 'estatus'));
 
-            $mensaje = 'Sincronización de empleados completada correctamente.';
-            $estatus = Response::HTTP_OK;
-
-            if ($request->expectsJson()) {
-                return response()->json(['mensaje' => $mensaje, 'estatus' => $estatus], $estatus);
-            }
-
-            return back()->with(compact('mensaje', 'estatus'));
         } catch (\Throwable $th) {
             $this->setSincronizarDataError($progressKey, $th);
 
