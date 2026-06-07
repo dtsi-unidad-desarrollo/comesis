@@ -42,7 +42,6 @@ class ComensaleController extends Controller
                 $comensales = Comensale::where('cedula', 'like', "%{$request->filtro}%")
                     ->orWhere('nombres', 'like', "%{$request->filtro}%")
                     ->orWhere('apellidos', 'like', "%{$request->filtro}%")
-                    ->orWhere('tipo', '=', $request->filtro)
                     ->orderBy('id', 'desc')->paginate(12);
             } else {
                 $comensales = Comensale::paginate(12);
