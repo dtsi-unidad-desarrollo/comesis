@@ -16,11 +16,11 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('sync:empleados')
-            ->dailyAt('00:00')
+            ->dailyAt('12:30')
             ->withoutOverlapping();
 
         $schedule->command('sync:estudiantes')
-            ->dailyAt('00:00')
+            ->dailyAt('12:30')
             ->withoutOverlapping();
     }
 
