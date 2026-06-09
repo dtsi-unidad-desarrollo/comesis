@@ -26,7 +26,7 @@
                                             <span class="input-group-text bg-light border-0" id="inputGroupPrepend">
                                                 <i class="bi bi-envelope text-primary"></i>
                                             </span>
-                                            <input type="email" name="email" class="form-control form-control-lg border-0 ps-0" id="yourUsername" placeholder="usuario@dominio.com" autocomplete="username" required autofocus>
+                                            <input type="text" name="email" class="form-control form-control-lg border-0 ps-0" id="yourUsername" placeholder="usuario@dominio.com" autocomplete="username" required autofocus>
                                             <div class="invalid-feedback">Por favor, ingrese su correo electrónico.</div>
                                         </div>
                                         @error('email')

@@ -87,17 +87,6 @@ $subcategoria = 'LISTA';
                     </a>
                 </li>
                 @endif
-
-                <!-- Start Components Nav | Sincronizar Data -->
-                @if(Auth::user()->rol == 1 || Auth::user()->hasPermiso('sincronizar'))
-                <li class="nav-item">
-                    <a class="nav-link {{ url()->current() == route('admin.sincronizar.data.index') ? 'bg-primary text-white' : 'collapsed' }} " 
-                        href="{{ route('admin.sincronizar.data.index') }}" >
-                        <i class="bi bi-arrow-repeat fs-3"></i>
-                        <span>Sincronizar Data</span>
-                    </a>
-                </li>
-                @endif
                 
                 <!-- Start Components Nav | usuarios -->
                 @if(Auth::user()->rol == 1 || Auth::user()->hasPermiso('users'))

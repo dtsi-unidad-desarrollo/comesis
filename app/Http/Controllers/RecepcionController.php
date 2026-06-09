@@ -32,12 +32,6 @@ class RecepcionController extends Controller
         // intentar resolver MAC por IP (ARP) como fallback
         try {
 
-             return $datosEmpleados = DB::connection('mysql_third')
-                ->table('personal')
-                ->select('per_nombres', 'per_apellidos', 'per_nacionalidad', 'per_cedula', 'per_sexo', 'per_status', 'nom_nombre', 'nom_status')
-                ->where('per_cedula', 4244118)
-                ->get();
-
             /** se declaran las variables */
             $comensal = null;
             $mensaje_comensal = '';
@@ -111,11 +105,6 @@ class RecepcionController extends Controller
                             $mensaje_comensal = "<strong>¡NO PERMITIR EL ACCESO!</strong> El comensal " . $comensal->nombres . " " . $comensal->apellidos . ", Cédula: " . $comensal->cedula . ", ya consumio el servicio: " . $servicio->nombre ?? '' . ". ";
                             $comensal = null;
                         } else {
-                            // configurar foto segun si es empleado o estudiante
-                            if ($comensal->tipo_comensal == "ESTUDIANTE") {
-                                $comensal->foto = "https://sige.unellez.edu.ve/fotos/" . $comensal->cedula . ".jpg";
-                            }
-
 
                             /** Marcar entrada automaticamente */
                             Helpers::setEntradaComedor($comensal, $servicio, $selectedAtm, $user);
