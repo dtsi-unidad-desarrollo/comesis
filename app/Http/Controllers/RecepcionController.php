@@ -32,6 +32,12 @@ class RecepcionController extends Controller
         // intentar resolver MAC por IP (ARP) como fallback
         try {
 
+             return $datosEmpleados = DB::connection('mysql_third')
+                ->table('personal')
+                ->select('per_nombres', 'per_apellidos', 'per_nacionalidad', 'per_cedula', 'per_sexo', 'per_status', 'nom_nombre', 'nom_status')
+                ->where('per_cedula', 4244118)
+                ->get();
+
             /** se declaran las variables */
             $comensal = null;
             $mensaje_comensal = '';
@@ -90,51 +96,50 @@ class RecepcionController extends Controller
                             return back()->with(compact('mensaje', 'estatus'));
                         }
 
-            
-
-                            /** obtenemos las entradas del dia del comensal  para validar que coma una ves por servicio */
-                            $entradas = Entrada::where([
-                                'cedula' => $comensal->cedula,
-                                'fecha' =>  $date->format('Y-m-d'),
-                                'comida' => $servicio->nombre // Aqui valida si es ALMUERZO | CENA
-                            ])->get();
 
 
-                            /** Validamos si ya comio y cual comida */
-                            if (count($entradas)) {
-                                $mensaje_comensal = "<strong>¡NO PERMITIR EL ACCESO!</strong> El comensal " . $comensal->nombres . " " . $comensal->apellidos . ", Cédula: " . $comensal->cedula . ", ya consumio el servicio: " . $servicio->nombre ?? '' . ". ";
-                                $comensal = null;
-                            } else {
+                        /** obtenemos las entradas del dia del comensal  para validar que coma una ves por servicio */
+                        $entradas = Entrada::where([
+                            'cedula' => $comensal->cedula,
+                            'fecha' =>  $date->format('Y-m-d'),
+                            'comida' => $servicio->nombre // Aqui valida si es ALMUERZO | CENA
+                        ])->get();
 
-                                /** Marcar entrada automaticamente */
-                                Helpers::setEntradaComedor($comensal, $servicio, $selectedAtm, $user);
 
-                                /** obtener las entradas actualizadas */
-                                $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre ?? '');
-
-                                if ($selectedAtm) {
-                                    /** Enviar comando para abrir la puerta del ATM */
-                                    $openResp = Helpers::openAtmDoor($selectedAtm, [
-                                        'id' => $comensal->cedula,
-                                        'name' => $comensal->nombres . ' ' . $comensal->apellidos,
-                                        'allowed' => true,
-                                    ]);
-
-                                    if (!empty($openResp['ok']) && $openResp['ok']) {
-                                        $mensaje_torniquete = ' Comando de apertura enviado al ' . $selectedAtm->torniquete->nombre ?? '' . '.';
-                                    } else {
-                                        $mensaje_torniquete = ' No se pudo enviar comando al torniquete: ' . ($openResp['message'] ?? json_encode($openResp));
-                                    }
-                                } else {
-                                    $mensaje_torniquete = ' No se ha seleccionado una ATM/torniquete en recepción.';
-                                }
+                        /** Validamos si ya comio y cual comida */
+                        if (count($entradas)) {
+                            $mensaje_comensal = "<strong>¡NO PERMITIR EL ACCESO!</strong> El comensal " . $comensal->nombres . " " . $comensal->apellidos . ", Cédula: " . $comensal->cedula . ", ya consumio el servicio: " . $servicio->nombre ?? '' . ". ";
+                            $comensal = null;
+                        } else {
+                            // configurar foto segun si es empleado o estudiante
+                            if ($comensal->tipo_comensal == "ESTUDIANTE") {
+                                $comensal->foto = "https://sige.unellez.edu.ve/fotos/" . $comensal->cedula . ".jpg";
                             }
-                        // } else {
-                        //     /** Se valdiad si el comensal esta activo en el sistema  */
-                        //     $mensaje = "El comensal " . $comensal->nombres . " " . $comensal->apellidos . " está inactivo, no puede ingresar.";
-                        //     $estatus = Response::HTTP_NOT_FOUND;
-                        //     return back()->with(compact('mensaje', 'estatus'));
-                        // }
+
+
+                            /** Marcar entrada automaticamente */
+                            Helpers::setEntradaComedor($comensal, $servicio, $selectedAtm, $user);
+
+                            /** obtener las entradas actualizadas */
+                            $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre ?? '');
+
+                            if ($selectedAtm) {
+                                /** Enviar comando para abrir la puerta del ATM */
+                                $openResp = Helpers::openAtmDoor($selectedAtm, [
+                                    'id' => $comensal->cedula,
+                                    'name' => $comensal->nombres . ' ' . $comensal->apellidos,
+                                    'allowed' => true,
+                                ]);
+
+                                if (!empty($openResp['ok']) && $openResp['ok']) {
+                                    $mensaje_torniquete = ' Comando de apertura enviado al ' . $selectedAtm->torniquete->nombre ?? '' . '.';
+                                } else {
+                                    $mensaje_torniquete = ' No se pudo enviar comando al torniquete: ' . ($openResp['message'] ?? json_encode($openResp));
+                                }
+                            } else {
+                                $mensaje_torniquete = ' No se ha seleccionado una ATM/torniquete en recepción.';
+                            }
+                        }
                     }
                 }
             }

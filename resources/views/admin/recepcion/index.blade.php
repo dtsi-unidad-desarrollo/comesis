@@ -22,6 +22,10 @@
                             Procesado
                         </div>
                         <ul class="list-group list-group-flush">
+                            {{-- Foto del comensal --}}
+                            <li class="list-group-item">
+                                <img src="{{ $comensal->foto }}" alt="Foto del comensal" class="img-fluid">
+                            </li>
                             <li class="list-group-item">Nombres: {{ $comensal->nombres }}</li>
                             <li class="list-group-item">Apellidos: {{ $comensal->apellidos }}</li>
                             <li class="list-group-item">Genero: {{ $comensal->sexo }}</li>
