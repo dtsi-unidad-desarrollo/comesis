@@ -60,6 +60,7 @@ class RecepcionController extends Controller
                 if (!$servicio) {
                     $mensaje = "Comedor inactivo, está fuera del horario de servicio.";
                     $estatus = Response::HTTP_UNAUTHORIZED;
+                    Atm::where('en_uso', true)->update(['en_uso' => false]);
                     return back()->with(compact('mensaje', 'estatus'));
                 } else {
 
