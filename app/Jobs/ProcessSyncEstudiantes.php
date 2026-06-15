@@ -2,12 +2,14 @@
 
 namespace App\Jobs;
 
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
 class ProcessSyncEstudiantes implements ShouldQueue
 {
@@ -30,6 +32,14 @@ class ProcessSyncEstudiantes implements ShouldQueue
      */
     public function handle()
     {
-        //
+        $start = Carbon::now();
+        Log::info('Sincronización de empleados iniciada en segundo plano.', ['started_at' => $start->toDateTimeString()]);
+
+        try {
+            $comensale = new \App\Models\Comensale;
+            $comensale->executeSincronizarEstudiantes();
+        } catch (\Throwable $th) {
+            Log::error('Error al sincronizar estudiantes.', ['exception' => $th]);
+        }
     }
 }
