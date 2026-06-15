@@ -43,7 +43,6 @@ class RecepcionController extends Controller
 
             /** obtenemos el servicio actual activo por medio de la hora */
             $servicio = Helpers::getServicio($date);
-
             /** Obtenemos el total de entradas */
             if ($servicio) $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre);
 
@@ -51,14 +50,18 @@ class RecepcionController extends Controller
             $user = Auth::user();
             $selectedAtm = session('selectedAtm');
 
-            // llamada de prueba eliminada para evitar respuestas inesperadas en producción
+            if (!$servicio) {
+                Atm::where('en_uso', true)->update(['en_uso' => false]);
+                session()->forget('selectedAtm');
+            }
 
+            // llamada de prueba eliminada para evitar respuestas inesperadas en producción
             /** Se valida si hay una cedula  */
             if ($request->filled('cedula')) {
 
                 /** Si no se detecta un servicio, el comedor esta fuera de servicio */
                 if (!$servicio) {
-                    $mensaje = "Comedor inactivo, está fuera del horario de servicio.";
+                    return $mensaje = "Comedor inactivo, está fuera del horario de servicio.";
                     $estatus = Response::HTTP_UNAUTHORIZED;
                     Atm::where('en_uso', true)->update(['en_uso' => false]);
                     return back()->with(compact('mensaje', 'estatus'));
