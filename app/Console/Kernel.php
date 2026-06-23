@@ -15,16 +15,6 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('sync:empleados')
-            ->dailyAt('12:40')
-            ->sendOutputTo(storage_path('logs/sync_empleados.log'))
-            ->runInBackground();
-      
-
-        $schedule->command('sync:estudiantes')
-            ->dailyAt('12:40')
-            ->sendOutputTo(storage_path('logs/sync_estudiantes.log'))
-            ->runInBackground();
     }
 
     /**
