@@ -18,10 +18,10 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // Empleados
-        $schedule->job(new ProcessSyncEmpleados)->everyMinute();
+        $schedule->job(new ProcessSyncEmpleados)->dailyAt('14:45');
         
         // Estudiantes
-        $schedule->job(new ProcessSyncEstudiantes)->everyMinute();
+        $schedule->job(new ProcessSyncEstudiantes)->dailyAt('15:45');
     }
 
     /**
