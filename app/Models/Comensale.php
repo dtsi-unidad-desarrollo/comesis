@@ -67,6 +67,9 @@ class Comensale extends Model
                             'estatus' => $estatusEstudiante,
                         ]
                     );
+                }else{
+                    // Si el estudiante no está activo, eliminamos el registro de la tabla comensales
+                    Comensale::where('cedula', $comensal->cedula)->delete();
                 }
             }
 
@@ -96,6 +99,7 @@ class Comensale extends Model
 
             foreach ($datosEmpleados as $empleado) {
                 if ($empleado->nom_status == 1) {
+                    // Actualizar o crear el registro del empleado en la tabla comensales
                     Comensale::updateOrCreate(
                         ['cedula' => $empleado->per_cedula],
                         [
@@ -110,6 +114,9 @@ class Comensale extends Model
                             'estatus' => $empleado->nom_status == 1 ? 1 : 0,
                         ]
                     );
+                }else{
+                    // Si el empleado no está activo, eliminamos el registro de la tabla comensales
+                    Comensale::where('cedula', $empleado->per_cedula)->delete();
                 }
             }
 
