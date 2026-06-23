@@ -18,6 +18,15 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
+        \Illuminate\Queue\Events\JobProcessing::class => [
+            \App\Listeners\LogJobProcessing::class,
+        ],
+        \Illuminate\Queue\Events\JobProcessed::class => [
+            \App\Listeners\LogJobProcessed::class,
+        ],
+        \Illuminate\Queue\Events\JobFailed::class => [
+            \App\Listeners\LogJobFailed::class,
+        ],
     ];
 
     /**

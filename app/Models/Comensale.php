@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class Comensale extends Model
 {
@@ -30,7 +31,7 @@ class Comensale extends Model
         'estatus',
     ];
 
-    public  function executeSincronizarEstudiantes()
+    public static function executeSincronizarEstudiantes()
     {
         try {
 
@@ -86,7 +87,7 @@ class Comensale extends Model
         }
     }
 
-    public function executeSincronizarEmpleados()
+    public static function executeSincronizarEmpleados()
     {
         try {
 
@@ -122,13 +123,14 @@ class Comensale extends Model
 
             $mensaje = "Sincronización de empleados completada correctamente.";
             $estatus = Response::HTTP_OK;
-            return back()->with(compact('mensaje', 'estatus'));
+         
+            log::info($mensaje, ['estatus' => $estatus]);
         } catch (\Throwable $th) {
 
             $mensaje = Helpers::getMensajeError($th, ', ¡Error interno al intentar sincronizar los empleados!');
             $estatus = Response::HTTP_INTERNAL_SERVER_ERROR;
 
-            return back()->with(compact('mensaje', 'estatus'));
+            return log::error($mensaje, ['exception' => $th]);
         }
     }
 }

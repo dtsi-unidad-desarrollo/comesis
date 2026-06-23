@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\Comensale;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -9,6 +10,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class ProcessSyncEmpleados implements ShouldQueue
@@ -36,13 +38,33 @@ class ProcessSyncEmpleados implements ShouldQueue
         Log::info('Sincronización de empleados iniciada en segundo plano.', ['started_at' => $start->toDateTimeString()]);
 
         try {
-            // Lógica para sincronizar empleados
-            $comensale = new \App\Models\Comensale;
-            $comensale->executeSincronizarEmpleados();
+            // Contar registros remotos antes de sincronizar
+            $excludeNames = ['DOCENTE FALLECIDO', 'OBRERO FALLECIDO', 'ADMINISTRATIVO FALLECIDO'];
+            $total = DB::connection('mysql_third')
+                ->table('personal')
+                ->whereNotIn('nom_nombre', $excludeNames)
+                ->count();
+
+            $active = DB::connection('mysql_third')
+                ->table('personal')
+                ->whereNotIn('nom_nombre', $excludeNames)
+                ->where('nom_status', 1)
+                ->count();
+
+            $inactive = $total - $active;
+
+            Log::info('Resumen previo a sincronización de empleados.', [
+                'total_remote_records' => $total,
+                'active_remote_records' => $active,
+                'inactive_remote_records' => $inactive,
+            ]);
+
+            // Lógica para sincronizar empleados            
+            Comensale::executeSincronizarEmpleados();
 
             $end = Carbon::now();
             $duration = $end->diffInSeconds($start);
-            Log::info('Sincronización de empleados completada correctamente.', [
+            Log::info('Sincronización de empleados finalizada.', [
                 'started_at' => $start->toDateTimeString(),
                 'finished_at' => $end->toDateTimeString(),
                 'duration_seconds' => $duration,

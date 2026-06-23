@@ -105,7 +105,7 @@ class DashboardController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request)
-    {
+    {       
         $respuesta = $this->data->respuesta;
         $stats = $this->getFormattedStats();
         return view('admin.dashboard', compact('respuesta', 'stats', 'stats'));
