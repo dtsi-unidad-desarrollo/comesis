@@ -216,9 +216,12 @@
 
         <div class="firma">
             <span class="line"></span>
-            <p><strong>JOSÉ ANDRES VALDERRAMA CRIMI</strong></p>
+            <p><strong>LCDO JUZMAN MENDOZA</strong></p>
+            <p><strong>Cedula: 16475763</strong></p>
+            <p>Coordinador General de Comedor</p>
+            <!-- <p><strong>JOSÉ ANDRES VALDERRAMA CRIMI</strong></p>
             <p>Coordinador de Enlace de Bienestar Estudiantil del VPDS</p>
-            <p>Designado mediante resolución N0102-2025</p>
+            <p>Designado mediante resolución N0102-2025</p> -->
         </div>
 
         <div class="footer">
