@@ -43,6 +43,7 @@ class RecepcionController extends Controller
 
             /** obtenemos el servicio actual activo por medio de la hora */
             $servicio = Helpers::getServicio($date);
+            
             /** Obtenemos el total de entradas */
             if ($servicio) $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre);
 
@@ -50,10 +51,10 @@ class RecepcionController extends Controller
             $user = Auth::user();
             $selectedAtm = session('selectedAtm');
 
-            if (!$servicio) {
-                Atm::where('en_uso', true)->update(['en_uso' => false]);
-                session()->forget('selectedAtm');
-            }
+            // if (!$servicio) {
+            //     Atm::where('en_uso', true)->update(['en_uso' => false]);
+            //     session()->forget('selectedAtm');
+            // }
 
             // llamada de prueba eliminada para evitar respuestas inesperadas en producción
             /** Se valida si hay una cedula  */
@@ -61,7 +62,7 @@ class RecepcionController extends Controller
 
                 /** Si no se detecta un servicio, el comedor esta fuera de servicio */
                 if (!$servicio) {
-                    return $mensaje = "Comedor inactivo, está fuera del horario de servicio.";
+                    $mensaje = "Comedor inactivo, está fuera del horario de servicio.";
                     $estatus = Response::HTTP_UNAUTHORIZED;
                     Atm::where('en_uso', true)->update(['en_uso' => false]);
                     return back()->with(compact('mensaje', 'estatus'));
@@ -94,8 +95,6 @@ class RecepcionController extends Controller
                             return back()->with(compact('mensaje', 'estatus'));
                         }
 
-
-
                         /** obtenemos las entradas del dia del comensal  para validar que coma una ves por servicio */
                         $entradas = Entrada::where([
                             'cedula' => $comensal->cedula,
@@ -106,7 +105,11 @@ class RecepcionController extends Controller
 
                         /** Validamos si ya comio y cual comida */
                         if (count($entradas)) {
-                            $mensaje_comensal = "<strong>¡NO PERMITIR EL ACCESO!</strong> El comensal " . $comensal->nombres . " " . $comensal->apellidos . ", Cédula: " . $comensal->cedula . ", ya consumio el servicio: " . $servicio->nombre ?? '' . ". ";
+                            $mensaje_comensal .= "<strong>¡NO PERMITIR EL ACCESO!</strong>";
+                            $mensaje_comensal .= "<br> El comensal: " . $comensal->nombres . " " . $comensal->apellidos;
+                            $mensaje_comensal .= "<br> Cédula: " . $comensal->cedula;
+                            $mensaje_comensal .= "<br> Ya consumio el servicio: " . $servicio->nombre ?? '';
+                            $mensaje_comensal .= "<br> Hora de entrada:" . $entradas->first()->hora . '.';
                             $comensal = null;
                         } else {
 
@@ -260,6 +263,20 @@ class RecepcionController extends Controller
             return back()->with([
                 'mensaje' => 'ATM/Torniquete deseleccionado.',
                 'estatus' => Response::HTTP_OK
+            ]);
+        }
+
+        // calidar si hay un servicio activo antes de seleccionar un ATM
+        $date = Carbon::now();
+        /** obtenemos el servicio actual activo por medio de la hora */
+        $servicio = Helpers::getServicio($date);
+
+        if (!$servicio) {
+            Atm::where('en_uso', true)->update(['en_uso' => false]);
+            session()->forget('selectedAtm');
+            return back()->with([
+                'mensaje' => 'Comedor inactivo, está fuera del horario de servicio. No se puede seleccionar un ATM/Torniquete.',
+                'estatus' => Response::HTTP_UNAUTHORIZED
             ]);
         }
 

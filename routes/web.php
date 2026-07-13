@@ -41,7 +41,7 @@ Route::get('/logout', [LoginController::class, 'logout'])->name('logout.get');
 
 
 
-Route::middleware(['auth', 'validarRol'])->group(function () {
+Route::middleware(['auth', 'validarRol', 'handleAtm'])->group(function () {
     /** Tablero estadistico */
     Route::get('/panel', [DashboardController::class, 'index'])->name('admin.panel.index');
     Route::get('/api/dashboard-stats', [DashboardController::class, 'getStats'])->name('admin.dashboard.stats');
