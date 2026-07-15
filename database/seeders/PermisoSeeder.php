@@ -33,6 +33,7 @@ class PermisoSeeder extends Seeder
             "select", // permiso para seleccionar el ATM en recepción
             "configuracion",
             "atms",
+            "perfil"
         ];
 
         foreach ($permisos as $key => $value) {

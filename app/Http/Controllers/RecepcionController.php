@@ -279,6 +279,16 @@ class RecepcionController extends Controller
             ]);
         }
 
+        // validar si el servicio está activo antes de permitir la selección del ATM/Torniquete
+        $servicio = Helpers::getServicio(Carbon::now());
+        if (!$servicio) {
+            return back()->with([
+                'mensaje' => 'Comedor inactivo, está fuera del horario de servicio. No se puede seleccionar un ATM/Torniquete.',
+                'estatus' => Response::HTTP_UNAUTHORIZED
+            ]);
+        }
+
+        // actualizar el estado del ATM seleccionado y guardarlo en la sesión
         if ($selectedAtm) {
             // actualizamos el campo en_uso 
             Atm::where('id', $selectedAtm->id)->update(['en_uso' => true]);

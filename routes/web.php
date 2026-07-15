@@ -16,6 +16,7 @@ use App\Http\Controllers\{
     TorniqueteController,
     RoleController,
     PermisoController,
+    ProfileController,
 };
 
 
@@ -72,6 +73,8 @@ Route::middleware(['auth', 'validarRol', 'handleAtm'])->group(function () {
     
     /** Rutas de controlador usuarios */
     Route::resource('/users', UserController::class)->names('admin.users');
+    Route::get('/perfil', [ProfileController::class, 'index'])->name('admin.perfil.index');
+    Route::put('/perfil', [ProfileController::class, 'update'])->name('admin.perfil.update');
     
     /** Rutas de Comensales */
     // Ruta para importación masiva desde Excel (registrada antes del resource para evitar conflicto con rutas parameterizadas)

@@ -44,7 +44,7 @@ class LoginController extends Controller
         // Autenticamos al usuario
         $credenciales = $request->only('email', 'password');
 
-        // $recuerdame = isset($request->recuerdame) ? true : false;
+        // Verificamos si el usuario seleccionó "Recordarme"
         $recuerdame = $request->filled('rememberMe');
 
         if (Auth::attempt($credenciales, $recuerdame)) {

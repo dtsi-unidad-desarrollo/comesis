@@ -63,17 +63,17 @@
                                 <div class="text-center text-primary p-2 fs-4" role="alert">
                                     <span class="ms-2">Seleccione un ATM/Torniquete disponible:</span>
                                 </div>
-
+                                
                                 <div class="row">
                                     @foreach ($atms as $atm)
-                                        <div class="col-md-6 my-3 text-center">
-                                            <a href="{{ route('admin.recepcion.selectAtm') }}?atm_id={{ $atm->id }}"
-                                                class="btn btn-outline-primary">
-                                                <img src="{{ asset('assets/img/torniquete.png') }}" alt="ATM Icon" width="150" height="150"
-                                                    class="me-2">
-                                                {{ $atm->nombre }}
-                                            </a>
-                                        </div>
+                                    <div class="col-md-6 my-3 text-center">
+                                        <a href="{{ route('admin.recepcion.selectAtm') }}?atm_id={{ $atm->id }}"
+                                            class="btn btn-outline-primary">
+                                            <img src="{{ asset('assets/img/torniquete.png') }}" alt="ATM Icon" width="150" height="150"
+                                            class="me-2">
+                                            {{ $atm->nombre }}
+                                        </a>
+                                    </div>
                                     @endforeach
                                 </div>
                             @else

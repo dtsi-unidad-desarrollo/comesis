@@ -36,6 +36,13 @@
 
 
             <li>
+                <a class="dropdown-item d-flex align-items-center" href="{{ route('admin.perfil.index') }}">
+                    <i class="bi bi-person-circle me-2"></i>
+                    <span>Mi perfil</span>
+                </a>
+            </li>
+
+            <li>
                 <form action="{{ route('logout') }}" method="post" class="text-center">
                 @csrf
                 @method('post')

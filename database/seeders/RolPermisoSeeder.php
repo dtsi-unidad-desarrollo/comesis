@@ -42,6 +42,7 @@ class RolPermisoSeeder extends Seeder
             'select', // permiso para seleccionar el ATM en recepción
             "configuracion",
             'atms',
+            'perfil'
         ];
 
         $permisosCajero = [
@@ -49,6 +50,7 @@ class RolPermisoSeeder extends Seeder
             'reportes',
             'entradas',
             'select', // permiso para seleccionar el ATM en recepción
+            'perfil'
         ];
 
         if ($roles['root']) {
