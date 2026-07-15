@@ -257,6 +257,7 @@ class RecepcionController extends Controller
 
     public function selectAtm(Request $request)
     {
+        // validar si se desea cambiar el ATM/Torniquete seleccionado
         if ($request->input('change', false) === 'true') {
             Atm::where('id', session('selectedAtm.id'))->update(['en_uso' => false]);
             session()->forget('selectedAtm');
@@ -266,22 +267,17 @@ class RecepcionController extends Controller
             ]);
         }
 
-        // calidar si hay un servicio activo antes de seleccionar un ATM
-        $date = Carbon::now();
-        /** obtenemos el servicio actual activo por medio de la hora */
-        $servicio = Helpers::getServicio($date);
-
-        if (!$servicio) {
-            Atm::where('en_uso', true)->update(['en_uso' => false]);
-            session()->forget('selectedAtm');
-            return back()->with([
-                'mensaje' => 'Comedor inactivo, está fuera del horario de servicio. No se puede seleccionar un ATM/Torniquete.',
-                'estatus' => Response::HTTP_UNAUTHORIZED
-            ]);
-        }
-
+        // obtener todos los ATMs y el ATM seleccionado
         $atms = Atm::with('torniquete')->get();
         $selectedAtm = $atms->where('id', $request->atm_id)->first();
+
+        // validar si el ATM seleccionado ya está en uso
+        if ($selectedAtm && $selectedAtm->en_uso) {
+            return back()->with([
+                'mensaje' => 'ATM/Torniquete seleccionado: ' . $selectedAtm->nombre . ' - ' . ($selectedAtm->torniquete->nombre ?? 'Sin torniquete asociado') . '. Ya está en uso, por favor seleccione otro.',
+                'estatus' => Response::HTTP_NOT_FOUND 
+            ]);
+        }
 
         if ($selectedAtm) {
             // actualizamos el campo en_uso 
