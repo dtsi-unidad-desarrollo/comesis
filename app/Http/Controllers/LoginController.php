@@ -43,16 +43,7 @@ class LoginController extends Controller
      */
     public function store(Request $request)
     {
-        // validar la ip si esta en la lista blanca
-        $ip = $request->ip();
-        dd($ip);
-        $allowedIps = AllowedIp::pluck('ip_address')->toArray();
-        if (!in_array($ip, $allowedIps)) {
-            return back()->withErrors([
-                'mensaje' => 'Su dirección IP no está en la lista blanca.',
-            ]);
-        }
-
+       
         // Autenticamos al usuario
         $credenciales = $request->only('email', 'password');
 
@@ -60,6 +51,14 @@ class LoginController extends Controller
         $recuerdame = $request->filled('rememberMe');
 
         if (Auth::attempt($credenciales, $recuerdame)) {
+
+            if ($this->checkListWhite()) {
+                Auth::logout();
+                return back()->withErrors([
+                    'mensaje' => 'Acceso denegado. Tu dirección IP no está en la lista blanca.',
+                ]);
+            }
+
             $request->session()->regenerate();
             // Cargar permisos del rol del usuario en la sesión para validaciones
             $user = Auth::user();
@@ -116,5 +115,17 @@ class LoginController extends Controller
         $request->session()->regenerateToken();
 
         return $redirect->to('login');
+    }
+
+    public function checkListWhite()
+    {
+        $userIp = request()->ip();
+        $allowedIps = AllowedIp::pluck('ip_address')->toArray();
+
+        if (!in_array($userIp, $allowedIps)) {
+            return true;
+        }
+
+        return false;
     }
 }
