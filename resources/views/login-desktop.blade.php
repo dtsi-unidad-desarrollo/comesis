@@ -117,9 +117,6 @@
                                                     Recordar sesión
                                                 </label>
                                             </div>
-                                            <a href="#"
-                                                class="text-decoration-none text-primary fw-semibold">¿Olvidaste tu
-                                                contraseña?</a>
                                         </div>
                                     </div>
 
