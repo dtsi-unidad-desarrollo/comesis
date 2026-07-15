@@ -14,14 +14,7 @@ class ComensaleSeeder extends Seeder
      */
     public function run()
     {
-        $comensal = new Comensale();
-        $comensal->nombres = "Enrrique Jose";
-        $comensal->apellidos = "Perez jimenes";
-        $comensal->nacionalidad = "V";
-        $comensal->cedula = "24753788";
-        $comensal->sexo = "M";
-        $comensal->tipo_comensal = "EVENTUAL";
-        $comensal->sub_tipo = "";
-        $comensal->save();
+       // agregar el factory
+        Comensale::factory()->count(10)->create();
     }
 }

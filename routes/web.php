@@ -17,6 +17,7 @@ use App\Http\Controllers\{
     RoleController,
     PermisoController,
     ProfileController,
+    AuditLogController,
 };
 
 
@@ -75,6 +76,9 @@ Route::middleware(['auth', 'validarRol', 'handleAtm'])->group(function () {
     Route::resource('/users', UserController::class)->names('admin.users');
     Route::get('/perfil', [ProfileController::class, 'index'])->name('admin.perfil.index');
     Route::put('/perfil', [ProfileController::class, 'update'])->name('admin.perfil.update');
+    Route::get('/auditoria', [AuditLogController::class, 'index'])->name('admin.auditoria.index');
+    Route::get('/auditoria/export-excel', [AuditLogController::class, 'exportExcel'])->name('admin.auditoria.export.excel');
+    Route::get('/auditoria/export-pdf', [AuditLogController::class, 'exportPdf'])->name('admin.auditoria.export.pdf');
     
     /** Rutas de Comensales */
     // Ruta para importación masiva desde Excel (registrada antes del resource para evitar conflicto con rutas parameterizadas)

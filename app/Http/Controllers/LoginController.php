@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Atm;
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\Auth;
@@ -63,6 +64,10 @@ class LoginController extends Controller
             $request->session()->put('user_permisos', $permisos);
             $request->session()->put('user_permisos_map', array_flip($permisos));
 
+            AuditLogger::log('login', 'user', $user->id, [
+                'message' => 'Inicio de sesión del usuario',
+            ]);
+
             if ($user->rol == 1 || $user->rol == 2) {
                 return redirect()->route('admin.panel.index');
             }
@@ -85,8 +90,15 @@ class LoginController extends Controller
     public function logout(Request $request, Redirector $redirect)
     {
 
+        $user = Auth::user();
+
         // Eliminamos la session
         Auth::logout();
+        if ($user) {
+            AuditLogger::log('logout', 'user', $user->id, [
+                'message' => 'Cierre de sesión del usuario',
+            ]);
+        }
         Atm::where('id', session('selectedAtm.id'))->update(['en_uso' => false]);
         session()->forget('selectedAtm');
         $request->session()->invalidate();

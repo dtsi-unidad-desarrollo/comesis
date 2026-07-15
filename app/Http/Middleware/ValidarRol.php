@@ -36,9 +36,13 @@ class ValidarRol
                 $first = $segments[0] ?? '';
                 $pathBase = explode('-', $first)[0]; // reportes-semanal -> reportes
 
-                // if ($request->route() && in_array($request->route()->getName(), ['admin.perfil.index', 'admin.perfil.update'])) {
-                //     return $next($request);
-                // }
+                if ($request->route() && in_array($request->route()->getName(), ['admin.perfil.index', 'admin.perfil.update'])) {
+                    return $next($request);
+                }
+
+                if ($request->route() && $request->route()->getName() === 'admin.auditoria.index' && Auth::user()->rol == 1) {
+                    return $next($request);
+                }
 
                 if (!in_array($pathBase, $permisos)) {
                     // If the user is already on recepcion, avoid redirect loop

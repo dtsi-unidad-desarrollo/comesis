@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Services\AuditLogger;
 use App\Models\{
     User,
     DataDev,
@@ -60,6 +61,13 @@ class UserController extends Controller
             $request['password'] = Hash::make($request['password']);
             // Creamos el usuario
             $estatusCreate = User::create($request->all());
+
+            if ($estatusCreate) {
+                AuditLogger::log('create_user', 'user', $estatusCreate->id, [
+                    'message' => 'Se creó un nuevo usuario',
+                    'email' => $request->email,
+                ]);
+            }
 
             $mensaje = $estatusCreate ? "El Usuario se Registró correctamente."
                 : "El usuario no se registro!";
@@ -118,6 +126,13 @@ class UserController extends Controller
 
             $updated = $user->update($request->all());
 
+            if ($updated) {
+                AuditLogger::log('update_user', 'user', $user->id, [
+                    'message' => 'Se actualizó un usuario',
+                    'email' => $request->email,
+                ]);
+            }
+
             $mensaje = $updated ? "El Usuario se Actualizó correctamente." : "No se guardaron los datos!";
             $estatus = $updated ? Response::HTTP_OK : Response::HTTP_BAD_REQUEST;
             return redirect()->route('admin.users.index')->with(compact('mensaje', 'estatus'));
@@ -131,6 +146,10 @@ class UserController extends Controller
     {
         try {
             $user->delete();
+            AuditLogger::log('delete_user', 'user', $user->id, [
+                'message' => 'Se eliminó un usuario',
+                'email' => $user->email,
+            ]);
             $mensaje = "El Usuario se Eliminó correctamente.";
             $estatus = Response::HTTP_OK;
             return redirect()->route('admin.users.index')->with( compact('mensaje', 'estatus'));
