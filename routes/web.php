@@ -18,6 +18,7 @@ use App\Http\Controllers\{
     PermisoController,
     ProfileController,
     AuditLogController,
+    AllowedIpController,
 };
 
 
@@ -43,7 +44,7 @@ Route::get('/logout', [LoginController::class, 'logout'])->name('logout.get');
 
 
 
-Route::middleware(['auth', 'validarRol', 'handleAtm'])->group(function () {
+Route::middleware(['auth', 'validarRol', 'handleAtm', 'checkAllowedIp'])->group(function () {
     /** Tablero estadistico */
     Route::get('/panel', [DashboardController::class, 'index'])->name('admin.panel.index');
     Route::get('/api/dashboard-stats', [DashboardController::class, 'getStats'])->name('admin.dashboard.stats');
@@ -79,6 +80,7 @@ Route::middleware(['auth', 'validarRol', 'handleAtm'])->group(function () {
     Route::get('/auditoria', [AuditLogController::class, 'index'])->name('admin.auditoria.index');
     Route::get('/auditoria/export-excel', [AuditLogController::class, 'exportExcel'])->name('admin.auditoria.export.excel');
     Route::get('/auditoria/export-pdf', [AuditLogController::class, 'exportPdf'])->name('admin.auditoria.export.pdf');
+    Route::resource('/allowed-ips', AllowedIpController::class)->names('admin.allowed-ips');
     
     /** Rutas de Comensales */
     // Ruta para importación masiva desde Excel (registrada antes del resource para evitar conflicto con rutas parameterizadas)

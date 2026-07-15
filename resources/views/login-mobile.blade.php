@@ -57,7 +57,6 @@
                                                 <input class="form-check-input" type="checkbox" name="rememberMe" value="true" id="rememberMe">
                                                 <label class="form-check-label text-muted" for="rememberMe">Recordar sesión</label>
                                             </div>
-                                            <a href="#" class="text-decoration-none text-primary fw-semibold">¿Olvidaste tu contraseña?</a>
                                         </div>
                                     </div>
 

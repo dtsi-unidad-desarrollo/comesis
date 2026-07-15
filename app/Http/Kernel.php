@@ -65,5 +65,6 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'validarRol' => \App\Http\Middleware\ValidarRol::class,
         'handleAtm' => \App\Http\Middleware\HandleAtm::class,
+        'checkAllowedIp' => \App\Http\Middleware\CheckAllowedIp::class,
     ];
 }

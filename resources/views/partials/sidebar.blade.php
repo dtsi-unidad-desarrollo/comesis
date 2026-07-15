@@ -170,6 +170,16 @@
                         </li>
                     @endif
 
+                    @if (Auth::user()->hasPermiso('auditoria'))
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.allowed-ips.*') ? 'bg-primary text-white' : 'collapsed' }} "
+                                href="{{ route('admin.allowed-ips.index') }}">
+                                <i class="bi bi-shield-lock fs-3"></i>
+                                <span>Lista blanca IPs</span>
+                            </a>
+                        </li>
+                    @endif
+
                 </ul>
             </li><!-- End Components Nav | configuraciones -->
 

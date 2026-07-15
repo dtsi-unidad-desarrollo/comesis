@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AllowedIp;
 use App\Models\Atm;
 use App\Services\AuditLogger;
 use Illuminate\Http\Request;
@@ -42,6 +43,16 @@ class LoginController extends Controller
      */
     public function store(Request $request)
     {
+        // validar la ip si esta en la lista blanca
+        $ip = $request->ip();
+        dd($ip);
+        $allowedIps = AllowedIp::pluck('ip_address')->toArray();
+        if (!in_array($ip, $allowedIps)) {
+            return back()->withErrors([
+                'mensaje' => 'Su dirección IP no está en la lista blanca.',
+            ]);
+        }
+
         // Autenticamos al usuario
         $credenciales = $request->only('email', 'password');
 
