@@ -18,7 +18,9 @@ use App\Models\{
 // Excepciones
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use App\Exceptions\InvalidOrderException;
+use App\Exceptions\PageExpiredException;
 use Illuminate\Database\QueryException;
+use Illuminate\Session\TokenMismatchException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Facade\Ignition\Exceptions\ViewException;
 use Throwable;
@@ -81,6 +83,11 @@ class Handler extends ExceptionHandler
             $errorInfo = Helpers::getMensajeError($e, "Error de datos de la Vista,");
             $estatus = Response::HTTP_NOT_FOUND;
             return response()->view('errors.404', compact("errorInfo"), $estatus);
+        });
+
+        $this->renderable(function (PageExpiredException|TokenMismatchException $e, $request) {
+            $errorInfo = Helpers::getMensajeError($e, "La página ha expirado, por favor vuelva a cargar la página e intente nuevamente,");
+            return response()->view('errors.419', compact("errorInfo"), 419);
         });
     }
 

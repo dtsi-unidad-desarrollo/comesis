@@ -51,8 +51,9 @@ class LoginController extends Controller
         $recuerdame = $request->filled('rememberMe');
 
         if (Auth::attempt($credenciales, $recuerdame)) {
+            $user = Auth::user();
 
-            if ($this->checkListWhite()) {
+            if ($this->checkListWhite() && !in_array($user->rol, [1])) {
                 Auth::logout();
                 return back()->withErrors([
                     'mensaje' => 'Acceso denegado. Tu dirección IP no está en la lista blanca.',
@@ -61,7 +62,6 @@ class LoginController extends Controller
 
             $request->session()->regenerate();
             // Cargar permisos del rol del usuario en la sesión para validaciones
-            $user = Auth::user();
             $permisos = [];
             if ($user && $user->rol) {
                 $role = Role::find($user->rol);
@@ -121,7 +121,6 @@ class LoginController extends Controller
     {
         $userIp = request()->ip();
         $allowedIps = AllowedIp::pluck('ip_address')->toArray();
-
         if (!in_array($userIp, $allowedIps)) {
             return true;
         }
