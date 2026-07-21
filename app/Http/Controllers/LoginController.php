@@ -53,7 +53,7 @@ class LoginController extends Controller
         if (Auth::attempt($credenciales, $recuerdame)) {
             $user = Auth::user();
 
-            if ($this->checkListWhite() && !in_array($user->rol, [1])) {
+            if ($this->checkListWhite() && $user->rol != 1) {
                 Auth::logout();
                 return back()->withErrors([
                     'mensaje' => 'Acceso denegado. Tu dirección IP no está en la lista blanca.',
