@@ -10,6 +10,14 @@ Este documento mantiene el estado de las tareas actuales, el roadmap a corto/med
 - [x] Integración de Apoyos en el flujo de Recepción y Control de Entrada (`RecepcionController` y `EntradaController`).
 - [x] Refactorización y optimización modular de `RecepcionController.php`.
 - [x] Tarea programada de respaldo automático de la base de datos cada 3 meses (`db:backup` programado `quarterly()` con guardado en `storage/app/backups/`).
+- [x] Rediseño y optimización integral del Cpanel / Dashboard Administrativo (`DashboardController.php` y `resources/views/admin/dashboard.blade.php`):
+  - Banner interactivo de bienvenida y estado de servicio en vivo con atajos rápidos.
+  - Tarjetas de KPIs modernizadas (Bandejas de hoy, Capacidad/Cupos, Padrón de comensales, Apoyos institucionales con barras de progreso).
+  - Gráfico de dona (Doughnut) de distribución de comensales hoy (incluyendo Apoyos y Disponibles).
+  - Gráfico de barras agrupadas semanal (Lunes a Domingo con desglose Estudiantes, Empleados, Apoyos).
+  - Gráfico de línea/área de tendencia y evolución mensual con promedios y total del mes.
+  - Monitor de accesos en vivo (Últimas entradas con badges por tipo de comensal).
+  - Monitor de estado de terminales ATM y torniquetes + atajos de administración.
 
 
 

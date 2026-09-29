@@ -2,23 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreDashboardRequest;
-use App\Http\Requests\UpdateDashboardRequest;
 use App\Models\{
-    Cuota,
-    Dashboard,
+    Apoyo,
+    Atm,
+    Comensale,
     DataDev,
     Entrada,
-    Estudiante,
-    Grupo,
-    GrupoEstudiante,
-    Pago,
-    Profesore,
+    Helpers,
     Servicio
 };
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -27,92 +21,41 @@ class DashboardController extends Controller
 
     public function __construct()
     {
-        $this->data = new DataDev;
-    }
-
-
-    /**
-     * Get entrada statistics for a given date range
-     *
-     * @param Carbon $startDate
-     * @param Carbon|null $endDate
-     * @return \Illuminate\Support\Collection
-     * 
-     * $tipoDeConsulta can be 'diaria', 'semanal' or 'mensual' to determine the grouping of the results
-     */
-    public function getEntradaStats($startDate, $endDate = null, $tipoDeConsulta = 'diaria')
-    {
-        $stats = [];
-        $dateRange = [];
-
-        if ($endDate) {
-            if ($tipoDeConsulta == "semanal") {
-                return $this->getWeeklyStats($startDate, $endDate);
-            } elseif ($tipoDeConsulta == "mensual") {
-                // Aquí podrías implementar la lógica para obtener estadísticas mensuales
-                // agrupando por día o por semana dentro del mes, dependiendo de tus necesidades.
-                $this->getMonthlyStats($startDate, $endDate);
-            }
-        } else {
-            $stats = DB::table('entradas')
-                ->select('tipo_comensal', DB::raw('count(*) as cantidad'))
-                ->whereDate('fecha', $startDate)
-                ->groupBy('tipo_comensal')
-                ->pluck('cantidad', 'tipo_comensal');
-            // Si quieres asegurar que siempre tengas ambos tipos aunque no haya registros:
-            $result = [
-                'EMPLEADO' => $stats['EMPLEADO'] ?? 0,
-                'ESTUDIANTE' => $stats['ESTUDIANTE'] ?? 0,
-            ];
-
-            // También puedes incluir el total si quieres:
-            $result['total'] = $result['EMPLEADO'] + $result['ESTUDIANTE'];
-
-            // consultamos el servicio para obtener el total de bandejas disponibles, por ejemplo, 2000
-            $result['disponibles'] = Servicio::where('nombre', 'ALMUERZO')->first()->disponibilidad ?? 0;
-
-            //bandejas no entregadas
-            $result['no_entregadas'] = $result['disponibles'] - $result['EMPLEADO'] - $result['ESTUDIANTE'];
-
-            // Retornar como respuesta JSON
-            return $result;
-        }
+        $this->data = new DataDev();
     }
 
     /**
-     * Get formatted statistics array
+     * Muestra el panel de control administrativo principal (Cpanel / Dashboard).
      *
-     * @return array
-     */
-    private function getFormattedStats()
-    {
-        $today = Carbon::today();
-        $startOfWeek = Carbon::now()->startOfWeek();
-        $startOfMonth = Carbon::now()->startOfMonth();
-
-        $dailyStats = $this->getEntradaStats($today);
-        $weeklyStats = $this->getEntradaStats($startOfWeek, Carbon::now()->endOfWeek(), 'semanal');
-        $monthlyStats = $this->getEntradaStats($startOfMonth, Carbon::now()->endOfMonth(), 'mensual');
-        return [
-            'hoy' => $dailyStats,
-            'semanal' => $weeklyStats,
-            'monthly' => $monthlyStats,
-        ];
-    }
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @return \Illuminate\View\View
      */
     public function index(Request $request)
-    {       
+    {
         $respuesta = $this->data->respuesta;
         $stats = $this->getFormattedStats();
-        return view('admin.dashboard', compact('respuesta', 'stats', 'stats'));
+
+        $ultimasEntradas = Entrada::with(['atm', 'allowedBy'])
+            ->orderBy('id', 'desc')
+            ->take(8)
+            ->get();
+
+        $atms = Atm::with('torniquete')->get();
+        $servicioActual = Helpers::getServicio(Carbon::now());
+        $servicios = Servicio::all();
+
+        return view('admin.dashboard', compact(
+            'respuesta',
+            'stats',
+            'ultimasEntradas',
+            'atms',
+            'servicioActual',
+            'servicios'
+        ));
     }
 
     /**
-     * Get statistics for AJAX requests
+     * Endpoint API para actualizar estadísticas en tiempo real vía AJAX.
      *
      * @return \Illuminate\Http\JsonResponse
      */
@@ -121,81 +64,256 @@ class DashboardController extends Controller
         try {
             $stats = $this->getFormattedStats();
             return response()->json($stats);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Error retrieving statistics'], 500);
+        } catch (\Throwable $e) {
+            return response()->json(['error' => 'Error al obtener estadísticas: ' . $e->getMessage()], 500);
         }
     }
 
-    public function getMonthlyStats($startDate, $endDate)
+    /**
+     * Genera la estructura consolidada de métricas y estadísticas.
+     *
+     * @return array
+     */
+    private function getFormattedStats()
     {
-        // Aquí podrías implementar la lógica para obtener estadísticas mensuales
-        // agrupando por día o por semana dentro del mes, dependiendo de tus necesidades.
+        $today = Carbon::today();
+        $startOfWeek = Carbon::now()->startOfWeek();
+        $endOfWeek = Carbon::now()->endOfWeek();
+        $startOfMonth = Carbon::now()->startOfMonth();
+        $endOfMonth = Carbon::now()->endOfMonth();
+
+        $dailyStats = $this->getTodayStats($today);
+        $weeklyStats = $this->getWeeklyStats($startOfWeek, $endOfWeek);
+        $monthlyStats = $this->getMonthlyStats($startOfMonth, $endOfMonth);
+        $globalStats = $this->getGlobalStats();
+
+        return [
+            'hoy' => $dailyStats,
+            'semanal' => $weeklyStats,
+            'mensual' => $monthlyStats,
+            'monthly' => $monthlyStats, // Alias retrocompatible
+            'globales' => $globalStats,
+        ];
     }
 
+    /**
+     * Obtiene estadísticas de entradas para el día actual.
+     *
+     * @param Carbon|string $today
+     * @return array
+     */
+    public function getTodayStats($today)
+    {
+        $todayDate = $today instanceof Carbon ? $today->format('Y-m-d') : $today;
+
+        $stats = DB::table('entradas')
+            ->select('tipo_comensal', DB::raw('count(*) as cantidad'))
+            ->whereDate('fecha', $todayDate)
+            ->groupBy('tipo_comensal')
+            ->pluck('cantidad', 'tipo_comensal')
+            ->toArray();
+
+        $estudiantes = (int)($stats['ESTUDIANTE'] ?? 0);
+        $empleados = (int)($stats['EMPLEADO'] ?? 0);
+        $apoyos = (int)($stats['APOYO'] ?? 0);
+        $eventuales = (int)($stats['EVENTUAL'] ?? 0);
+        $otros = (int)array_sum(array_diff_key($stats, array_flip(['ESTUDIANTE', 'EMPLEADO', 'APOYO', 'EVENTUAL'])));
+
+        $totalEntregadas = $estudiantes + $empleados + $apoyos + $eventuales + $otros;
+
+        $servicioActual = Helpers::getServicio(Carbon::now()) ?: Servicio::where('nombre', 'ALMUERZO')->first() ?: Servicio::first();
+        $disponibles = $servicioActual ? (int)$servicioActual->disponibilidad : 2000;
+        $noEntregadas = max(0, $disponibles - $totalEntregadas);
+        $porcentajeConsumo = $disponibles > 0 ? round(($totalEntregadas / $disponibles) * 100, 1) : 0;
+
+        return [
+            'ESTUDIANTE' => $estudiantes,
+            'EMPLEADO' => $empleados,
+            'APOYO' => $apoyos,
+            'EVENTUAL' => $eventuales,
+            'OTROS' => $otros,
+            'total' => $totalEntregadas,
+            'disponibles' => $disponibles,
+            'no_entregadas' => $noEntregadas,
+            'porcentaje' => $porcentajeConsumo,
+            'servicio_nombre' => $servicioActual ? $servicioActual->nombre : 'ALMUERZO',
+            'servicio' => $servicioActual,
+            'desglose' => $stats,
+        ];
+    }
+
+    /**
+     * Obtiene estadísticas semanales agrupadas por día y tipo de comensal.
+     *
+     * @param Carbon $startDate
+     * @param Carbon $endDate
+     * @return array
+     */
     public function getWeeklyStats($startDate, $endDate)
     {
-        $stats = [];
         $dateRange = [];
-
-        // crear un array de fecha para cada día entre startDate y endDate
-        $currentDate = clone $startDate;
+        $currentDate = $startDate->copy();
         while ($currentDate->lte($endDate)) {
             $dateRange[] = $currentDate->copy();
             $currentDate->addDay();
         }
 
-        // inicializar un array con los días de la semana y los tipos de comensal
-        $stats = collect($dateRange)->mapWithKeys(function ($date) {
-            // obtener el nombre del día en minúsculas y en español
-            $diaSemana = strtolower($date->locale('es')->dayName);
-            // quitar los acentos para evitar problemas con los nombres de los días
-            $diaSemana = str_replace(['á', 'é', 'í', 'ó', 'ú'], ['a', 'e', 'i', 'o', 'u'], $diaSemana);
-            // $diaSemana = strtolower($date->format('l'));
-            return [$diaSemana => ['EMPLEADO' => 0, 'ESTUDIANTE' => 0]];
-        });
+        $entradasSemana = DB::table('entradas')
+            ->select('fecha', 'tipo_comensal', DB::raw('count(*) as cantidad'))
+            ->whereBetween('fecha', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->groupBy('fecha', 'tipo_comensal')
+            ->get();
 
-        foreach ($dateRange as $date) {
-            // obtener los datos del día de la fecha $date
-            $dataDay = DB::table('entradas')
-                ->select('tipo_comensal', DB::raw('count(*) as cantidad'))
-                ->whereDate('fecha', $date)
-                ->groupBy('tipo_comensal')
-                ->pluck('cantidad', 'tipo_comensal');
-
-            // combinar los datos del día con el array inicial
-            foreach ($dataDay as $tipoComensal => $cantidad) {
-                $diasDeLaSemana = strtolower($date->locale('es')->dayName);
-                $diasDeLaSemana = str_replace(['á', 'é', 'í', 'ó', 'ú'], ['a', 'e', 'i', 'o', 'u'], $diasDeLaSemana);
-                $array = $stats->toArray();
-                $array[$diasDeLaSemana][$tipoComensal] = doubleval($cantidad);
-                $stats = collect($array);
-            }
-
-            // totalizar los datos del día para obtener el total de comensales
-            $totalDia = $dataDay->sum();
-            $diasDeLaSemana = strtolower($date->locale('es')->dayName);
-            $diasDeLaSemana = str_replace(['á', 'é', 'í', 'ó', 'ú'], ['a', 'e', 'i', 'o', 'u'], $diasDeLaSemana);
-            $array = $stats->toArray();
-            $array[$diasDeLaSemana]['total'] = doubleval($totalDia);
-            $array[$diasDeLaSemana]['fecha'] = Carbon::create($date)->format('Y-m-d');
-            $stats = collect($array);
+        $entradasPorFecha = [];
+        foreach ($entradasSemana as $item) {
+            $entradasPorFecha[$item->fecha][$item->tipo_comensal] = (int)$item->cantidad;
         }
 
-        // total de estudiantes y empleados en la semana
+        $diasKey = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
+        $diasNombres = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
-        $stats['total'] = [
-            'EMPLEADO' => $stats->sum(function ($day) {
-                return $day['EMPLEADO'] ?? 0;
-            }),
-            'ESTUDIANTE' => $stats->sum(function ($day) {
-                return $day['ESTUDIANTE'] ?? 0;
-            }),
-            'TODOS' => $stats->sum(function ($day) {
-                return $day['total'] ?? 0;
-            }),
+        $result = [];
+        $totalEstudiantes = 0;
+        $totalEmpleados = 0;
+        $totalApoyos = 0;
+        $totalEventuales = 0;
+        $totalGeneral = 0;
+
+        foreach ($dateRange as $index => $date) {
+            $fechaStr = $date->format('Y-m-d');
+            $diaKey = $diasKey[$index] ?? strtolower($date->format('l'));
+            $diaNombre = $diasNombres[$index] ?? $date->format('l');
+
+            $dataDia = $entradasPorFecha[$fechaStr] ?? [];
+            $est = (int)($dataDia['ESTUDIANTE'] ?? 0);
+            $emp = (int)($dataDia['EMPLEADO'] ?? 0);
+            $apo = (int)($dataDia['APOYO'] ?? 0);
+            $eve = (int)($dataDia['EVENTUAL'] ?? 0);
+            $tot = array_sum($dataDia);
+
+            $totalEstudiantes += $est;
+            $totalEmpleados += $emp;
+            $totalApoyos += $apo;
+            $totalEventuales += $eve;
+            $totalGeneral += $tot;
+
+            $result[$diaKey] = [
+                'fecha' => $fechaStr,
+                'dia' => $diaNombre,
+                'ESTUDIANTE' => $est,
+                'EMPLEADO' => $emp,
+                'APOYO' => $apo,
+                'EVENTUAL' => $eve,
+                'total' => $tot,
+            ];
+        }
+
+        $result['total'] = [
+            'ESTUDIANTE' => $totalEstudiantes,
+            'EMPLEADO' => $totalEmpleados,
+            'APOYO' => $totalApoyos,
+            'EVENTUAL' => $totalEventuales,
+            'TODOS' => $totalGeneral,
         ];
 
+        return $result;
+    }
 
-        return $stats;
+    /**
+     * Obtiene estadísticas mensuales por día y totales consolidados.
+     *
+     * @param Carbon $startDate
+     * @param Carbon $endDate
+     * @return array
+     */
+    public function getMonthlyStats($startDate, $endDate)
+    {
+        $entradasMes = DB::table('entradas')
+            ->select('fecha', 'tipo_comensal', DB::raw('count(*) as cantidad'))
+            ->whereBetween('fecha', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->groupBy('fecha', 'tipo_comensal')
+            ->get();
+
+        $entradasPorFecha = [];
+        foreach ($entradasMes as $item) {
+            $entradasPorFecha[$item->fecha][$item->tipo_comensal] = (int)$item->cantidad;
+        }
+
+        $dias = [];
+        $currentDate = $startDate->copy();
+        $totalMes = 0;
+        $diasConServicio = 0;
+
+        while ($currentDate->lte($endDate)) {
+            $fechaStr = $currentDate->format('Y-m-d');
+            $dataDia = $entradasPorFecha[$fechaStr] ?? [];
+
+            $est = (int)($dataDia['ESTUDIANTE'] ?? 0);
+            $emp = (int)($dataDia['EMPLEADO'] ?? 0);
+            $apo = (int)($dataDia['APOYO'] ?? 0);
+            $tot = array_sum($dataDia);
+
+            $totalMes += $tot;
+            if ($tot > 0) {
+                $diasConServicio++;
+            }
+
+            $dias[] = [
+                'fecha' => $fechaStr,
+                'dia' => $currentDate->format('d/m'),
+                'dia_numero' => $currentDate->format('d'),
+                'ESTUDIANTE' => $est,
+                'EMPLEADO' => $emp,
+                'APOYO' => $apo,
+                'total' => $tot,
+            ];
+
+            $currentDate->addDay();
+        }
+
+        $promedioDiario = $diasConServicio > 0 ? round($totalMes / $diasConServicio, 1) : 0;
+
+        return [
+            'dias' => $dias,
+            'total_mes' => $totalMes,
+            'dias_activos' => $diasConServicio,
+            'promedio_diario' => $promedioDiario,
+            'mes_nombre' => Carbon::now()->locale('es')->monthName,
+            'anio' => Carbon::now()->year,
+        ];
+    }
+
+    /**
+     * Obtiene métricas globales de comensales, apoyos, ATMs y accesos.
+     *
+     * @return array
+     */
+    public function getGlobalStats()
+    {
+        $totalComensales = Comensale::count();
+        $estudiantesActivos = Comensale::where('tipo_comensal', 'ESTUDIANTE')->where('estatus', 1)->count();
+        $empleadosActivos = Comensale::where('tipo_comensal', 'EMPLEADO')->where('estatus', 1)->count();
+
+        $apoyosCount = Apoyo::count();
+        $apoyosActivos = Apoyo::where('estatus', 1)->count();
+        $apoyosHabilitadas = (int)Apoyo::where('estatus', 1)->sum('cantidad_habilitada');
+        $apoyosConsumidas = (int)Apoyo::where('estatus', 1)->sum('cantidad_consumida');
+
+        $totalAtms = Atm::count();
+        $atmsEnUso = Atm::where('en_uso', 1)->count();
+        $totalEntradas = Entrada::count();
+
+        return [
+            'total_comensales' => $totalComensales,
+            'estudiantes_activos' => $estudiantesActivos,
+            'empleados_activos' => $empleadosActivos,
+            'total_apoyos' => $apoyosCount,
+            'apoyos_activos' => $apoyosActivos,
+            'apoyos_habilitadas' => $apoyosHabilitadas,
+            'apoyos_consumidas' => $apoyosConsumidas,
+            'total_atms' => $totalAtms,
+            'atms_en_uso' => $atmsEnUso,
+            'total_entradas' => $totalEntradas,
+        ];
     }
 }

@@ -1,11 +1,7 @@
 @php
-    $url = explode('/', $_SERVER['REQUEST_URI']);
-    $categoria = strtoupper($url[1]);
-    if (isset($url[2])) {
-        $subcategoria = strtoupper($url[2]);
-    } else {
-        $subcategoria = 'LISTA';
-    }
+    $segments = request()->segments();
+    $categoria = isset($segments[0]) ? strtoupper($segments[0]) : '';
+    $subcategoria = isset($segments[1]) ? strtoupper($segments[1]) : 'LISTA';
 @endphp
 
 <!-- ======= Sidebar ======= -->

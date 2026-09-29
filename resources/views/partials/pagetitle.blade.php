@@ -1,12 +1,7 @@
 @php
-    $url = explode('/',$_SERVER['REQUEST_URI']);
-    $categoria = strtoupper($url[1]);
-    $categoria = explode('?', $categoria)[0] ?? $categoria;
-
-    if (isset($url[2])) {
-        $subcategoria = $url[2];
-        $subcategoria = explode('?', $subcategoria)[0] ?? $subcategoria;
-    }
+    $segments = request()->segments();
+    $categoria = isset($segments[0]) ? strtoupper($segments[0]) : 'PANEL';
+    $subcategoria = isset($segments[1]) ? strtoupper($segments[1]) : '';
 @endphp
 
 <div class="pagetitle">
