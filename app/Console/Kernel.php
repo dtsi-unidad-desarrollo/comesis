@@ -22,6 +22,9 @@ class Kernel extends ConsoleKernel
         
         // Estudiantes
         $schedule->job(new ProcessSyncEstudiantes)->dailyAt('15:45');
+
+        // Respaldo de Base de Datos cada 3 meses
+        $schedule->command('db:backup')->quarterly();
     }
 
     /**

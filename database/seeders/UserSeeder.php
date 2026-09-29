@@ -15,25 +15,38 @@ class UserSeeder extends Seeder
      */
     public function run()
     {
-        $user = new User();
-        $user->nombre = env('ADMIN_NAME', 'Administrador');
-        $user->rol = env('ADMIN_ROLE', 2);
-        $user->email = env('ADMIN_EMAIL', 'admin');
-        $user->password = Hash::make(env('ADMIN_PASSWORD', '12345678'));
-        $user->save();
+        $users = [
+            [
+                'email' => 'root',
+                'nombre' => 'Super usuario',
+                'rol' => 1,
+                'password' => Hash::make('12345678'),
+            ],
+            [
+                'email' => 'admin',
+                'nombre' => 'Administrador',
+                'rol' => 2,
+                'password' => Hash::make('12345678'),
+            ],
+            [
+                'email' => 'cajero',
+                'nombre' => 'Cajero 1',
+                'rol' => 3,
+                'password' => Hash::make('12345678'),
+            ],
+            [
+                'email' => 'cajero2',
+                'nombre' => 'Cajero 2',
+                'rol' => 3,
+                'password' => Hash::make('12345678'),
+            ],
+        ];
 
-        $user = new User();
-        $user->nombre = env('ROOT_NAME', 'Super usuario');
-        $user->rol = env('ROOT_ROLE', 1);
-        $user->email = env('ROOT_EMAIL', 'root');
-        $user->password = Hash::make(env('ROOT_PASSWORD', '12345678'));
-        $user->save();
-
-        $userDos = new User();
-        $userDos->nombre = env('CAJERO_NAME', 'Cajero');
-        $userDos->rol = env('CAJERO_ROLE', 3);
-        $userDos->email = env('CAJERO_EMAIL', 'cajero');
-        $userDos->password = Hash::make(env('CAJERO_PASSWORD', '12345678'));
-        $userDos->save();
+        foreach ($users as $userData) {
+            User::updateOrCreate(
+                ['email' => $userData['email']], // Condición de búsqueda
+                $userData                        // Datos a actualizar o crear
+            );
+        }
     }
 }

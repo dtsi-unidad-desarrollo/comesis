@@ -36,18 +36,19 @@ class ComensaleController extends Controller
     public function index(Request $request)
     {
         try {
-            $comensales = [];
+            $query = Comensale::query();
 
-            if ($request->filtro) {
-                $comensales = Comensale::where('cedula', 'like', "%{$request->filtro}%")
-                    ->orWhere('nombres', 'like', "%{$request->filtro}%")
-                    ->orWhere('apellidos', 'like', "%{$request->filtro}%")
-                    ->orderBy('id', 'desc')->paginate(12);
-            } else {
-                $comensales = Comensale::paginate(12);
+            if ($request->filled('filtro')) {
+                $filtro = $request->filtro;
+                $query->where(function ($q) use ($filtro) {
+                    $q->where('cedula', 'like', "%{$filtro}%")
+                        ->orWhere('nombres', 'like', "%{$filtro}%")
+                        ->orWhere('apellidos', 'like', "%{$filtro}%");
+                });
             }
 
-            $respuesta =  $this->data->respuesta;
+            $comensales = $query->orderBy('id', 'desc')->paginate(12);
+            $respuesta = $this->data->respuesta;
 
             return view('admin.comensales.index', compact('comensales', 'request', 'respuesta'));
         } catch (\Throwable $th) {

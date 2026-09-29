@@ -43,13 +43,19 @@
                     <i class="bi bi-people fs-3"></i><span>Comensales</span><i class="bi bi-chevron-down ms-auto"></i>
                 </a>
                 <ul id="components-nav-comensales"
-                    class="nav-content {{ url()->current() == route('admin.comensales.index') || url()->current() == route('admin.entradas.index') ? 'collapse show' : 'collapse' }} "
+                    class="nav-content {{ url()->current() == route('admin.comensales.index') || url()->current() == route('admin.entradas.index') || url()->current() == route('admin.apoyos.index') ? 'collapse show' : 'collapse' }} "
                     data-bs-parent=" #sidebar-nav-1">
                     @if (Auth::user()->hasPermiso('comensales'))
                         <li>
                             <a class="nav-link {{ url()->current() == route('admin.comensales.index') ? 'bg-primary text-white' : '' }}"
                                 href="{{ route('admin.comensales.index') }}">
-                                <i class="bi bi-circle"></i><span>Lista</span>
+                                <i class="bi bi-circle"></i><span>Lista General</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link {{ url()->current() == route('admin.apoyos.index') ? 'bg-primary text-white' : '' }}"
+                                href="{{ route('admin.apoyos.index') }}">
+                                <i class="bi bi-circle"></i><span>Apoyos Institucionales</span>
                             </a>
                         </li>
                     @endif

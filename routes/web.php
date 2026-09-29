@@ -19,6 +19,7 @@ use App\Http\Controllers\{
     ProfileController,
     AuditLogController,
     AllowedIpController,
+    ApoyoController,
 };
 
 
@@ -91,6 +92,10 @@ Route::middleware(['auth', 'validarRol', 'handleAtm', 'checkAllowedIp'])->group(
     Route::get('/comensales/export', [ComensaleController::class, 'export'])->name('admin.comensales.export');
    
     Route::resource('/comensales', ComensaleController::class)->names('admin.comensales');
+    
+    /** Control de Apoyos Institucionales */
+    Route::get('/apoyos/{apoyo}/ticket', [ApoyoController::class, 'printTicket'])->name('admin.apoyos.ticket');
+    Route::resource('/apoyos', ApoyoController::class)->names('admin.apoyos');
 
     /** Sincronización de datos */
     Route::get('/configuracion/sincronizar-data', [ComensaleController::class, 'sincronizarDataPage'])->name('admin.sincronizar.data.index');

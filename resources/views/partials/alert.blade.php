@@ -26,6 +26,7 @@
   }
 @endphp
 
+@if(!empty($respuesta['mensaje']))
 <div class="row" id="alert">
   <div class="col-sm-8"></div>
   <div class="col-sm-4">
@@ -36,3 +37,4 @@
     </div>
   </div>
 </div>
+@endif

@@ -43,6 +43,8 @@ class RolPermisoSeeder extends Seeder
             "configuracion",
             'atms',
             'perfil',
+            'apoyos',
+            'auditoria',
         ];
 
         $permisosCajero = [

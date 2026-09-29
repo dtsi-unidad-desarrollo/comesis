@@ -25,7 +25,7 @@ class ComensalesExport implements FromCollection, WithHeadings, ShouldAutoSize
             'sexo',
             'tipo_comensal',
             'observacion'
-        ])->get()->map(function ($c) {
+        ])->orderBy('id', 'desc')->get()->map(function ($c) {
             return [
                 'nombres' => $c->nombres,
                 'apellidos' => $c->apellidos,

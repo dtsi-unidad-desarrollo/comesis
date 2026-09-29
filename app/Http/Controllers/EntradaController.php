@@ -22,7 +22,8 @@ class EntradaController extends Controller
         "ESTUDIANTE",
         "ESTUDIANTE FORANEO",
         "EMPLEADO",
-        "EVENTUAL"
+        "EVENTUAL",
+        "APOYO"
     ];
 
     public function __construct()
@@ -136,6 +137,41 @@ class EntradaController extends Controller
             } else {
                 $mensaje = "Comedor inactivo, está fuera del horario de servicio.";
                 $estatus = Response::HTTP_UNAUTHORIZED;
+                return back()->with(compact('mensaje', 'estatus'));
+            }
+
+            $apoyo = \App\Models\Apoyo::where('codigo', $request->cedula)->first();
+
+            if ($apoyo) {
+                if (!$apoyo->estatus) {
+                    $mensaje = "Este código de apoyo está inactivo.";
+                    $estatus = Response::HTTP_UNAUTHORIZED;
+                    return back()->with(compact('mensaje', 'estatus'));
+                }
+                if ($apoyo->cantidad_consumida >= $apoyo->cantidad_habilitada) {
+                    $mensaje = "Este código de apoyo ya ha consumido todas las comidas habilitadas.";
+                    $estatus = Response::HTTP_UNAUTHORIZED;
+                    return back()->with(compact('mensaje', 'estatus'));
+                }
+
+                $apoyo->increment('cantidad_consumida');
+
+                Entrada::create([
+                    "cedula" => $apoyo->codigo,
+                    "nombres" => $apoyo->institucion,
+                    "apellidos" => "APOYO INSTITUCIONAL",
+                    "nacionalidad" => "V",
+                    "sexo" => "N/A",
+                    "tipo_comensal" => "APOYO",
+                    "comida" => $comida,
+                    'fecha' => $date->format('Y-m-d'),
+                    'hora' => $date->format('h:ia'),
+                    'atm_id' => $request->input('atm_id'),
+                    'allowed_by_user_id' => $request->input('allowed_by_user_id'),
+                ]);
+
+                $mensaje = "Apoyo registrado exitosamente. Quedan " . ($apoyo->cantidad_habilitada - $apoyo->cantidad_consumida) . " comidas.";
+                $estatus = Response::HTTP_OK;
                 return back()->with(compact('mensaje', 'estatus'));
             }
 

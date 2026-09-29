@@ -71,16 +71,16 @@
                                     @method('post')
 
                                     <div class="col-12">
-                                        <label for="yourUsername" class="form-label fw-semibold">Correo Electrónico</label>
+                                        <label for="yourUsername" class="form-label fw-semibold">Usuario o Correo Electrónico</label>
                                         <div class="input-group rounded-3 shadow-sm border-0"
                                             style="overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
                                             <span class="input-group-text bg-light border-0" id="inputGroupPrepend">
-                                                <i class="bi bi-envelope text-primary"></i>
+                                                <i class="bi bi-person text-primary"></i>
                                             </span>
                                             <input type="text" name="email"
                                                 class="form-control form-control-lg border-0 ps-0" id="yourUsername"
-                                                placeholder="usuario@dominio.com" autocomplete="username" required>
-                                            <div class="invalid-feedback">Por favor, ingrese su correo electrónico.</div>
+                                                placeholder="usuario / correo@dominio.com" autocomplete="username" required>
+                                            <div class="invalid-feedback">Por favor, ingrese su usuario o correo electrónico.</div>
                                         </div>
                                         @error('email')
                                             <div class="form-text text-danger">{{ $message }}</div>

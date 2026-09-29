@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Apoyo;
 use App\Models\Atm;
 use App\Models\Comensale;
 use App\Models\DataDev;
 use App\Models\Entrada;
-use App\Models\Estudiante;
 use App\Models\Helpers;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class RecepcionController extends Controller
 {
@@ -20,244 +19,255 @@ class RecepcionController extends Controller
 
     public function __construct()
     {
-        $this->data = new DataDev;
+        $this->data = new DataDev();
     }
 
-
+    /**
+     * Vista principal de recepción de comensales y apoyos.
+     */
     public function index(Request $request)
     {
+        $respuesta = $this->data->respuesta;
 
-        /** Variable global para los alertas */
-        $respuesta =  $this->data->respuesta;
-        // intentar resolver MAC por IP (ARP) como fallback
         try {
-
-            /** se declaran las variables */
             $comensal = null;
             $mensaje_comensal = '';
             $mensaje_torniquete = 'Cerrado';
             $date = Carbon::now();
-            $entradas = null;
             $cantidadDeEntradas = 0;
-            $estatus = Response::HTTP_OK;
 
-            /** obtenemos el servicio actual activo por medio de la hora */
             $servicio = Helpers::getServicio($date);
-            
-            /** Obtenemos el total de entradas */
-            if ($servicio) $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre);
+            if ($servicio) {
+                $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre);
+            }
 
             $atms = Atm::with('torniquete')->where('en_uso', false)->get();
             $user = Auth::user();
             $selectedAtm = session('selectedAtm');
 
-            // if (!$servicio) {
-            //     Atm::where('en_uso', true)->update(['en_uso' => false]);
-            //     session()->forget('selectedAtm');
-            // }
-
-            // llamada de prueba eliminada para evitar respuestas inesperadas en producción
-            /** Se valida si hay una cedula  */
             if ($request->filled('cedula')) {
+                $resultado = $this->procesarIngreso(
+                    $request->cedula,
+                    $servicio,
+                    $selectedAtm,
+                    $user,
+                    $date,
+                    $cantidadDeEntradas
+                );
 
-                /** Si no se detecta un servicio, el comedor esta fuera de servicio */
-                if (!$servicio) {
-                    $mensaje = "Comedor inactivo, está fuera del horario de servicio.";
-                    $estatus = Response::HTTP_UNAUTHORIZED;
-                    Atm::where('en_uso', true)->update(['en_uso' => false]);
-                    return back()->with(compact('mensaje', 'estatus'));
-                } else {
-
-                    /** Validamos la disponibilidad del servicio */
-                    if ($cantidadDeEntradas >=  $servicio->disponibilidad) {
-                        $mensaje = "¡Bandejas agotadas!";
-                        $estatus = Response::HTTP_UNAUTHORIZED;
-                        return back()->with(compact('mensaje', 'estatus'));
-                    }
-
-                    /** PRIMERO BUSCAMOS EN COMESIS */
-                    $comensal = Comensale::where('cedula', $request->cedula)->first();
-                    if ($comensal) {
-                        $comensal->carreras = $comensal->carreras ?? [];
-                    }
-
-                    /** Validamos si existe el comensal */
-                    if ($comensal == null) {
-                        /** MENSAJE DE FALLO BUSQUEDA DE COMENSALES */
-                        $mensaje_comensal = "<strong>¡NO PERMITIR EL ACCESO!</strong> Comensal no registrado .";
-                        $mensaje_torniquete = 'Cerrado';
-                    } else {
-                        /** Validamos si el comensal tiene estatus activo o no */
-                        if ($comensal->estatus == 0) {
-                            /** Se valdiad si el comensal esta activo en el sistema  */
-                            $mensaje = "<strong> ¡NO PERMITIR EL ACCESO!</strong> El comensal " . $comensal->nombres . " " . $comensal->apellidos . " está inactivo, no puede ingresar.";
-                            $estatus = Response::HTTP_UNAUTHORIZED;
-                            return back()->with(compact('mensaje', 'estatus'));
-                        }
-
-                        /** obtenemos las entradas del dia del comensal  para validar que coma una ves por servicio */
-                        $entradas = Entrada::where([
-                            'cedula' => $comensal->cedula,
-                            'fecha' =>  $date->format('Y-m-d'),
-                            'comida' => $servicio->nombre // Aqui valida si es ALMUERZO | CENA
-                        ])->get();
-
-
-                        /** Validamos si ya comio y cual comida */
-                        if (count($entradas)) {
-                            $mensaje_comensal .= "<strong>¡NO PERMITIR EL ACCESO!</strong>";
-                            $mensaje_comensal .= "<br> El comensal: " . $comensal->nombres . " " . $comensal->apellidos;
-                            $mensaje_comensal .= "<br> Cédula: " . $comensal->cedula;
-                            $mensaje_comensal .= "<br> Ya consumio el servicio: " . $servicio->nombre ?? '';
-                            $mensaje_comensal .= "<br> Hora de entrada:" . $entradas->first()->hora . '.';
-                            $comensal = null;
-                        } else {
-
-                            /** Marcar entrada automaticamente */
-                            Helpers::setEntradaComedor($comensal, $servicio, $selectedAtm, $user);
-
-                            /** obtener las entradas actualizadas */
-                            $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre ?? '');
-
-                            if ($selectedAtm) {
-                                /** Enviar comando para abrir la puerta del ATM */
-                                $openResp = Helpers::openAtmDoor($selectedAtm, [
-                                    'id' => $comensal->cedula,
-                                    'name' => $comensal->nombres . ' ' . $comensal->apellidos,
-                                    'allowed' => true,
-                                ]);
-
-                                if (!empty($openResp['ok']) && $openResp['ok']) {
-                                    $mensaje_torniquete = ' Comando de apertura enviado al ' . $selectedAtm->torniquete->nombre ?? '' . '.';
-                                } else {
-                                    $mensaje_torniquete = ' No se pudo enviar comando al torniquete: ' . ($openResp['message'] ?? json_encode($openResp));
-                                }
-                            } else {
-                                $mensaje_torniquete = ' No se ha seleccionado una ATM/torniquete en recepción.';
-                            }
-                        }
-                    }
+                if ($resultado instanceof \Illuminate\Http\RedirectResponse) {
+                    return $resultado;
                 }
+
+                $comensal = $resultado['comensal'] ?? null;
+                $mensaje_comensal = $resultado['mensaje_comensal'] ?? '';
+                $mensaje_torniquete = $resultado['mensaje_torniquete'] ?? 'Cerrado';
+                $cantidadDeEntradas = $resultado['cantidadDeEntradas'] ?? $cantidadDeEntradas;
             }
 
-            return view('admin.recepcion.index', compact('comensal', 'respuesta', 'mensaje_comensal', 'mensaje_torniquete', 'cantidadDeEntradas', 'servicio', 'request', 'atms', 'selectedAtm'));
+            return view('admin.recepcion.index', compact(
+                'comensal',
+                'respuesta',
+                'mensaje_comensal',
+                'mensaje_torniquete',
+                'cantidadDeEntradas',
+                'servicio',
+                'request',
+                'atms',
+                'selectedAtm'
+            ));
         } catch (\Throwable $th) {
-            $mensaje = Helpers::getMensajeError($th, ", ¡Error interno al intentar consultar los comensal!");
+            $mensaje = Helpers::getMensajeError($th, ", ¡Error interno al intentar consultar el comensal!");
             $estatus = Response::HTTP_INTERNAL_SERVER_ERROR;
             return back()->with(compact('mensaje', 'estatus'));
         }
     }
 
-
-    public function getEstudiantes($cedula)
+    /**
+     * Valida el servicio y distribuye el flujo entre Apoyo y Comensal regular.
+     */
+    private function procesarIngreso($identificador, $servicio, $selectedAtm, $user, Carbon $date, int $cantidadDeEntradas)
     {
-        $comensal = DB::connection('mysql_second')->table('estudiantes')->where('Cedula', $cedula)
-            ->select('nombres', 'apellidos', 'nacionalidad', 'Cedula as cedula', 'Sexo as sexo', 'Sede as sede')
-            ->first();
-        if ($comensal) {
-            /** Se setea el tipo */
-            $comensal->tipo_comensal = "ESTUDIANTE";
-
-            /** Consultamos todas las carreras donde el estudiante este activo */
-            $carreras = DB::connection('mysql_second')->table('carreras_est')
-
-                ->join('carreras', 'carreras.CodCar', '=', 'carreras_est.CodCar')
-                ->join('sede', 'sede.CodSede', '=', 'carreras_est.Sede')
-                ->join('programas', 'programas.codPrograma', '=', 'carreras.codPrograma')
-
-                ->where('carreras_est.ConexEst',  $comensal->cedula)
-                ->where('carreras_est.Status', 'A')
-                ->select(
-                    'carreras_est.Status as estatus_estudiante', // si esta activo dentro de la carrera
-                    'carreras_est.ConexEst as dni',
-                    'carreras_est.CodCar as codigo_carrera',
-                    'carreras_est.Sede as sede',
-
-                    'carreras.codPrograma as codigo_programa',
-                    'carreras.NombCar as nombre_carrera',
-                    'carreras.Tipo as tipo_carrera',
-                    'carreras.Status as estatus_carrera',
-
-                    'programas.codPrograma',
-                    'programas.nombre as nombre_programa',
-
-                    'sede.CodSede as codigo_sede',
-                    'sede.Sede as nombre_sede',
-                    'sede.Tipo as tipo_sede',
-                    'sede.TipoSede as tipo_oferta_sede',
-                    'sede.Zona as zona_sede',
-                    'sede.oestado as estado_sede',
-                    'sede.Municipio as municipio_sede',
-                    'sede.oparroquia as parroquia_sede',
-                    'sede.osector as sector_sede',
-                    'sede.Arse as arse',
-                )
-                ->get();
-
-
-
-
-            $comensal->carreras =  $carreras;
-            $comensal->estatus_estudiante =  count($carreras) ? $carreras[0]->estatus_estudiante : 'I';
-            $comensal->estatus = $comensal->estatus_estudiante == 'I' ? 0 : 1;
-        }
-        return $comensal;
-    }
-
-    public function getEmpleados($cedula)
-    {
-        $comensal = DB::connection('mysql_third')
-            ->table('rrhh_vista_personal')
-            ->where('per_cedula', $cedula)
-            ->first();
-
-        if ($comensal) {
-            // obtenemos el estatus del empleado 1:ACTIVO
-            $comensal->estatus = DB::connection('mysql_third')
-                ->table('rrhh_personal')
-                ->where('per_cedula', $cedula)
-                ->first()->per_status;
-
-            $comensal->sexo = DB::connection('mysql_third')
-                ->table('rrhh_personal')
-                ->join('tools_sexo', 'tools_sexo.sex_codigo', '=', 'per_sexo')
-                ->where('per_cedula', $cedula)
-                ->first()->sex_descripcion;
-
-
-            if ($comensal) {
-                $comensal->tipo_comensal = "EMPLEADO";
-            }
-
-            $comensal = $this->adaptadorDeComensal($comensal);
+        if (!$servicio) {
+            Atm::where('en_uso', true)->update(['en_uso' => false]);
+            return back()->with([
+                'mensaje' => 'Comedor inactivo, está fuera del horario de servicio.',
+                'estatus' => Response::HTTP_UNAUTHORIZED
+            ]);
         }
 
+        if ($cantidadDeEntradas >= $servicio->disponibilidad) {
+            return back()->with([
+                'mensaje' => '¡Bandejas agotadas!',
+                'estatus' => Response::HTTP_UNAUTHORIZED
+            ]);
+        }
 
-        return $comensal;
+        // 1. Verificar si el código ingresado corresponde a un Apoyo Institucional
+        $apoyo = Apoyo::where('codigo', $identificador)->first();
+        if ($apoyo) {
+            return $this->procesarApoyo($apoyo, $servicio, $selectedAtm, $user, $date);
+        }
+
+        // 2. Verificar si corresponde a un Comensal regular
+        $comensal = Comensale::where('cedula', $identificador)->first();
+        if (!$comensal) {
+            return [
+                'comensal' => null,
+                'mensaje_comensal' => '<strong>¡NO PERMITIR EL ACCESO!</strong> Comensal no registrado o código de apoyo inexistente.',
+                'mensaje_torniquete' => 'Cerrado',
+                'cantidadDeEntradas' => $cantidadDeEntradas,
+            ];
+        }
+
+        return $this->procesarComensal($comensal, $servicio, $selectedAtm, $user, $date);
     }
 
-    public function adaptadorDeComensal($queryComensal)
+    /**
+     * Procesa y valida el acceso de un Apoyo Institucional.
+     */
+    private function procesarApoyo(Apoyo $apoyo, $servicio, $selectedAtm, $user, Carbon $date)
     {
+        if (!$apoyo->estatus) {
+            return back()->with([
+                'mensaje' => "<strong>¡NO PERMITIR EL ACCESO!</strong> El código de apoyo {$apoyo->codigo} ({$apoyo->institucion}) está inactivo.",
+                'estatus' => Response::HTTP_UNAUTHORIZED
+            ]);
+        }
 
-        $comensalObj = new \stdClass();
-        $comensalObj->nombres = $queryComensal->per_nombres;
-        $comensalObj->apellidos = $queryComensal->per_apellidos;
-        $comensalObj->nacionalidad = "V";
-        $comensalObj->cedula = $queryComensal->per_cedula;
-        $comensalObj->sexo = strtoupper($queryComensal->sexo) == "MASCULINO" ? 'M' : 'F';
-        $comensalObj->estatus = $queryComensal->estatus;
-        $comensalObj->tipo_comensal = $queryComensal->tipo_comensal;
-        $comensalObj->sede = $queryComensal->vicn_descripcion;
-        $comensalObj->direccion = $queryComensal->Nombre_Completo;
-        // para mantener compatibilidad con la lógica que usa count($comensal->carreras)
-        $comensalObj->carreras = [false];
+        if ($apoyo->cantidad_consumida >= $apoyo->cantidad_habilitada) {
+            return back()->with([
+                'mensaje' => "<strong>¡NO PERMITIR EL ACCESO!</strong> El apoyo institucional {$apoyo->institucion} ya ha consumido todas sus comidas habilitadas ({$apoyo->cantidad_habilitada}/{$apoyo->cantidad_habilitada}).",
+                'estatus' => Response::HTTP_UNAUTHORIZED
+            ]);
+        }
 
-        return $comensalObj;
+        // Incrementar comidas consumidas
+        $apoyo->increment('cantidad_consumida');
+
+        // Registrar entrada
+        Entrada::create([
+            'cedula' => $apoyo->codigo,
+            'nombres' => $apoyo->institucion,
+            'apellidos' => 'APOYO INSTITUCIONAL',
+            'nacionalidad' => 'V',
+            'sexo' => 'N/A',
+            'tipo_comensal' => 'APOYO',
+            'comida' => $servicio->nombre,
+            'sede' => 'CENTRAL',
+            'fecha' => $date->format('Y-m-d'),
+            'hora' => $date->format('h:ia'),
+            'atm_id' => $selectedAtm->id ?? null,
+            'allowed_by_user_id' => $user->id ?? null,
+        ]);
+
+        $mensaje_torniquete = $this->abrirTorniquete($selectedAtm, $apoyo->codigo, $apoyo->institucion);
+        $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre);
+        $restantes = $apoyo->cantidad_habilitada - $apoyo->cantidad_consumida;
+
+        // Adaptar objeto para vista de recepción
+        $comensalObj = (object)[
+            'nombres' => $apoyo->institucion,
+            'apellidos' => 'APOYO INSTITUCIONAL',
+            'sexo' => 'N/A',
+            'tipo_comensal' => 'APOYO',
+            'sede' => 'INSTITUCIÓN EXTERNA',
+            'direccion' => "Comidas consumidas: {$apoyo->cantidad_consumida} de {$apoyo->cantidad_habilitada} (Restantes: {$restantes})",
+            'nacionalidad' => '',
+            'cedula' => $apoyo->codigo,
+            'foto' => asset('assets/img/logo.png'),
+        ];
+
+        return [
+            'comensal' => $comensalObj,
+            'mensaje_comensal' => '',
+            'mensaje_torniquete' => $mensaje_torniquete,
+            'cantidadDeEntradas' => $cantidadDeEntradas,
+        ];
     }
 
+    /**
+     * Procesa y valida el acceso de un Comensal regular.
+     */
+    private function procesarComensal(Comensale $comensal, $servicio, $selectedAtm, $user, Carbon $date)
+    {
+        if ($comensal->estatus == 0) {
+            return back()->with([
+                'mensaje' => "<strong>¡NO PERMITIR EL ACCESO!</strong> El comensal {$comensal->nombres} {$comensal->apellidos} está inactivo, no puede ingresar.",
+                'estatus' => Response::HTTP_UNAUTHORIZED
+            ]);
+        }
+
+        // Validar si ya consumió en el servicio del día
+        $entradas = Entrada::where([
+            'cedula' => $comensal->cedula,
+            'fecha' => $date->format('Y-m-d'),
+            'comida' => $servicio->nombre,
+        ])->get();
+
+        if ($entradas->isNotEmpty()) {
+            return [
+                'comensal' => null,
+                'mensaje_comensal' => "<strong>¡NO PERMITIR EL ACCESO!</strong><br>" .
+                    "El comensal: {$comensal->nombres} {$comensal->apellidos}<br>" .
+                    "Cédula: {$comensal->cedula}<br>" .
+                    "Ya consumió el servicio: {$servicio->nombre}<br>" .
+                    "Hora de entrada: " . $entradas->first()->hora . '.',
+                'mensaje_torniquete' => 'Cerrado',
+                'cantidadDeEntradas' => Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre),
+            ];
+        }
+
+        $comensal->carreras = $comensal->carreras ?? [];
+        Helpers::setEntradaComedor($comensal, $servicio, $selectedAtm, $user);
+
+        $mensaje_torniquete = $this->abrirTorniquete(
+            $selectedAtm,
+            $comensal->cedula,
+            "{$comensal->nombres} {$comensal->apellidos}"
+        );
+
+        $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre);
+
+        if (empty($comensal->foto)) {
+            $comensal->foto = asset('assets/img/avatar.png');
+        }
+
+        return [
+            'comensal' => $comensal,
+            'mensaje_comensal' => '',
+            'mensaje_torniquete' => $mensaje_torniquete,
+            'cantidadDeEntradas' => $cantidadDeEntradas,
+        ];
+    }
+
+    /**
+     * Envía comando de apertura al torniquete asociado.
+     */
+    private function abrirTorniquete($selectedAtm, string $id, string $nombre): string
+    {
+        if (!$selectedAtm) {
+            return ' No se ha seleccionado una ATM/torniquete en recepción.';
+        }
+
+        $openResp = Helpers::openAtmDoor($selectedAtm, [
+            'id' => $id,
+            'name' => $nombre,
+            'allowed' => true,
+        ]);
+
+        if (!empty($openResp['ok']) && $openResp['ok']) {
+            return ' Comando de apertura enviado al ' . ($selectedAtm->torniquete->nombre ?? 'Torniquete') . '.';
+        }
+
+        return ' No se pudo enviar comando al torniquete: ' . ($openResp['message'] ?? json_encode($openResp));
+    }
+
+    /**
+     * Maneja la selección y liberación de ATM/Torniquetes.
+     */
     public function selectAtm(Request $request)
     {
-        // validar si se desea cambiar el ATM/Torniquete seleccionado
         if ($request->input('change', false) === 'true') {
             Atm::where('id', session('selectedAtm.id'))->update(['en_uso' => false]);
             session()->forget('selectedAtm');
@@ -267,19 +277,19 @@ class RecepcionController extends Controller
             ]);
         }
 
-        // obtener todos los ATMs y el ATM seleccionado
-        $atms = Atm::with('torniquete')->get();
-        $selectedAtm = $atms->where('id', $request->atm_id)->first();
+        $selectedAtm = Atm::with('torniquete')->find($request->atm_id);
 
-        // validar si el ATM seleccionado ya está en uso
-        if ($selectedAtm && $selectedAtm->en_uso) {
+        if (!$selectedAtm) {
+            return back()->with('error', 'ATM no encontrada');
+        }
+
+        if ($selectedAtm->en_uso) {
             return back()->with([
-                'mensaje' => 'ATM/Torniquete seleccionado: ' . $selectedAtm->nombre . ' - ' . ($selectedAtm->torniquete->nombre ?? 'Sin torniquete asociado') . '. Ya está en uso, por favor seleccione otro.',
-                'estatus' => Response::HTTP_NOT_FOUND 
+                'mensaje' => "ATM/Torniquete {$selectedAtm->nombre} ya está en uso. Por favor seleccione otro.",
+                'estatus' => Response::HTTP_NOT_FOUND
             ]);
         }
 
-        // validar si el servicio está activo antes de permitir la selección del ATM/Torniquete
         $servicio = Helpers::getServicio(Carbon::now());
         if (!$servicio) {
             return back()->with([
@@ -288,17 +298,12 @@ class RecepcionController extends Controller
             ]);
         }
 
-        // actualizar el estado del ATM seleccionado y guardarlo en la sesión
-        if ($selectedAtm) {
-            // actualizamos el campo en_uso 
-            Atm::where('id', $selectedAtm->id)->update(['en_uso' => true]);
-            session(['selectedAtm' => $selectedAtm]);
-            return back()->with([
-                'mensaje' => 'ATM/Torniquete seleccionado: ' . $selectedAtm->nombre . ' - ' . ($selectedAtm->torniquete->nombre ?? 'Sin torniquete asociado'),
-                'estatus' => Response::HTTP_OK
-            ]);
-        } else {
-            return back()->with('error', 'ATM no encontrada');
-        }
+        $selectedAtm->update(['en_uso' => true]);
+        session(['selectedAtm' => $selectedAtm]);
+
+        return back()->with([
+            'mensaje' => 'ATM/Torniquete seleccionado: ' . $selectedAtm->nombre . ' - ' . ($selectedAtm->torniquete->nombre ?? 'Sin torniquete asociado'),
+            'estatus' => Response::HTTP_OK
+        ]);
     }
 }

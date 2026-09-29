@@ -34,7 +34,8 @@ class PermisoSeeder extends Seeder
             "configuracion",
             "atms",
             "perfil",
-            "auditoria"
+            "auditoria",
+            "apoyos"
         ];
 
         foreach ($permisos as $key => $value) {
