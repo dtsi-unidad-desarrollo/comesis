@@ -248,4 +248,161 @@ class ComensaleController extends Controller
             return back()->with(compact('mensaje', 'estatus'));
         }
     }
+
+    /**
+     * Muestra la vista principal del módulo de sincronización con DUX y TEREPAIMA.
+     *
+     * @param Request $request
+     * @return \Illuminate\View\View
+     */
+    public function sincronizarDataPage(Request $request)
+    {
+        $respuesta = $this->data->respuesta;
+
+        // Estado conexión DUX (mysql_second)
+        $duxStatus = [
+            'connected' => false,
+            'host' => config('database.connections.mysql_second.host'),
+            'database' => config('database.connections.mysql_second.database'),
+            'total_remoto' => 0,
+            'activos_remoto' => 0,
+            'error' => null,
+        ];
+
+        try {
+            DB::connection('mysql_second')->getPdo();
+            $duxStatus['connected'] = true;
+            $duxStatus['total_remoto'] = DB::connection('mysql_second')->table('estudiantes')->count();
+            $duxStatus['activos_remoto'] = DB::connection('mysql_second')
+                ->table('estudiantes as e')
+                ->join('carreras_est as c', 'c.ConexEst', '=', 'e.Cedula')
+                ->where('c.Status', 'A')
+                ->distinct()
+                ->count('e.Cedula');
+        } catch (\Throwable $e) {
+            $duxStatus['error'] = $e->getMessage();
+        }
+
+        // Estado conexión TEREPAIMA (mysql_third)
+        $terepaimaStatus = [
+            'connected' => false,
+            'host' => config('database.connections.mysql_third.host'),
+            'database' => config('database.connections.mysql_third.database'),
+            'total_remoto' => 0,
+            'activos_remoto' => 0,
+            'error' => null,
+        ];
+
+        try {
+            DB::connection('mysql_third')->getPdo();
+            $terepaimaStatus['connected'] = true;
+            $schema = DB::connection('mysql_third')->getSchemaBuilder();
+            if ($schema->hasTable('personal')) {
+                $excludeNames = ['DOCENTE FALLECIDO', 'OBRERO FALLECIDO', 'ADMINISTRATIVO FALLECIDO'];
+                $terepaimaStatus['total_remoto'] = DB::connection('mysql_third')->table('personal')->whereNotIn('nom_nombre', $excludeNames)->count();
+                $terepaimaStatus['activos_remoto'] = DB::connection('mysql_third')->table('personal')->whereNotIn('nom_nombre', $excludeNames)->where('nom_status', 1)->count();
+            } elseif ($schema->hasTable('rrhh_personal')) {
+                $terepaimaStatus['total_remoto'] = DB::connection('mysql_third')->table('rrhh_personal')->count();
+                $terepaimaStatus['activos_remoto'] = DB::connection('mysql_third')->table('rrhh_personal')->where('per_status', 1)->count();
+            }
+        } catch (\Throwable $e) {
+            $terepaimaStatus['error'] = $e->getMessage();
+        }
+
+        // Estadísticas locales COMESIS
+        $localStats = [
+            'estudiantes_activos' => Comensale::where('tipo_comensal', 'ESTUDIANTE')->where('estatus', 1)->count(),
+            'estudiantes_total' => Comensale::where('tipo_comensal', 'ESTUDIANTE')->count(),
+            'empleados_activos' => Comensale::where('tipo_comensal', 'EMPLEADO')->where('estatus', 1)->count(),
+            'empleados_total' => Comensale::where('tipo_comensal', 'EMPLEADO')->count(),
+        ];
+
+        return view('admin.configuracion.sincronizar', compact('respuesta', 'duxStatus', 'terepaimaStatus', 'localStats'));
+    }
+
+    /**
+     * Ejecuta la sincronización individual de estudiantes con DUX.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function sincronizarEstudiantes(Request $request)
+    {
+        $resultado = Comensale::executeSincronizarEstudiantes();
+        $mensaje = $resultado['mensaje'];
+        $estatus = $resultado['success'] ? Response::HTTP_OK : Response::HTTP_INTERNAL_SERVER_ERROR;
+
+        return back()->with(compact('mensaje', 'estatus'))->with('sync_estudiantes_result', $resultado);
+    }
+
+    /**
+     * Ejecuta la sincronización individual de empleados con TEREPAIMA.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function sincronizarEmpleados(Request $request)
+    {
+        $resultado = Comensale::executeSincronizarEmpleados();
+        $mensaje = $resultado['mensaje'];
+        $estatus = $resultado['success'] ? Response::HTTP_OK : Response::HTTP_INTERNAL_SERVER_ERROR;
+
+        return back()->with(compact('mensaje', 'estatus'))->with('sync_empleados_result', $resultado);
+    }
+
+    /**
+     * Ejecuta la sincronización masiva o por tipo.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function sincronizarData(Request $request)
+    {
+        $tipo = $request->input('tipo', 'todos');
+
+        if ($tipo === 'estudiantes') {
+            return $this->sincronizarEstudiantes($request);
+        }
+
+        if ($tipo === 'empleados') {
+            return $this->sincronizarEmpleados($request);
+        }
+
+        // Sincronizar ambos
+        $resEstudiantes = Comensale::executeSincronizarEstudiantes();
+        $resEmpleados = Comensale::executeSincronizarEmpleados();
+
+        $exito = $resEstudiantes['success'] && $resEmpleados['success'];
+        $mensaje = "Sincronización completa: Estudiantes ({$resEstudiantes['sincronizados']} sincronizados) | Empleados ({$resEmpleados['sincronizados']} sincronizados).";
+        $estatus = $exito ? Response::HTTP_OK : Response::HTTP_PARTIAL_CONTENT;
+
+        return back()->with(compact('mensaje', 'estatus'))
+            ->with('sync_estudiantes_result', $resEstudiantes)
+            ->with('sync_empleados_result', $resEmpleados);
+    }
+
+    /**
+     * Retorna el estado en JSON para AJAX/monitoreo.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function sincronizarDataStatus(Request $request)
+    {
+        try {
+            $estudiantesCount = Comensale::where('tipo_comensal', 'ESTUDIANTE')->count();
+            $empleadosCount = Comensale::where('tipo_comensal', 'EMPLEADO')->count();
+
+            return response()->json([
+                'success' => true,
+                'local' => [
+                    'estudiantes' => $estudiantesCount,
+                    'empleados' => $empleadosCount,
+                    'total' => $estudiantesCount + $empleadosCount,
+                ]
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json(['success' => false, 'error' => $th->getMessage()], 500);
+        }
+    }
 }

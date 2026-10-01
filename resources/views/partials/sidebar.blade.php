@@ -182,6 +182,16 @@
                         </li>
                     @endif
 
+                    @if (Auth::user()->hasAnyPermiso(['configuracion', 'comensales']))
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.sincronizar.*') ? 'bg-primary text-white' : 'collapsed' }} "
+                                href="{{ route('admin.sincronizar.data.index') }}">
+                                <i class="bi bi-arrow-repeat fs-3"></i>
+                                <span>Sincronización DUX/Terepaima</span>
+                            </a>
+                        </li>
+                    @endif
+
                 </ul>
             </li><!-- End Components Nav | configuraciones -->
 

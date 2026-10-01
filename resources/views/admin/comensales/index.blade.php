@@ -32,8 +32,7 @@
             <div class="col-sm-6 col-xs-12">
                 @include('admin.comensales.partials.modalFormulario')
 
-                
-                {{-- @include('admin.comensales.partials.modalSincronizardata') --}}
+                @include('admin.comensales.partials.modalSincronizardata')
 
                 {{-- Formulario de importación masiva desde Excel --}}
                 <div class="mt-3 d-flex gap-2 align-items-center">

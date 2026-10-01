@@ -99,6 +99,8 @@ Route::middleware(['auth', 'validarRol', 'handleAtm', 'checkAllowedIp'])->group(
 
     /** Sincronización de datos */
     Route::get('/configuracion/sincronizar-data', [ComensaleController::class, 'sincronizarDataPage'])->name('admin.sincronizar.data.index');
+    Route::post('/configuracion/sincronizar-estudiantes', [ComensaleController::class, 'sincronizarEstudiantes'])->name('admin.sincronizar.estudiantes');
+    Route::post('/configuracion/sincronizar-empleados', [ComensaleController::class, 'sincronizarEmpleados'])->name('admin.sincronizar.empleados');
     Route::get('/sincronizarData/status', [ComensaleController::class, 'sincronizarDataStatus'])->name('admin.sincronizarData.status');
     Route::post('/sincronizarData', [ComensaleController::class, 'sincronizarData'])->name('admin.sincronizarData');
 

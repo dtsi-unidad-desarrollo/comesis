@@ -17,7 +17,12 @@ Este documento mantiene el estado de las tareas actuales, el roadmap a corto/med
   - Gráfico de barras agrupadas semanal (Lunes a Domingo con desglose Estudiantes, Empleados, Apoyos).
   - Gráfico de línea/área de tendencia y evolución mensual con promedios y total del mes.
   - Monitor de accesos en vivo (Últimas entradas con badges por tipo de comensal).
-  - Monitor de estado de terminales ATM y torniquetes + atajos de administración.
+- [x] Reactivación y optimización del módulo de sincronización con DUX (Estudiantes) y TEREPAIMA (Empleados):
+  - Vista dedicada en `/configuracion/sincronizar-data` (`resources/views/admin/configuracion/sincronizar.blade.php`).
+  - Métodos `sincronizarDataPage`, `sincronizarEstudiantes`, `sincronizarEmpleados`, `sincronizarData` y `sincronizarDataStatus` en `ComensaleController.php`.
+  - Soporte multi-esquema para Terepaima (`personal` y `rrhh_personal`/`rrhh_vista_personal`).
+  - Modal interactivo de sincronización en el listado de comensales.
+  - Enlace directo en el menú lateral de navegación (Sidebar).
 
 
 
