@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ApiController;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Route;
@@ -14,6 +15,9 @@ Route::apiResource('torniquetes', TorniqueteController::class);
 
 // Allow registering an entrada including atm and allowed_by_user
 Route::post('entradas/register', [EntradaController::class, 'store']);
+
+Route::post('obtener/datos/estudiantes', [ApiController::class, 'apiEstudiantes']);
+Route::post('obtener/datos/empleados', [ApiController::class, 'apiEmpleados']);
 /*
 |--------------------------------------------------------------------------
 | API Routes

@@ -21,11 +21,28 @@ Este documento mantiene el estado de las tareas actuales, el roadmap a corto/med
   - Vista dedicada en `/configuracion/sincronizar-data` (`resources/views/admin/configuracion/sincronizar.blade.php`).
   - Métodos `sincronizarDataPage`, `sincronizarEstudiantes`, `sincronizarEmpleados`, `sincronizarData` y `sincronizarDataStatus` en `ComensaleController.php`.
   - Soporte multi-esquema para Terepaima (`personal` y `rrhh_personal`/`rrhh_vista_personal`).
-  - Modal interactivo de sincronización en el listado de comensales.
-  - Enlace directo en el menú lateral de navegación (Sidebar).
-
-
-
+- [x] Optimización y desagregación integral de Reportes de Comedor (`ReporteComedorService.php`, `EntradaController.php`, y vistas PDF asociadas):
+  - Creación de servicio modular `app/Services/ReporteComedorService.php` para centralizar cálculos matemáticos y desagregación de comensales.
+  - Desagregación por género (Femenino / Masculino) para Estudiantes y Empleados, e inclusión completa de Apoyos Institucionales y Eventuales en todos los reportes.
+  - Corrección de cálculos matemáticos:
+    - Reporte Diario: cálculo exacto de comidas entregadas según filtros, capacidad de servicio y bandejas sin entregar (`max(0, Capacidad - Entregadas)`).
+    - Reporte Semanal: desglose día a día (Lunes a Sábado), sumas de columnas horizontales y verticales consistentes, capacidad semanal y bandejas sin entregar.
+    - Reporte Mensual: cálculo de totales por columna (antes en blanco), integración de Apoyos Institucionales (antes omitidos) y cuadro de porcentajes.
+    - Reporte Semanas del Mes: partición de semanas que cubre el 100% de los días del mes sin fugas ni desfases, logrando sincronización matemática idéntica con el Reporte Mensual.
+  - Plantillas PDF modernizadas y formalizadas para la universidad (UNELLEZ), con encabezados oficiales, logos, resumen de métricas y firmas institucionales.
+- [x] Rediseño y modernización de la interfaz del Módulo de Entradas / Historial (`index.blade.php` y partials):
+  - Banner interactivo de encabezado con degradado institucional e integración directa del Centro de Reportes tipo pill badges.
+  - Tarjetas de KPIs rápidos de hoy (Total Entradas, Estudiantes hoy, Empleados hoy, Apoyos hoy).
+  - Barra de búsqueda y filtros avanzada con selectores estilizados y botón de restablecer vista.
+  - Tabla de registros modernizada: avatares con iniciales por tipo de comensal, badges semánticos por tipo (Estudiante, Empleado, Apoyo), badges de servicio con icono de sol/luna, fechas formateadas y acciones con tooltips.
+  - Modales de detalle y eliminación rediseñados con tarjetas de perfil y alertas claras.
+- [x] Rediseño y modernización del Módulo de Comensales (`ComensaleController.php`, `resources/views/admin/comensales/index.blade.php` y partials):
+  - Retiro definitivo del botón/modal de sincronización con DUX/Terepaima de la vista de comensales (centralizado en la sección de configuraciones `/configuracion/sincronizar-data`).
+  - Banner institucional superior con títulos, badges y botón de registro de comensal.
+  - Tarjetas de KPIs de padrón: Total Padrón, Estudiantes, Personal/Empleados, Comensales Activos/Inactivos.
+  - Filtros avanzados: búsqueda textual (cédula, nombres o apellidos), filtro por tipo de comensal (Estudiante, Profesor, Administrativo, Obrero, Empleado, etc.) y filtro por estatus (Activo/Inactivo).
+  - Modal estilizado para importación masiva desde Excel (`.xlsx, .xls, .csv`) y menú dropdown ordenado para herramientas de Excel (Exportar, Importar, Plantilla).
+  - Tabla de comensales estilizada con avatares (con foto o inicial por tipo), badges de género (F/M), badges semánticos de tipo y estatus, y botones circulares de acción rápida (Ver ficha, Editar, Desactivar/Eliminar).
 
 
 ## Roadmap / Próximos Pasos

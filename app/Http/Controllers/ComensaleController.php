@@ -38,8 +38,9 @@ class ComensaleController extends Controller
         try {
             $query = Comensale::query();
 
+            // Filtro por texto (cédula, nombres o apellidos)
             if ($request->filled('filtro')) {
-                $filtro = $request->filtro;
+                $filtro = trim($request->filtro);
                 $query->where(function ($q) use ($filtro) {
                     $q->where('cedula', 'like', "%{$filtro}%")
                         ->orWhere('nombres', 'like', "%{$filtro}%")
@@ -47,10 +48,34 @@ class ComensaleController extends Controller
                 });
             }
 
+            // Filtro por tipo de comensal
+            if ($request->filled('tipo') && $request->tipo !== 'TODOS') {
+                $query->where('tipo_comensal', $request->tipo);
+            }
+
+            // Filtro por estatus (1: Activo, 0: Inactivo)
+            if ($request->filled('estatus') && $request->estatus !== 'TODOS') {
+                $query->where('estatus', (int)$request->estatus);
+            }
+
             $comensales = $query->orderBy('id', 'desc')->paginate(12);
             $respuesta = $this->data->respuesta;
 
-            return view('admin.comensales.index', compact('comensales', 'request', 'respuesta'));
+            // Estadísticas rápidas para tarjetas de información
+            $stats = [
+                'total' => Comensale::count(),
+                'estudiantes' => Comensale::where('tipo_comensal', 'like', 'ESTUDIANTE%')->count(),
+                'empleados' => Comensale::where(function ($q) {
+                    $q->where('tipo_comensal', 'EMPLEADO')
+                      ->orWhere('tipo_comensal', 'PROFESOR')
+                      ->orWhere('tipo_comensal', 'ADMINISTRATIVO')
+                      ->orWhere('tipo_comensal', 'OBRERO');
+                })->count(),
+                'activos' => Comensale::where('estatus', 1)->count(),
+                'inactivos' => Comensale::where('estatus', 0)->count(),
+            ];
+
+            return view('admin.comensales.index', compact('comensales', 'request', 'respuesta', 'stats'));
         } catch (\Throwable $th) {
             $mensaje = Helpers::getMensajeError($th, ", ¡Error interno al intentar consultar los comensal!");
             $estatus = Response::HTTP_INTERNAL_SERVER_ERROR;

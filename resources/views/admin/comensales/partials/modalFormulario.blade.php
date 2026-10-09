@@ -1,8 +1,8 @@
-       {{-- Boton de agregar estudiante --}}
-       <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+       {{-- Boton de agregar comensal --}}
+       <button type="button" class="btn btn-light text-primary fw-bold shadow-sm rounded-pill px-3 py-2 d-inline-flex align-items-center" data-bs-toggle="modal"
            data-bs-target="#modalformularioCrearEstudiante">
-           <i class="bi bi-people"></i>
-           Registrar comensal
+           <i class="bi bi-person-plus-fill me-2 fs-5"></i>
+           <span>Registrar comensal</span>
        </button>
 
        <!-- Modal formulario crear estudiante -->

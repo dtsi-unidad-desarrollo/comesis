@@ -1,8 +1,8 @@
-       {{-- Boton de agregar estudiante --}}
-       <a type="button" class="text-warning" data-bs-toggle="modal"
-           data-bs-target="#modalformularioEditarComensal{{ $comensal->id }}">
-           <i class="bi bi-pencil fs-4"></i>
-       </a>
+       {{-- Boton de editar comensal --}}
+       <button type="button" class="btn btn-sm btn-outline-warning rounded-circle shadow-sm p-0 d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" data-bs-toggle="modal"
+           data-bs-target="#modalformularioEditarComensal{{ $comensal->id }}" title="Editar comensal">
+           <i class="bi bi-pencil"></i>
+       </button>
 
        <!-- Modal formulario crear estudiante -->
        <div class="modal fade text-start" id="modalformularioEditarComensal{{ $comensal->id }}" data-bs-backdrop="static"

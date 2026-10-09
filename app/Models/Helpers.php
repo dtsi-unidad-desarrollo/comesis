@@ -3,18 +3,9 @@
 namespace App\Models;
 
 use App\Models\{
-    Cuota,
-    Dificultade,
-    Estudiante,
-    Grupo,
-    GrupoEstudiante,
     User,
-    RolPermiso,
     Permiso,
     Role,
-    Inscripcione,
-    Representante,
-    RepresentanteEstudiante
 };
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

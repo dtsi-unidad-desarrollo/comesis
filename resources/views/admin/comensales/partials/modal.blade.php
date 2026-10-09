@@ -1,7 +1,7 @@
 <!-- Vertically centered Modal -->
-<a type="button" class="text-danger" data-bs-toggle="modal" data-bs-target="#verticalycentered{{ $comensal->id }}">
-    <i class="bi bi-trash fs-4"></i>
-</a>
+<button type="button" class="btn btn-sm btn-outline-danger rounded-circle shadow-sm p-0 d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" data-bs-toggle="modal" data-bs-target="#verticalycentered{{ $comensal->id }}" title="Desactivar o eliminar comensal">
+    <i class="bi bi-trash"></i>
+</button>
 
 <div class="modal fade" id="verticalycentered{{ $comensal->id }}" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
