@@ -1,202 +1,230 @@
 @php
-    $segments = request()->segments();
-    $categoria = isset($segments[0]) ? strtoupper($segments[0]) : '';
-    $subcategoria = isset($segments[1]) ? strtoupper($segments[1]) : 'LISTA';
+    $isComensalesActive = request()->routeIs('admin.comensales.*') || request()->routeIs('admin.apoyos.*') || request()->routeIs('admin.entradas.*');
+    $isConfigActive = request()->routeIs('admin.servicios.*') || request()->routeIs('admin.users.*') || 
+                      request()->routeIs('admin.roles.*') || request()->routeIs('admin.permisos.*') || 
+                      request()->routeIs('admin.torniquetes.*') || request()->routeIs('admin.atms.*') || 
+                      request()->routeIs('admin.auditoria.*') || request()->routeIs('admin.allowed-ips.*') || 
+                      request()->routeIs('admin.sincronizar.*');
+    $isUsersActive = request()->routeIs('admin.users.*');
 @endphp
 
 <!-- ======= Sidebar ======= -->
-<aside id="sidebar" class="sidebar">
+<aside id="sidebar" class="sidebar d-flex flex-column justify-content-between">
 
-    <ul class="sidebar-nav" id="sidebar-nav">
+    <div class="sidebar-wrapper">
+        <ul class="sidebar-nav" id="sidebar-nav">
 
-        <!-- Start Components Nav | Panel -->
-        @if (Auth::user()->hasPermiso('panel'))
-            <li class="nav-item">
-                <a class="nav-link {{ url()->current() == route('admin.panel.index') ? 'bg-primary text-white' : 'collapsed' }} "
-                    href="{{ route('admin.panel.index') }}">
-                    <i class="bi bi-grid"></i>
-                    <span>Panel</span>
-                </a>
-            </li>
-        @endif
+            <!-- SECCIÓN: PRINCIPAL -->
+            <li class="nav-heading">Principal</li>
 
-        <!-- Start Components Nav | Recepcion -->
-        @if (Auth::user()->hasPermiso('recepcion'))
-            <li class="nav-item">
-                <a class="nav-link {{ url()->current() == route('admin.recepcion.index') ? 'bg-primary text-white' : 'collapsed' }}"
-                    href="{{ route('admin.recepcion.index') }}">
-                    <i class="bi bi-box fs-3"></i>
-                    <span>Recepción</span>
-                </a>
-            </li>
-        @endif
+            <!-- Item: Panel -->
+            @if (Auth::user()->hasPermiso('panel'))
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('admin.panel.*') ? 'active-link' : 'collapsed' }}"
+                        href="{{ route('admin.panel.index') }}">
+                        <span class="nav-icon-wrap">
+                            <i class="bi bi-grid-fill"></i>
+                        </span>
+                        <span>Panel de Control</span>
+                    </a>
+                </li>
+            @endif
 
-        <!-- Start Components Nav | comensales -->
-        @if (Auth::user()->hasPermiso('comensales') || Auth::user()->hasPermiso('entradas'))
-            <li class="nav-item">
-                <a class="nav-link {{ url()->current() == route('admin.comensales.index') || url()->current() == route('admin.entradas.index') ? 'collapse show' : 'collapsed' }}"
-                    data-bs-target="#components-nav-comensales" data-bs-toggle="collapse" href="#">
-                    <i class="bi bi-people fs-3"></i><span>Comensales</span><i class="bi bi-chevron-down ms-auto"></i>
-                </a>
-                <ul id="components-nav-comensales"
-                    class="nav-content {{ url()->current() == route('admin.comensales.index') || url()->current() == route('admin.entradas.index') || url()->current() == route('admin.apoyos.index') ? 'collapse show' : 'collapse' }} "
-                    data-bs-parent=" #sidebar-nav-1">
-                    @if (Auth::user()->hasPermiso('comensales'))
-                        <li>
-                            <a class="nav-link {{ url()->current() == route('admin.comensales.index') ? 'bg-primary text-white' : '' }}"
-                                href="{{ route('admin.comensales.index') }}">
-                                <i class="bi bi-circle"></i><span>Lista General</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="nav-link {{ url()->current() == route('admin.apoyos.index') ? 'bg-primary text-white' : '' }}"
-                                href="{{ route('admin.apoyos.index') }}">
-                                <i class="bi bi-circle"></i><span>Apoyos Institucionales</span>
-                            </a>
-                        </li>
-                    @endif
-                    @if (Auth::user()->hasPermiso('entradas'))
-                        <li>
-                            <a class="nav-link {{ url()->current() == route('admin.entradas.index') ? 'bg-primary text-white' : '' }}"
-                                href="{{ route('admin.entradas.index') }}">
-                                <i class="bi bi-circle"></i><span>Historial de recepción</span>
-                            </a>
-                        </li>
-                    @endif
+            <!-- Item: Recepción -->
+            @if (Auth::user()->hasPermiso('recepcion'))
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('admin.recepcion.*') ? 'active-link' : 'collapsed' }}"
+                        href="{{ route('admin.recepcion.index') }}">
+                        <span class="nav-icon-wrap">
+                            <i class="bi bi-qr-code-scan"></i>
+                        </span>
+                        <span>Punto de Control</span>
+                    </a>
+                </li>
+            @endif
 
-                </ul>
-            </li>
-        @endif
+            <!-- SECCIÓN: GESTIÓN DE COMEDOR -->
+            @if (Auth::user()->hasPermiso('comensales') || Auth::user()->hasPermiso('entradas'))
+                <li class="nav-heading mt-3">Gestión de Comedor</li>
 
-        <!-- Start Components Nav | configuraciones -->
-        @if (Auth::user()->hasAnyPermiso(['configuracion']))
-            <li class="nav-item">
-                <a class="nav-link {{ in_array(url()->current(), [route('admin.users.index'), route('admin.users.create'), route('admin.roles.index'), route('admin.permisos.index'), route('admin.atms.index'), route('admin.servicios.index'), route('admin.sincronizar.data.index'), route('admin.auditoria.index')]) || request()->routeIs('admin.torniquetes.*') ? 'collapse show' : 'collapsed' }}"
-                    data-bs-target="#components-nav-10" data-bs-toggle="collapse" href="#">
-                    <i class="bi bi-gear"></i><span>Configuración</span><i class="bi bi-chevron-down ms-auto"></i>
-                </a>
-                <ul id="components-nav-10"
-                    class="nav-content {{ in_array(url()->current(), [route('admin.users.index'), route('admin.users.create'), route('admin.roles.index'), route('admin.permisos.index'), route('admin.atms.index'), route('admin.servicios.index'), route('admin.sincronizar.data.index'), route('admin.auditoria.index')]) || request()->routeIs('admin.torniquetes.*') ? 'collapse show' : 'collapse' }} "
-                    data-bs-parent=" #sidebar-nav">
+                <li class="nav-item">
+                    <a class="nav-link {{ $isComensalesActive ? '' : 'collapsed' }}"
+                        data-bs-target="#nav-comensales" data-bs-toggle="collapse" href="#"
+                        aria-expanded="{{ $isComensalesActive ? 'true' : 'false' }}">
+                        <span class="nav-icon-wrap">
+                            <i class="bi bi-people-fill"></i>
+                        </span>
+                        <span>Comensales</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </a>
+                    <ul id="nav-comensales"
+                        class="nav-content collapse {{ $isComensalesActive ? 'show' : '' }}"
+                        data-bs-parent="#sidebar-nav">
+                        
+                        @if (Auth::user()->hasPermiso('comensales'))
+                            <li>
+                                <a class="{{ request()->routeIs('admin.comensales.*') ? 'active' : '' }}"
+                                    href="{{ route('admin.comensales.index') }}">
+                                    <i class="bi bi-person-lines-fill"></i>
+                                    <span>Lista General</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="{{ request()->routeIs('admin.apoyos.*') ? 'active' : '' }}"
+                                    href="{{ route('admin.apoyos.index') }}">
+                                    <i class="bi bi-ticket-detailed-fill"></i>
+                                    <span>Apoyos Institucionales</span>
+                                </a>
+                            </li>
+                        @endif
 
-                    <!-- Start Components Nav | Servicios -->
-                    @if (Auth::user()->hasPermiso('servicios'))
-                        <li class="nav-item">
-                            <a class="nav-link {{ url()->current() == route('admin.servicios.index') ? 'bg-primary text-white' : 'collapsed' }} "
-                                href="{{ route('admin.servicios.index') }}">
-                                <i class="bi bi-cup-straw fs-3"></i>
-                                <span>Servicios</span>
-                            </a>
-                        </li>
-                    @endif
+                        @if (Auth::user()->hasPermiso('entradas'))
+                            <li>
+                                <a class="{{ request()->routeIs('admin.entradas.*') ? 'active' : '' }}"
+                                    href="{{ route('admin.entradas.index') }}">
+                                    <i class="bi bi-clock-history"></i>
+                                    <span>Historial de Entradas</span>
+                                </a>
+                            </li>
+                        @endif
+                    </ul>
+                </li>
+            @endif
 
-                    <!-- Start Components Nav | usuarios -->
-                    @if (Auth::user()->hasPermiso('users'))
-                        <li class="nav-item">
-                            <a class="nav-link {{ url()->current() == route('admin.users.index') || url()->current() == route('admin.users.create') ? 'collapse show' : 'collapsed' }}"
-                                data-bs-target="#components-nav-1" data-bs-toggle="collapse" href="#">
-                                <i class="bi bi-shield-lock fs-3"></i><span>Usuarios</span><i
-                                    class="bi bi-chevron-down ms-auto"></i>
-                            </a>
-                            <ul id="components-nav-1"
-                                class="nav-content {{ url()->current() == route('admin.users.index') || url()->current() == route('admin.users.create') ? 'collapse show' : 'collapse' }} "
-                                data-bs-parent=" #sidebar-nav-1">
-                                <li>
-                                    <a class="nav-link {{ url()->current() == route('admin.users.index') ? 'bg-primary text-white' : '' }}"
-                                        href="{{ route('admin.users.index') }}">
-                                        <i class="bi bi-circle"></i><span>Lista</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="nav-link {{ url()->current() == route('admin.users.create') ? 'bg-primary text-white' : '' }}"
-                                        href="{{ route('admin.users.create') }}">
-                                        <i class="bi bi-circle"></i><span>Crear</span>
-                                    </a>
-                                </li>
+            <!-- SECCIÓN: ADMINISTRACIÓN Y SISTEMA -->
+            @if (Auth::user()->hasAnyPermiso(['configuracion']))
+                <li class="nav-heading mt-3">Sistema</li>
 
-                            </ul>
-                        </li>
-                    @endif
+                <li class="nav-item">
+                    <a class="nav-link {{ $isConfigActive ? '' : 'collapsed' }}"
+                        data-bs-target="#nav-configuracion" data-bs-toggle="collapse" href="#"
+                        aria-expanded="{{ $isConfigActive ? 'true' : 'false' }}">
+                        <span class="nav-icon-wrap">
+                            <i class="bi bi-gear-wide-connected"></i>
+                        </span>
+                        <span>Configuración</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </a>
+                    <ul id="nav-configuracion"
+                        class="nav-content collapse {{ $isConfigActive ? 'show' : '' }}"
+                        data-bs-parent="#sidebar-nav">
 
-                    <!-- Start Components Nav | roles -->
-                    @if (Auth::user()->hasPermiso('roles'))
-                        <li class="nav-item">
-                            <a class="nav-link {{ url()->current() == route('admin.roles.index') ? 'bg-primary text-white' : 'collapsed' }} "
-                                href="{{ route('admin.roles.index') }}">
-                                <i class="bi bi-person-badge fs-3"></i>
-                                <span>Roles</span>
-                            </a>
-                        </li>
-                    @endif
+                        <!-- Servicios -->
+                        @if (Auth::user()->hasPermiso('servicios'))
+                            <li>
+                                <a class="{{ request()->routeIs('admin.servicios.*') ? 'active' : '' }}"
+                                    href="{{ route('admin.servicios.index') }}">
+                                    <i class="bi bi-cup-hot-fill"></i>
+                                    <span>Servicios y Turnos</span>
+                                </a>
+                            </li>
+                        @endif
 
-                    <!-- Start Components Nav | permisos -->
-                    @if (Auth::user()->hasPermiso('permisos'))
-                        <li class="nav-item">
-                            <a class="nav-link {{ url()->current() == route('admin.permisos.index') ? 'bg-primary text-white' : 'collapsed' }} "
-                                href="{{ route('admin.permisos.index') }}">
-                                <i class="bi bi-key fs-3"></i>
-                                <span>Permisos</span>
-                            </a>
-                        </li>
-                    @endif
+                        <!-- Submenú: Usuarios -->
+                        @if (Auth::user()->hasPermiso('users'))
+                            <li>
+                                <a class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}"
+                                    href="{{ route('admin.users.index') }}">
+                                    <i class="bi bi-person-badge-fill"></i>
+                                    <span>Gestión de Usuarios</span>
+                                </a>
+                            </li>
+                        @endif
 
-                    <!-- Start Components Nav | torniquetes -->
-                    @if (Auth::user()->hasPermiso('torniquetes'))
-                        <li class="nav-item">
-                            <a class="nav-link {{ url()->current() == route('admin.torniquetes.index') ? 'bg-primary text-white' : 'collapsed' }} "
-                                href="{{ route('admin.torniquetes.index') }}">
-                                <i class="bi bi-door-open fs-3"></i>
-                                <span>Torniquetes</span>
-                            </a>
-                        </li>
-                    @endif
+                        <!-- Roles -->
+                        @if (Auth::user()->hasPermiso('roles'))
+                            <li>
+                                <a class="{{ request()->routeIs('admin.roles.*') ? 'active' : '' }}"
+                                    href="{{ route('admin.roles.index') }}">
+                                    <i class="bi bi-shield-shaded"></i>
+                                    <span>Roles de Usuario</span>
+                                </a>
+                            </li>
+                        @endif
 
-                    <!-- Start Components Nav | ATMs -->
-                    @if (Auth::user()->hasPermiso('atms'))
-                        <li class="nav-item">
-                            <a class="nav-link {{ url()->current() == route('admin.atms.index') ? 'bg-primary text-white' : 'collapsed' }} "
-                                href="{{ route('admin.atms.index') }}">
-                                <i class="bi bi-cpu fs-3"></i>
-                                <span>ATMs</span>
-                            </a>
-                        </li>
-                    @endif
+                        <!-- Permisos -->
+                        @if (Auth::user()->hasPermiso('permisos'))
+                            <li>
+                                <a class="{{ request()->routeIs('admin.permisos.*') ? 'active' : '' }}"
+                                    href="{{ route('admin.permisos.index') }}">
+                                    <i class="bi bi-key-fill"></i>
+                                    <span>Permisos y Accesos</span>
+                                </a>
+                            </li>
+                        @endif
 
-                    @if (Auth::user()->hasPermiso('auditoria'))
-                        <li class="nav-item">
-                            <a class="nav-link {{ url()->current() == route('admin.auditoria.index') ? 'bg-primary text-white' : 'collapsed' }} "
-                                href="{{ route('admin.auditoria.index') }}">
-                                <i class="bi bi-journal-bookmark fs-3"></i>
-                                <span>Auditoría</span>
-                            </a>
-                        </li>
-                    @endif
+                        <!-- Torniquetes -->
+                        @if (Auth::user()->hasPermiso('torniquetes'))
+                            <li>
+                                <a class="{{ request()->routeIs('admin.torniquetes.*') ? 'active' : '' }}"
+                                    href="{{ route('admin.torniquetes.index') }}">
+                                    <i class="bi bi-door-open-fill"></i>
+                                    <span>Torniquetes Físicos</span>
+                                </a>
+                            </li>
+                        @endif
 
-                    @if (Auth::user()->hasPermiso('auditoria'))
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.allowed-ips.*') ? 'bg-primary text-white' : 'collapsed' }} "
-                                href="{{ route('admin.allowed-ips.index') }}">
-                                <i class="bi bi-shield-lock fs-3"></i>
-                                <span>Lista blanca IPs</span>
-                            </a>
-                        </li>
-                    @endif
+                        <!-- ATMs -->
+                        @if (Auth::user()->hasPermiso('atms'))
+                            <li>
+                                <a class="{{ request()->routeIs('admin.atms.*') ? 'active' : '' }}"
+                                    href="{{ route('admin.atms.index') }}">
+                                    <i class="bi bi-cpu-fill"></i>
+                                    <span>Taquillas / ATMs</span>
+                                </a>
+                            </li>
+                        @endif
 
-                    @if (Auth::user()->hasAnyPermiso(['configuracion', 'comensales']))
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.sincronizar.*') ? 'bg-primary text-white' : 'collapsed' }} "
-                                href="{{ route('admin.sincronizar.data.index') }}">
-                                <i class="bi bi-arrow-repeat fs-3"></i>
-                                <span>Sincronización DUX/Terepaima</span>
-                            </a>
-                        </li>
-                    @endif
+                        <!-- Auditoría -->
+                        @if (Auth::user()->hasPermiso('auditoria'))
+                            <li>
+                                <a class="{{ request()->routeIs('admin.auditoria.*') ? 'active' : '' }}"
+                                    href="{{ route('admin.auditoria.index') }}">
+                                    <i class="bi bi-journal-text"></i>
+                                    <span>Registro de Auditoría</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="{{ request()->routeIs('admin.allowed-ips.*') ? 'active' : '' }}"
+                                    href="{{ route('admin.allowed-ips.index') }}">
+                                    <i class="bi bi-shield-check"></i>
+                                    <span>Lista Blanca de IPs</span>
+                                </a>
+                            </li>
+                        @endif
 
-                </ul>
-            </li><!-- End Components Nav | configuraciones -->
+                        <!-- Sincronización DUX / Terepaima -->
+                        @if (Auth::user()->hasAnyPermiso(['configuracion', 'comensales']))
+                            <li>
+                                <a class="{{ request()->routeIs('admin.sincronizar.*') ? 'active' : '' }}"
+                                    href="{{ route('admin.sincronizar.data.index') }}">
+                                    <i class="bi bi-arrow-repeat"></i>
+                                    <span>Sincronización Remota</span>
+                                </a>
+                            </li>
+                        @endif
 
-        @endif
-    </ul>
+                    </ul>
+                </li>
+            @endif
 
+        </ul>
+    </div>
+
+    <!-- Footer del Sidebar / Tarjeta de Sistema -->
+    <div class="sidebar-footer mt-4 pt-3 border-top">
+        <div class="card border-0 bg-light rounded-3 p-3">
+            <div class="d-flex align-items-center justify-content-between mb-1">
+                <span class="badge bg-primary-subtle text-primary fw-semibold" style="font-size: 10px;">
+                    COMESIS v2.5
+                </span>
+                <span class="badge bg-success-subtle text-success d-inline-flex align-items-center" style="font-size: 10px;">
+                    <span class="rounded-circle bg-success me-1" style="width: 6px; height: 6px;"></span> Activo
+                </span>
+            </div>
+            <div class="small fw-semibold text-dark text-truncate">UNELLEZ Comedor</div>
+            <small class="text-muted" style="font-size: 11px;">Control integral de accesos</small>
+        </div>
+    </div>
 
 </aside><!-- End Sidebar -->

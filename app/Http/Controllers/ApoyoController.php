@@ -26,9 +26,36 @@ class ApoyoController extends Controller
     public function index(Request $request)
     {
         try {
-            $apoyos = Apoyo::orderBy('id', 'DESC')->paginate(12);
+            $query = Apoyo::query();
+
+            if ($request->filled('filtro')) {
+                $filtro = trim($request->filtro);
+                $query->where(function ($q) use ($filtro) {
+                    $q->where('institucion', 'like', "%{$filtro}%")
+                      ->orWhere('codigo', 'like', "%{$filtro}%");
+                });
+            }
+
+            if ($request->filled('estatus') && $request->estatus !== 'TODOS') {
+                $query->where('estatus', (int) $request->estatus);
+            }
+
+            $apoyos = $query->orderBy('id', 'DESC')->paginate(12);
             $respuesta = $this->data->respuesta;
-            return view('admin.apoyos.index', compact('apoyos', 'respuesta'));
+
+            // Estadísticas globales de convenios de apoyo
+            $totalHabilitadas = (int) Apoyo::sum('cantidad_habilitada');
+            $totalConsumidas = (int) Apoyo::sum('cantidad_consumida');
+            $stats = [
+                'total' => Apoyo::count(),
+                'activos' => Apoyo::where('estatus', 1)->count(),
+                'inactivos' => Apoyo::where('estatus', 0)->count(),
+                'habilitadas' => $totalHabilitadas,
+                'consumidas' => $totalConsumidas,
+                'disponibles' => max(0, $totalHabilitadas - $totalConsumidas),
+            ];
+
+            return view('admin.apoyos.index', compact('apoyos', 'respuesta', 'request', 'stats'));
         } catch (\Throwable $th) {
             $mensaje = Helpers::getMensajeError($th, ", ¡Error interno al intentar consultar apoyos!");
             $estatus = Response::HTTP_INTERNAL_SERVER_ERROR;

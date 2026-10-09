@@ -1,108 +1,111 @@
-       {{-- Boton de agregar estudiante --}}
-       <a type="button" class="text-warning" data-bs-toggle="modal"
-           data-bs-target="#modalformularioEditarServicio{{ $servicio->id }}">
-           <i class="bi bi-pencil fs-4"></i>
-       </a>
+{{-- Boton de editar servicio --}}
+<button type="button" class="btn btn-sm btn-outline-warning rounded-circle shadow-sm p-0 d-inline-flex align-items-center justify-content-center" 
+    style="width: 32px; height: 32px;"
+    data-bs-toggle="modal"
+    data-bs-target="#modalformularioEditarServicio{{ $servicio->id }}"
+    title="Editar servicio">
+    <i class="bi bi-pencil"></i>
+</button>
 
-       <!-- Modal formulario crear estudiante -->
-       <div class="modal fade text-start" id="modalformularioEditarServicio{{ $servicio->id }}" data-bs-backdrop="static"
-           data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-           <div class="modal-dialog  modal-xl">
-               <div class="modal-content">
-                   <div class="modal-header bg-primary text-white">
-                       <h5 class="modal-title" id="staticBackdropLabel">Actualizar datos del servicio </h5>
-                       <button type="button" class="btn-danger" data-bs-dismiss="modal" aria-label="Cerrra"></button>
-                   </div>
-                   <div class="modal-body">
-                       <form action="{{ route('admin.servicios.update', $servicio->id) }}" method="POST"
-                           id="formularioCrearEstudiante" class="row g-3 needs-validation" enctype="multipart/form-data"
-                           novalidate>
-                           {{--  --}}
-                           @csrf
-                           @method('PUT')
+<!-- Modal formulario editar servicio -->
+<div class="modal fade text-start" id="modalformularioEditarServicio{{ $servicio->id }}" data-bs-backdrop="static"
+    data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel{{ $servicio->id }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header bg-primary text-white py-3">
+                <h5 class="modal-title fw-bold" id="staticBackdropLabel{{ $servicio->id }}">
+                    <i class="bi bi-pencil-square me-2"></i>Actualizar Servicio: {{ $servicio->nombre }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form action="{{ route('admin.servicios.update', $servicio->id) }}" method="POST"
+                    id="formularioEditarServicio{{ $servicio->id }}" class="row g-3 needs-validation" novalidate>
+                    @csrf
+                    @method('PUT')
 
-                           <!-- Input Nombre del servicio -->
-                           <div class="col-xs-12 col-sm-12">
-                               <label for="yourUsername" class="form-label">Nombre del servicio</label>
-                               <div class="input-group has-validation">
-                                   <span class="input-group-text text-white bg-primary" id="inputGroupPrepend">
-                                       <i class="bi bi-cup"></i>
-                                   </span>
-                                   <input type="text" name="nombre" class="form-control" id="yourUsername"
-                                       placeholder="Ingrese nombre completo"
-                                       value="{{ old('nombre') ?? $servicio->nombre }}" required>
-                                   <div class="invalid-feedback">Por favor, ingrese nombre! </div>
-                                   @error('nombre')
-                                       <div class="text-danger">{{ $message }}</div>
-                                   @enderror
-                               </div>
-                           </div> <!-- Cierre Input Nombre del servicio -->
+                    <!-- Nombre del servicio -->
+                    <div class="col-12">
+                        <label for="nombreEditar{{ $servicio->id }}" class="form-label fw-semibold text-secondary small mb-1">Nombre del Servicio</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-secondary-subtle">
+                                <i class="bi bi-cup-hot text-primary"></i>
+                            </span>
+                            <input type="text" name="nombre" class="form-control border-secondary-subtle" id="nombreEditar{{ $servicio->id }}"
+                                placeholder="Ingrese nombre del servicio"
+                                value="{{ old('nombre') ?? $servicio->nombre }}" required>
+                        </div>
+                        @error('nombre')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                        @enderror
+                    </div>
 
-                           <!-- Input hora de inicio del servicio -->
-                           <div class="col-xs-12 col-sm-6">
-                               <label for="yourUsername" class="form-label">Hora inicio</label>
-                               <div class="input-group has-validation">
-                                   <span class="input-group-text text-white bg-primary" id="inputGroupPrepend">
-                                       <i class="bi bi-alarm"></i>
-                                   </span>
-                                   <input type="time" name="hora_inicio" class="form-control" id="hora_inicio"
-                                       value="{{ old('hora_inicio') ?? $servicio->hora_inicio }}" required>
-                                   <div class="invalid-feedback">Por favor, ingrese hora de apertura! </div>
-                                   @error('hora_inicio')
-                                       <div class="text-danger">{{ $message }}</div>
-                                   @enderror
-                               </div>
-                           </div> <!-- Cierre Input hora de inicio del servicio -->
+                    <!-- Hora inicio -->
+                    <div class="col-md-6">
+                        <label for="hora_inicio_edit{{ $servicio->id }}" class="form-label fw-semibold text-secondary small mb-1">Hora Apertura</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-secondary-subtle">
+                                <i class="bi bi-clock text-primary"></i>
+                            </span>
+                            <input type="time" name="hora_inicio" class="form-control border-secondary-subtle" id="hora_inicio_edit{{ $servicio->id }}"
+                                value="{{ old('hora_inicio') ?? $servicio->hora_inicio }}" required>
+                        </div>
+                        @error('hora_inicio')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                        @enderror
+                    </div>
 
-                           <!-- Input hora de cierre del servicio -->
-                           <div class="col-xs-12 col-sm-6">
-                               <label for="yourUsername" class="form-label">Hora cierre</label>
-                               <div class="input-group has-validation">
-                                   <span class="input-group-text text-white bg-primary" id="inputGroupPrepend">
-                                       <i class="bi bi-alarm"></i>
-                                   </span>
-                                   <input type="time" name="hora_cierre" class="form-control" id="yourUsername"
-                                       value="{{ old('hora_cierre') ?? $servicio->hora_cierre }}" required>
-                                   <div class="invalid-feedback">Por favor, ingrese hora de cierre! </div>
-                                   @error('hora_cierre')
-                                       <div class="text-danger">{{ $message }}</div>
-                                   @enderror
-                               </div>
-                           </div> <!-- Cierre Input hora de cierre del servicio -->
+                    <!-- Hora cierre -->
+                    <div class="col-md-6">
+                        <label for="hora_cierre_edit{{ $servicio->id }}" class="form-label fw-semibold text-secondary small mb-1">Hora Cierre</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-secondary-subtle">
+                                <i class="bi bi-clock-history text-primary"></i>
+                            </span>
+                            <input type="time" name="hora_cierre" class="form-control border-secondary-subtle" id="hora_cierre_edit{{ $servicio->id }}"
+                                value="{{ old('hora_cierre') ?? $servicio->hora_cierre }}" required>
+                        </div>
+                        @error('hora_cierre')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                        @enderror
+                    </div>
 
-                            <!-- Input DISPONIBILIDAD del servicio -->
-                            <div class="col-12">
-                                <label for="yourUsername" class="form-label">Disponibilidad</label>
-                                <div class="input-group has-validation">
-                                     <span class="input-group-text text-white bg-primary" id="inputGroupPrepend">
-                                         <i class="bi bi-box"></i>
-                                     </span>
-                                    <input type="number" name="disponibilidad" class="form-control" 
-                                         min="0" max="5000" step="1" id="disponibilidad"
-                                         placeholder="Ingrese la cantidad de disponible del servicio (comidas)"
-                                         value="{{ old('disponibilidad') ?? $servicio->disponibilidad }}" required>
- 
-                                    <div class="invalid-feedback">Por favor, ingrese la disponibilidad del servicio!
-                                    </div>
-                                    @error('disponibilidad')
-                                        <div class="text-danger">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div> <!-- Cierre Input DISPONIBILIDAD del servicio -->
+                    <!-- Disponibilidad -->
+                    <div class="col-md-6">
+                        <label for="disponibilidad_edit{{ $servicio->id }}" class="form-label fw-semibold text-secondary small mb-1">Cupos / Bandejas Diarias</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-secondary-subtle">
+                                <i class="bi bi-box-seam text-primary"></i>
+                            </span>
+                            <input type="number" name="disponibilidad" class="form-control border-secondary-subtle"
+                                id="disponibilidad_edit{{ $servicio->id }}" min="0" max="10000"
+                                value="{{ old('disponibilidad') ?? $servicio->disponibilidad }}" required>
+                        </div>
+                        @error('disponibilidad')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                        @enderror
+                    </div>
 
-                        
-                           <div class="col-12">
-                               <button class="btn btn-primary w-100" type="submit">Guardar servicio</button>
-                           </div>
+                    <!-- Estatus Switch -->
+                    <div class="col-md-6 d-flex align-items-center pt-3">
+                        <div class="form-check form-switch ps-5">
+                            <input class="form-check-input" type="checkbox" role="switch"
+                                id="switchEstatus{{ $servicio->id }}" name="estatus" value="1"
+                                {{ $servicio->estatus ? 'checked' : '' }} style="transform: scale(1.4);">
+                            <label class="form-check-label ms-2 fw-semibold text-dark" for="switchEstatus{{ $servicio->id }}">
+                                Servicio {{ $servicio->estatus ? 'Activo' : 'Inactivo' }}
+                            </label>
+                        </div>
+                    </div>
 
-
-                       </form>
-                   </div>
-                   <div class="modal-footer">
-                       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                       {{-- <button type="button" class="btn btn-primary">Understood</button> --}}
-                   </div>
-               </div>
-           </div>
-       </div>
-       <!-- Cierre Modal formulario crear comensal -->
+                    <div class="col-12 pt-2 border-top d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                        <button class="btn btn-primary rounded-pill px-4 shadow-sm fw-semibold" type="submit">
+                            <i class="bi bi-check-circle-fill me-1"></i> Actualizar Servicio
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
