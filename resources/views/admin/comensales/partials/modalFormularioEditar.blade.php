@@ -171,13 +171,11 @@
                                     @php
                                         $currentTipo = old('tipo_comensal', $comensal->tipo_comensal);
                                     @endphp
+                                    @if(!in_array($currentTipo, ['ESTUDIANTE', 'EMPLEADO']) && !empty($currentTipo))
+                                        <option value="{{ $currentTipo }}" selected>{{ $currentTipo }} (Actual)</option>
+                                    @endif
                                     <option value="ESTUDIANTE" {{ $currentTipo == 'ESTUDIANTE' ? 'selected' : '' }}>ESTUDIANTE</option>
-                                    <option value="ESTUDIANTE FORANEO" {{ $currentTipo == 'ESTUDIANTE FORANEO' ? 'selected' : '' }}>ESTUDIANTE FORANEO</option>
-                                    <option value="PROFESOR" {{ $currentTipo == 'PROFESOR' ? 'selected' : '' }}>PROFESOR</option>
-                                    <option value="ADMINISTRATIVO" {{ $currentTipo == 'ADMINISTRATIVO' ? 'selected' : '' }}>ADMINISTRATIVO</option>
-                                    <option value="OBRERO" {{ $currentTipo == 'OBRERO' ? 'selected' : '' }}>OBRERO</option>
                                     <option value="EMPLEADO" {{ $currentTipo == 'EMPLEADO' ? 'selected' : '' }}>EMPLEADO</option>
-                                    <option value="EVENTUAL" {{ $currentTipo == 'EVENTUAL' ? 'selected' : '' }}>EVENTUAL</option>
                                 </select>
                                 <div class="invalid-feedback">Por favor, seleccione el tipo de comensal.</div>
                             </div>

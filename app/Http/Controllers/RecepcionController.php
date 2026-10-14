@@ -191,6 +191,7 @@ class RecepcionController extends Controller
             'nacionalidad' => 'V',
             'sexo' => 'N/A',
             'tipo_comensal' => 'APOYO',
+            'sub_tipo' => 'CONVENIO',
             'comida' => $servicio->nombre,
             'sede' => 'CENTRAL',
             'fecha' => $date->format('Y-m-d'),

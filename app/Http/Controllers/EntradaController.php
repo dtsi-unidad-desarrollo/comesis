@@ -31,6 +31,47 @@ class EntradaController extends Controller
     {
         $this->data = new DataDev;
     }
+
+    /**
+     * Obtiene todos los tipos de comensales disponibles en el sistema (base + BD).
+     */
+    public function getTiposDisponibles(): array
+    {
+        $base = [
+            "ESTUDIANTE",
+            "ESTUDIANTE FORANEO",
+            "EMPLEADO",
+            "PROFESOR",
+            "ADMINISTRATIVO",
+            "OBRERO",
+            "EVENTUAL",
+            "APOYO"
+        ];
+
+        try {
+            $dbEntradas = Entrada::distinct()
+                ->whereNotNull('tipo_comensal')
+                ->where('tipo_comensal', '!=', '')
+                ->pluck('tipo_comensal')
+                ->toArray();
+
+            $dbComensales = \App\Models\Comensale::distinct()
+                ->whereNotNull('tipo_comensal')
+                ->where('tipo_comensal', '!=', '')
+                ->pluck('tipo_comensal')
+                ->toArray();
+
+            return collect(array_merge($base, $dbEntradas, $dbComensales))
+                ->map(fn($t) => strtoupper(trim($t)))
+                ->unique()
+                ->filter()
+                ->values()
+                ->all();
+        } catch (\Throwable $th) {
+            return $base;
+        }
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -42,11 +83,17 @@ class EntradaController extends Controller
         try {
             $entradas = [];
             $servicios = Servicio::all();
-            $tipos = $this->tiposDeComensales;
+            $tipos = $this->getTiposDisponibles();
 
-            $query = Entrada::with(['atm', 'user']);
+            $query = Entrada::with(['atm', 'user', 'comensal']);
 
-            if ($request->activo == true) {
+            $filtrando = $request->activo == true
+                || ($request->filled('servicio') && $request->servicio !== '0')
+                || $request->filled('fecha')
+                || ($request->filled('tipo') && $request->tipo !== '0' && $request->tipo !== 'TODOS')
+                || $request->filled('filtro');
+
+            if ($filtrando) {
                 if ($request->servicio && $request->servicio !== '0') {
                     $query->where('comida', $request->servicio);
                 }
@@ -55,12 +102,29 @@ class EntradaController extends Controller
                     $query->whereDate('fecha', $request->fecha);
                 }
 
+                if ($request->filled('tipo') && $request->tipo !== '0' && $request->tipo !== 'TODOS') {
+                    $tipo = trim($request->tipo);
+                    $query->where(function ($q) use ($tipo) {
+                        $q->where('tipo_comensal', $tipo)
+                          ->orWhere('sub_tipo', $tipo)
+                          ->orWhereHas('comensal', function ($qc) use ($tipo) {
+                              $qc->where('tipo_comensal', $tipo)
+                                 ->orWhere('sub_tipo', $tipo);
+                          });
+                    });
+                }
+
                 if ($request->filtro) {
                     $filtro = trim($request->filtro);
                     $query->where(function ($q) use ($filtro) {
                         $q->where('cedula', 'LIKE', "%{$filtro}%")
                           ->orWhere('nombres', 'LIKE', "%{$filtro}%")
-                          ->orWhere('apellidos', 'LIKE', "%{$filtro}%");
+                          ->orWhere('apellidos', 'LIKE', "%{$filtro}%")
+                          ->orWhere('sub_tipo', 'LIKE', "%{$filtro}%")
+                          ->orWhere('carrera', 'LIKE', "%{$filtro}%")
+                          ->orWhereHas('comensal', function ($qc) use ($filtro) {
+                              $qc->where('sub_tipo', 'LIKE', "%{$filtro}%");
+                          });
                     });
                 }
 
@@ -74,7 +138,12 @@ class EntradaController extends Controller
             $statsHoy = [
                 'total'       => Entrada::whereDate('fecha', $hoy)->count(),
                 'estudiantes' => Entrada::whereDate('fecha', $hoy)->whereIn('tipo_comensal', ['ESTUDIANTE', 'ESTUDIANTE FORANEO'])->count(),
-                'empleados'   => Entrada::whereDate('fecha', $hoy)->where('tipo_comensal', 'EMPLEADO')->count(),
+                'empleados'   => Entrada::whereDate('fecha', $hoy)->where(function ($q) {
+                    $q->where('tipo_comensal', 'EMPLEADO')
+                      ->orWhere('tipo_comensal', 'PROFESOR')
+                      ->orWhere('tipo_comensal', 'ADMINISTRATIVO')
+                      ->orWhere('tipo_comensal', 'OBRERO');
+                })->count(),
                 'apoyos'      => Entrada::whereDate('fecha', $hoy)->where('tipo_comensal', 'APOYO')->count(),
             ];
 
@@ -145,6 +214,7 @@ class EntradaController extends Controller
                     "nacionalidad" => "V",
                     "sexo" => "N/A",
                     "tipo_comensal" => "APOYO",
+                    "sub_tipo" => "CONVENIO",
                     "comida" => $comida,
                     'fecha' => $date->format('Y-m-d'),
                     'hora' => $date->format('h:ia'),
@@ -157,8 +227,16 @@ class EntradaController extends Controller
                 return back()->with(compact('mensaje', 'estatus'));
             }
 
+            $comensal = \App\Models\Comensale::where('cedula', $request->cedula)->first();
+
             Entrada::create([
                 "cedula" => $request->cedula,
+                "nombres" => $comensal->nombres ?? '',
+                "apellidos" => $comensal->apellidos ?? '',
+                "nacionalidad" => $comensal->nacionalidad ?? 'V',
+                "sexo" => $comensal->sexo ?? 'M',
+                "tipo_comensal" => $comensal->tipo_comensal ?? 'ESTUDIANTE',
+                "sub_tipo" => $comensal->sub_tipo ?? '',
                 "marcado" => $request->marcar,
                 "comida" => $comida,
                 'fecha' => $date->format('Y-m-d'),

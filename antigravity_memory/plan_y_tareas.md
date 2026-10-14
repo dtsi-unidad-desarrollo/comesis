@@ -44,6 +44,7 @@ Este documento mantiene el estado de las tareas actuales, el roadmap a corto/med
   - Modal estilizado para importación masiva desde Excel (`.xlsx, .xls, .csv`) y menú dropdown ordenado para herramientas de Excel (Exportar, Importar, Plantilla).
   - Tabla de comensales estilizada con avatares (con foto o inicial por tipo), badges de género (F/M), badges semánticos de tipo y estatus, y botones circulares de acción rápida (Ver ficha, Editar, Desactivar/Eliminar).
   - Modernización estética de los modales de Registro y Edición de Comensales (`modalFormulario.blade.php` y `modalFormularioEditar.blade.php`) con diseño centrado (`modal-dialog-centered modal-lg`), esquinas redondeadas, cabeceras institucionales, campos con iconos armonizados y pie con botones tipo pill.
+  - Simplificación del selector **Tipo de Comensal** en los formularios de registro y edición: se redujeron las opciones a los dos tipos globales del sistema: **ESTUDIANTE** y **EMPLEADO**.
   - Flexibilización del campo **Observación**: configurado como opcional (`nullable|string|max:500`) tanto en frontend (textarea completo sin restricción `minlength`) como en backend (`StoreComensaleRequest.php` y `UpdateComensaleRequest.php`).
 - [x] Modernización integral del Menú Superior (Header) y Menú Lateral (Sidebar):
   - **Header Superior (`header.blade.php` y `style.css`):**
@@ -115,6 +116,10 @@ Este documento mantiene el estado de las tareas actuales, el roadmap a corto/med
   - **Botón de Desvinculación de Turno:** Botón circular interactivo con icono de desbloqueo (`bi-unlock-fill`) visible en la fila de cada taquilla ocupada (deshabilitado si está libre).
   - **Modal de Confirmación y Seguridad:** Ventana modal de confirmación con detalles del operador antes de forzar el cierre del turno huérfano.
   - **Backend y Auditoría:** Endpoint `POST /atms/{atm}/release` (`admin.atms.release`) ejecutando `$atm->release()` y registrando el evento en `AuditLogger` con el nombre del operador y taquilla liberada.
+- [x] Filtro por Tipo de Comensal y Visualización de Subtipo en Historial de Entradas (`admin/entradas/index.blade.php`, `EntradaController.php`, `Entrada.php`):
+  - **Filtro dinámico por Tipo:** Selector con todos los tipos disponibles en el sistema (Estudiante, Empleado, Estudiante Foráneo, Profesor, Administrativo, Obrero, Eventual, Apoyo y tipos registrados dinámicamente en BD).
+  - **Columna de Subtipo Registrado:** Nueva columna en la tabla principal de entradas y en el modal de detalles que muestra el subtipo del comensal (`sub_tipo_display`, con fallback a relación Eloquent `comensal->sub_tipo` o `CONVENIO` para apoyos).
+  - **Migración y Persistencia:** Migración `add_sub_tipo_to_entradas_table` con backfill automático desde `comensales`, e inclusión de `sub_tipo` al registrar accesos en `Helpers::setEntradaComedor`, `RecepcionController` y `EntradaController`.
 
 
 

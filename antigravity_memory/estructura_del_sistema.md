@@ -26,6 +26,14 @@ Representa la ubicación o dependencia a la que pertenece el comensal.
 
 ### 3. Registro de Comidas (Entradas)
 Esta tabla es el núcleo transaccional. Lleva el registro de qué comensal o apoyo institucional consumió en qué fecha/hora y servicio.
+- **Campos principales**:
+  - `cedula`: Cédula del comensal o código de apoyo.
+  - `nombres`, `apellidos`, `sexo`, `nacionalidad`.
+  - `tipo_comensal`: ESTUDIANTE, EMPLEADO, APOYO, etc.
+  - `sub_tipo`: Subtipo o cargo del comensal (ej. PERSONAL, DOCENTE, OBRERO, SUB_TIPO_1, CONVENIO).
+  - `comida`: Servicio (ALMUERZO, CENA, etc.).
+  - `fecha`, `hora`.
+  - `atm_id`, `allowed_by_user_id`.
 
 ### 4. Apoyos Institucionales
 Representa las autorizaciones grupales o institucionales para comensales externos mediante un código único de barras / QR.

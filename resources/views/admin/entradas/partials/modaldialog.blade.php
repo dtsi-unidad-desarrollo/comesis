@@ -38,6 +38,9 @@
                         {{ $inicial }}
                     </div>
                     <h4 class="fw-bold text-dark mb-1">{{ $entrada->nombres }} {{ $entrada->apellidos }}</h4>
+                    @php
+                        $subtipoModal = $entrada->sub_tipo_display;
+                    @endphp
                     <div class="d-flex justify-content-center align-items-center gap-2 flex-wrap">
                         <span class="badge bg-secondary-subtle text-secondary-emphasis font-monospace px-3 py-1 fs-6 border">
                             {{ $entrada->nacionalidad }}-{{ $entrada->cedula }}
@@ -45,6 +48,11 @@
                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 fs-6">
                             {{ $entrada->tipo_comensal }}
                         </span>
+                        @if(!empty($subtipoModal))
+                            <span class="badge bg-light text-dark border px-3 py-1 fs-6">
+                                <i class="bi bi-tag-fill text-primary me-1"></i>Subtipo: <strong>{{ $subtipoModal }}</strong>
+                            </span>
+                        @endif
                         @if($entrada->sexo)
                             <span class="badge bg-light text-dark border px-2 py-1">
                                 Género: <strong>{{ $entrada->sexo }}</strong>
@@ -65,6 +73,13 @@
                         <div class="p-2 bg-light rounded-3 border">
                             <small class="text-muted d-block">Servicio</small>
                             <strong class="text-dark">{{ $entrada->comida }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="col-6">
+                        <div class="p-2 bg-light rounded-3 border">
+                            <small class="text-muted d-block">Subtipo Registrado</small>
+                            <strong class="text-dark">{{ $subtipoModal ?: 'Sin subtipo' }}</strong>
                         </div>
                     </div>
 

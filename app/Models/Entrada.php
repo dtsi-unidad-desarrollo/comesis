@@ -31,9 +31,23 @@ class Entrada extends Model
         'municipio', 
         'direccion', 
         'tipo_comensal',  
+        'sub_tipo',
         'atm_id',
         'allowed_by_user_id',
     ];
+
+    public function comensal()
+    {
+        return $this->belongsTo(Comensale::class, 'cedula', 'cedula');
+    }
+
+    public function getSubTipoDisplayAttribute()
+    {
+        if (!empty($this->attributes['sub_tipo'])) {
+            return $this->attributes['sub_tipo'];
+        }
+        return $this->comensal->sub_tipo ?? null;
+    }
 
     public function atm()
     {

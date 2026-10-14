@@ -69,6 +69,7 @@ class Helpers extends Model
                 'sexo' => $comensal->sexo, 
                 'comida' => $servicio->nombre, 
                 'tipo_comensal' => $comensal->tipo_comensal ?? 'ESTUDIANTE',  
+                'sub_tipo' => $comensal->sub_tipo ?? '',
 
                 'codigo_carrera' => $comensal->carreras[0]->codigo_carrera ?? '', 
                 'carrera' => $comensal->carreras[0]->nombre_carrera ?? '', 

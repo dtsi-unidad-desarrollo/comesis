@@ -121,7 +121,7 @@
                 <div class="card border-0 shadow-sm rounded-4">
                     <div class="card-body p-3 p-md-4">
                         <form action="{{ route('admin.entradas.index') }}" method="GET" class="row g-3 align-items-end">
-                            <div class="col-md-3">
+                            <div class="col-md-2 col-lg-2">
                                 <label for="servicio" class="form-label small fw-semibold text-secondary mb-1">
                                     <i class="bi bi-cup-hot text-primary me-1"></i> Servicio
                                 </label>
@@ -135,7 +135,7 @@
                                 </select>
                             </div>
 
-                            <div class="col-md-3">
+                            <div class="col-md-2 col-lg-2">
                                 <label for="fecha" class="form-label small fw-semibold text-secondary mb-1">
                                     <i class="bi bi-calendar-event text-primary me-1"></i> Fecha
                                 </label>
@@ -143,22 +143,36 @@
                                     value="{{ $request->fecha ? \Carbon\Carbon::parse($request->fecha)->format('Y-m-d') : '' }}">
                             </div>
 
-                            <div class="col-md-4">
+                            <div class="col-md-3 col-lg-3">
+                                <label for="tipo" class="form-label small fw-semibold text-secondary mb-1">
+                                    <i class="bi bi-person-badge text-primary me-1"></i> Tipo de Comensal
+                                </label>
+                                <select name="tipo" id="tipo" class="form-select border-secondary-subtle">
+                                    <option value="0">Todos los tipos</option>
+                                    @foreach ($tipos as $tipoItem)
+                                        <option value="{{ $tipoItem }}" {{ (string)$request->tipo === (string)$tipoItem ? 'selected' : '' }}>
+                                            {{ $tipoItem }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-md-3 col-lg-3">
                                 <label for="filtro" class="form-label small fw-semibold text-secondary mb-1">
                                     <i class="bi bi-search text-primary me-1"></i> Búsqueda Rápida
                                 </label>
                                 <input type="text" class="form-control border-secondary-subtle" name="filtro" id="filtro"
-                                    placeholder="Cédula, nombre o apellido..." 
+                                    placeholder="Cédula, nombre, subtipo..." 
                                     value="{{ $request->filtro ?? '' }}">
                             </div>
 
                             <input type="hidden" name="activo" value="true">
 
-                            <div class="col-md-2 d-flex gap-2">
+                            <div class="col-md-2 col-lg-2 d-flex gap-2">
                                 <button class="btn btn-primary w-100 d-flex align-items-center justify-content-center shadow-sm" type="submit" title="Buscar">
                                     <i class="bi bi-search me-1"></i> Filtrar
                                 </button>
-                                @if($request->activo)
+                                @if($request->activo || $request->filled('tipo') || $request->filled('filtro') || $request->filled('fecha') || ($request->filled('servicio') && $request->servicio !== '0'))
                                     <a href="{{ route('admin.entradas.index') }}" class="btn btn-outline-secondary d-flex align-items-center justify-content-center" title="Limpiar Filtros">
                                         <i class="bi bi-x-circle"></i>
                                     </a>
@@ -180,14 +194,17 @@
                                 {{ $entradas->total() }}
                             </span>
                             <h5 class="fw-bold mb-0 text-dark">Registros de Entradas</h5>
-                            @if($request->activo)
+                            @if($request->activo || $request->filled('tipo') || $request->filled('filtro') || $request->filled('fecha') || ($request->filled('servicio') && $request->servicio !== '0'))
                                 <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle ms-2">
                                     <i class="bi bi-funnel-fill me-1"></i> Filtro activo
+                                    @if($request->filled('tipo') && $request->tipo !== '0' && $request->tipo !== 'TODOS')
+                                        ({{ $request->tipo }})
+                                    @endif
                                 </span>
                             @endif
                         </div>
                         <div>
-                            @if($request->activo)
+                            @if($request->activo || $request->filled('tipo') || $request->filled('filtro') || $request->filled('fecha') || ($request->filled('servicio') && $request->servicio !== '0'))
                                 <a href="{{ route('admin.entradas.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
                                     <i class="bi bi-arrow-repeat me-1"></i> Restablecer vista
                                 </a>
@@ -202,6 +219,7 @@
                                     <th scope="col" class="ps-4">Comensal</th>
                                     <th scope="col">Cédula</th>
                                     <th scope="col">Tipo</th>
+                                    <th scope="col">Subtipo</th>
                                     <th scope="col">Comida</th>
                                     <th scope="col">Fecha / Hora</th>
                                     <th scope="col">Taquilla (ATM)</th>
@@ -276,6 +294,26 @@
                                             @endif
                                         </td>
 
+                                        {{-- Subtipo Registrado --}}
+                                        <td>
+                                            @php
+                                                $subtipoVal = $entrada->sub_tipo_display;
+                                            @endphp
+                                            @if(!empty($subtipoVal))
+                                                <span class="badge bg-light text-dark border px-2 py-1 fw-semibold" title="{{ $subtipoVal }}">
+                                                    <i class="bi bi-tag-fill text-primary me-1"></i>{{ $subtipoVal }}
+                                                </span>
+                                            @elseif(strtoupper($entrada->tipo_comensal ?? '') === 'APOYO')
+                                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1 fw-semibold">
+                                                    <i class="bi bi-building me-1"></i>CONVENIO
+                                                </span>
+                                            @else
+                                                <span class="text-muted small">
+                                                    <i class="bi bi-dash text-secondary"></i> Sin subtipo
+                                                </span>
+                                            @endif
+                                        </td>
+
                                         {{-- Comida / Servicio --}}
                                         <td>
                                             @if(strtoupper($entrada->comida) === 'ALMUERZO')
@@ -333,12 +371,12 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="text-center py-5">
+                                        <td colspan="9" class="text-center py-5">
                                             <div class="text-muted">
                                                 <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary opacity-50"></i>
                                                 <h6 class="fw-bold mb-1">No se encontraron entradas registradas</h6>
-                                                <p class="small mb-3">Intenta cambiar los filtros de fecha o búsqueda.</p>
-                                                @if($request->activo)
+                                                <p class="small mb-3">Intenta cambiar los filtros de tipo, fecha o búsqueda.</p>
+                                                @if($request->activo || $request->filled('tipo') || $request->filled('filtro') || $request->filled('fecha') || ($request->filled('servicio') && $request->servicio !== '0'))
                                                     <a href="{{ route('admin.entradas.index') }}" class="btn btn-sm btn-primary rounded-pill px-3">
                                                         <i class="bi bi-arrow-repeat me-1"></i> Ver todas las entradas
                                                     </a>
@@ -361,6 +399,7 @@
                                 {{ $entradas->appends([
                                     'filtro'   => $request->filtro, 
                                     'servicio' => $request->servicio, 
+                                    'tipo'     => $request->tipo,
                                     'fecha'    => $request->fecha, 
                                     'activo'   => $request->activo
                                 ])->links() }}

@@ -13,28 +13,28 @@ class ReporteComedorService
      * Días de la semana en español.
      */
     public const DIAS_SEMANA = [
-        'Monday'    => 'Lunes',
-        'Tuesday'   => 'Martes',
+        'Monday' => 'Lunes',
+        'Tuesday' => 'Martes',
         'Wednesday' => 'Miercoles',
-        'Thursday'  => 'Jueves',
-        'Friday'    => 'Viernes',
-        'Saturday'  => 'Sabado',
-        'Sunday'    => 'Domingo',
+        'Thursday' => 'Jueves',
+        'Friday' => 'Viernes',
+        'Saturday' => 'Sabado',
+        'Sunday' => 'Domingo',
     ];
 
     /**
      * Meses en español.
      */
     public const MESES = [
-        1  => 'ENERO',
-        2  => 'FEBRERO',
-        3  => 'MARZO',
-        4  => 'ABRIL',
-        5  => 'MAYO',
-        6  => 'JUNIO',
-        7  => 'JULIO',
-        8  => 'AGOSTO',
-        9  => 'SEPTIEMBRE',
+        1 => 'ENERO',
+        2 => 'FEBRERO',
+        3 => 'MARZO',
+        4 => 'ABRIL',
+        5 => 'MAYO',
+        6 => 'JUNIO',
+        7 => 'JULIO',
+        8 => 'AGOSTO',
+        9 => 'SEPTIEMBRE',
         10 => 'OCTUBRE',
         11 => 'NOVIEMBRE',
         12 => 'DICIEMBRE',
@@ -115,15 +115,15 @@ class ReporteComedorService
                 $hastaCarbon = Carbon::parse(end($fechasEnMes));
 
                 $semanas[] = [
-                    'numero'          => $numeroSemana,
-                    'lunes'           => $cursorLunes->copy(),
-                    'sabado'          => $sabado->copy(),
-                    'desde'           => $desdeCarbon,
-                    'hasta'           => $hastaCarbon,
-                    'desde_label'     => $desdeCarbon->format('d/m/Y'),
-                    'hasta_label'     => $hastaCarbon->format('d/m/Y'),
-                    'fechas_en_mes'   => $fechasEnMes,
-                    'fechas_completas'=> [
+                    'numero' => $numeroSemana,
+                    'lunes' => $cursorLunes->copy(),
+                    'sabado' => $sabado->copy(),
+                    'desde' => $desdeCarbon,
+                    'hasta' => $hastaCarbon,
+                    'desde_label' => $desdeCarbon->format('d/m/Y'),
+                    'hasta_label' => $hastaCarbon->format('d/m/Y'),
+                    'fechas_en_mes' => $fechasEnMes,
+                    'fechas_completas' => [
                         $cursorLunes->copy()->format('Y-m-d'),
                         $cursorLunes->copy()->addDays(1)->format('Y-m-d'),
                         $cursorLunes->copy()->addDays(2)->format('Y-m-d'),
@@ -180,27 +180,27 @@ class ReporteComedorService
         }
 
         $totalEstudiantes = $estudiantesF + $estudiantesM;
-        $totalEmpleados   = $empleadosF + $empleadosM;
+        $totalEmpleados = $empleadosF + $empleadosM;
         $totalApoyosOtros = $apoyos + $eventuales + $otros;
-        $totalComidas     = $totalEstudiantes + $totalEmpleados + $totalApoyosOtros;
+        $totalComidas = $totalEstudiantes + $totalEmpleados + $totalApoyosOtros;
 
-        $totalFemenino    = $estudiantesF + $empleadosF;
-        $totalMasculino   = $estudiantesM + $empleadosM;
+        $totalFemenino = $estudiantesF + $empleadosF;
+        $totalMasculino = $estudiantesM + $empleadosM;
 
         return [
-            'estudiantes_f'     => $estudiantesF,
-            'estudiantes_m'     => $estudiantesM,
+            'estudiantes_f' => $estudiantesF,
+            'estudiantes_m' => $estudiantesM,
             'total_estudiantes' => $totalEstudiantes,
-            'empleados_f'       => $empleadosF,
-            'empleados_m'       => $empleadosM,
-            'total_empleados'   => $totalEmpleados,
-            'apoyos'            => $apoyos,
-            'eventuales'        => $eventuales,
-            'otros'             => $otros,
-            'total_apoyos_otros'=> $totalApoyosOtros,
-            'total_femenino'    => $totalFemenino,
-            'total_masculino'   => $totalMasculino,
-            'total_comidas'     => $totalComidas,
+            'empleados_f' => $empleadosF,
+            'empleados_m' => $empleadosM,
+            'total_empleados' => $totalEmpleados,
+            'apoyos' => $apoyos,
+            'eventuales' => $eventuales,
+            'otros' => $otros,
+            'total_apoyos_otros' => $totalApoyosOtros,
+            'total_femenino' => $totalFemenino,
+            'total_masculino' => $totalMasculino,
+            'total_comidas' => $totalComidas,
         ];
     }
 
@@ -230,12 +230,12 @@ class ReporteComedorService
         $bandejasSinEntregar = max(0, $capacidadDiaria - $desglose['total_comidas']);
 
         return array_merge($desglose, [
-            'fecha'                => $fecha,
-            'fecha_formateada'     => Carbon::parse($fecha)->format('d/m/Y'),
+            'fecha' => $fecha,
+            'fecha_formateada' => Carbon::parse($fecha)->format('d/m/Y'),
             'servicioSeleccionado' => $servicio && $servicio !== '0' ? $servicio : 'TODOS',
-            'tipoSeleccionado'     => $tipo ?: 'TODOS',
-            'capacidadDiaria'      => $capacidadDiaria,
-            'bandejasSinEntregar'  => $bandejasSinEntregar,
+            'tipoSeleccionado' => $tipo ?: 'TODOS',
+            'capacidadDiaria' => $capacidadDiaria,
+            'bandejasSinEntregar' => $bandejasSinEntregar,
         ]);
     }
 
@@ -276,14 +276,14 @@ class ReporteComedorService
 
         $diario = collect();
         $totales = [
-            'estudiantes_f'     => 0,
-            'estudiantes_m'     => 0,
+            'estudiantes_f' => 0,
+            'estudiantes_m' => 0,
             'total_estudiantes' => 0,
-            'empleados_f'       => 0,
-            'empleados_m'       => 0,
-            'total_empleados'   => 0,
-            'apoyos'            => 0,
-            'total_comidas'     => 0,
+            'empleados_f' => 0,
+            'empleados_m' => 0,
+            'total_empleados' => 0,
+            'apoyos' => 0,
+            'total_comidas' => 0,
         ];
 
         foreach ($fechasRango as $f) {
@@ -294,28 +294,28 @@ class ReporteComedorService
             $entradasDia = $entradasAgrupadas->get($f, collect());
             $desgloseDia = self::procesarDesglose($entradasDia);
 
-            $diario->push((object)[
-                'dia'              => $diaEs,
-                'fecha'            => $fCarbon->format('d/m/Y'),
-                'fecha_iso'        => $f,
-                'estudiantes_f'    => $desgloseDia['estudiantes_f'],
-                'estudiantes_m'    => $desgloseDia['estudiantes_m'],
-                'total_estudiantes'=> $desgloseDia['total_estudiantes'],
-                'empleados_f'      => $desgloseDia['empleados_f'],
-                'empleados_m'      => $desgloseDia['empleados_m'],
-                'total_empleados'  => $desgloseDia['total_empleados'],
-                'apoyos'           => $desgloseDia['total_apoyos_otros'],
-                'total_dia'        => $desgloseDia['total_comidas'],
+            $diario->push((object) [
+                'dia' => $diaEs,
+                'fecha' => $fCarbon->format('d/m/Y'),
+                'fecha_iso' => $f,
+                'estudiantes_f' => $desgloseDia['estudiantes_f'],
+                'estudiantes_m' => $desgloseDia['estudiantes_m'],
+                'total_estudiantes' => $desgloseDia['total_estudiantes'],
+                'empleados_f' => $desgloseDia['empleados_f'],
+                'empleados_m' => $desgloseDia['empleados_m'],
+                'total_empleados' => $desgloseDia['total_empleados'],
+                'apoyos' => $desgloseDia['total_apoyos_otros'],
+                'total_dia' => $desgloseDia['total_comidas'],
             ]);
 
-            $totales['estudiantes_f']     += $desgloseDia['estudiantes_f'];
-            $totales['estudiantes_m']     += $desgloseDia['estudiantes_m'];
+            $totales['estudiantes_f'] += $desgloseDia['estudiantes_f'];
+            $totales['estudiantes_m'] += $desgloseDia['estudiantes_m'];
             $totales['total_estudiantes'] += $desgloseDia['total_estudiantes'];
-            $totales['empleados_f']       += $desgloseDia['empleados_f'];
-            $totales['empleados_m']       += $desgloseDia['empleados_m'];
-            $totales['total_empleados']   += $desgloseDia['total_empleados'];
-            $totales['apoyos']            += $desgloseDia['total_apoyos_otros'];
-            $totales['total_comidas']     += $desgloseDia['total_comidas'];
+            $totales['empleados_f'] += $desgloseDia['empleados_f'];
+            $totales['empleados_m'] += $desgloseDia['empleados_m'];
+            $totales['total_empleados'] += $desgloseDia['total_empleados'];
+            $totales['apoyos'] += $desgloseDia['total_apoyos_otros'];
+            $totales['total_comidas'] += $desgloseDia['total_comidas'];
         }
 
         // Capacidad semanal (6 días: Lunes a Sábado)
@@ -323,17 +323,17 @@ class ReporteComedorService
         $bandejasSinEntregar = max(0, $capacidadSemanal - $totales['total_comidas']);
 
         return [
-            'fecha'               => now()->format('d/m/Y'),
-            'desde'               => $semanaObj['lunes']->format('d/m/Y'),
-            'hasta'               => $semanaObj['sabado']->format('d/m/Y'),
-            'semanaNumero'        => $semanaNum,
-            'diario'              => $diario,
-            'totales'             => (object) $totales,
-            'totalComidas'        => $totales['total_comidas'],
-            'capacidadSemanal'    => $capacidadSemanal,
+            'fecha' => now()->format('d/m/Y'),
+            'desde' => $semanaObj['lunes']->format('d/m/Y'),
+            'hasta' => $semanaObj['sabado']->format('d/m/Y'),
+            'semanaNumero' => $semanaNum,
+            'diario' => $diario,
+            'totales' => (object) $totales,
+            'totalComidas' => $totales['total_comidas'],
+            'capacidadSemanal' => $capacidadSemanal,
             'bandejasSinEntregar' => $bandejasSinEntregar,
-            'servicioSeleccionado'=> $servicio && $servicio !== '0' ? $servicio : 'TODOS',
-            'tipoSeleccionado'    => $tipo ?: 'TODOS',
+            'servicioSeleccionado' => $servicio && $servicio !== '0' ? $servicio : 'TODOS',
+            'tipoSeleccionado' => $tipo ?: 'TODOS',
         ];
     }
 
@@ -364,14 +364,14 @@ class ReporteComedorService
         $diasEnElMes = $finMes->day;
         $dias = collect();
         $totales = [
-            'estudiantes_f'     => 0,
-            'estudiantes_m'     => 0,
+            'estudiantes_f' => 0,
+            'estudiantes_m' => 0,
             'total_estudiantes' => 0,
-            'empleados_f'       => 0,
-            'empleados_m'       => 0,
-            'total_empleados'   => 0,
-            'apoyos'            => 0,
-            'gran_total'        => 0,
+            'empleados_f' => 0,
+            'empleados_m' => 0,
+            'total_empleados' => 0,
+            'apoyos' => 0,
+            'gran_total' => 0,
         ];
 
         for ($d = 1; $d <= $diasEnElMes; $d++) {
@@ -384,50 +384,50 @@ class ReporteComedorService
             $entradasDia = $entradasAgrupadas->get($fechaIso, collect());
             $desglose = self::procesarDesglose($entradasDia);
 
-            $dias->push((object)[
-                'dia_numero'       => $d,
-                'fecha'            => $fechaIso,
-                'fecha_label'      => $fechaCarbon->format('d/m/Y'),
-                'dia_nombre'       => $diaEs,
-                'es_domingo'       => $esDomingo,
-                'estudiantes_f'    => $desglose['estudiantes_f'],
-                'estudiantes_m'    => $desglose['estudiantes_m'],
-                'total_estudiantes'=> $desglose['total_estudiantes'],
-                'empleados_f'      => $desglose['empleados_f'],
-                'empleados_m'      => $desglose['empleados_m'],
-                'total_empleados'  => $desglose['total_empleados'],
-                'apoyos'           => $desglose['total_apoyos_otros'],
-                'total_dia'        => $desglose['total_comidas'],
+            $dias->push((object) [
+                'dia_numero' => $d,
+                'fecha' => $fechaIso,
+                'fecha_label' => $fechaCarbon->format('d/m/Y'),
+                'dia_nombre' => $diaEs,
+                'es_domingo' => $esDomingo,
+                'estudiantes_f' => $desglose['estudiantes_f'],
+                'estudiantes_m' => $desglose['estudiantes_m'],
+                'total_estudiantes' => $desglose['total_estudiantes'],
+                'empleados_f' => $desglose['empleados_f'],
+                'empleados_m' => $desglose['empleados_m'],
+                'total_empleados' => $desglose['total_empleados'],
+                'apoyos' => $desglose['total_apoyos_otros'],
+                'total_dia' => $desglose['total_comidas'],
             ]);
 
-            $totales['estudiantes_f']     += $desglose['estudiantes_f'];
-            $totales['estudiantes_m']     += $desglose['estudiantes_m'];
+            $totales['estudiantes_f'] += $desglose['estudiantes_f'];
+            $totales['estudiantes_m'] += $desglose['estudiantes_m'];
             $totales['total_estudiantes'] += $desglose['total_estudiantes'];
-            $totales['empleados_f']       += $desglose['empleados_f'];
-            $totales['empleados_m']       += $desglose['empleados_m'];
-            $totales['total_empleados']   += $desglose['total_empleados'];
-            $totales['apoyos']            += $desglose['total_apoyos_otros'];
-            $totales['gran_total']        += $desglose['total_comidas'];
+            $totales['empleados_f'] += $desglose['empleados_f'];
+            $totales['empleados_m'] += $desglose['empleados_m'];
+            $totales['total_empleados'] += $desglose['total_empleados'];
+            $totales['apoyos'] += $desglose['total_apoyos_otros'];
+            $totales['gran_total'] += $desglose['total_comidas'];
         }
 
         // Porcentajes
         $granTotal = $totales['gran_total'];
         $porcentajes = [
             'estudiantes' => $granTotal > 0 ? round(($totales['total_estudiantes'] / $granTotal) * 100, 1) : 0,
-            'empleados'   => $granTotal > 0 ? round(($totales['total_empleados'] / $granTotal) * 100, 1) : 0,
-            'apoyos'      => $granTotal > 0 ? round(($totales['apoyos'] / $granTotal) * 100, 1) : 0,
+            'empleados' => $granTotal > 0 ? round(($totales['total_empleados'] / $granTotal) * 100, 1) : 0,
+            'apoyos' => $granTotal > 0 ? round(($totales['apoyos'] / $granTotal) * 100, 1) : 0,
         ];
 
         return [
-            'mes'                  => self::getMesNombre($mes),
-            'mesNumero'            => $mes,
-            'anio'                 => $anio,
-            'dias'                 => $dias,
-            'totales'              => (object) $totales,
-            'granTotal'            => $granTotal,
-            'porcentajes'          => $porcentajes,
+            'mes' => self::getMesNombre($mes),
+            'mesNumero' => $mes,
+            'anio' => $anio,
+            'dias' => $dias,
+            'totales' => (object) $totales,
+            'granTotal' => $granTotal,
+            'porcentajes' => $porcentajes,
             'servicioSeleccionado' => $servicio && $servicio !== '0' ? $servicio : 'TODOS',
-            'tipoSeleccionado'     => $tipo ?: 'TODOS',
+            'tipoSeleccionado' => $tipo ?: 'TODOS',
         ];
     }
 
@@ -440,14 +440,14 @@ class ReporteComedorService
         $semanas = collect();
 
         $totales = [
-            'estudiantes_f'     => 0,
-            'estudiantes_m'     => 0,
+            'estudiantes_f' => 0,
+            'estudiantes_m' => 0,
             'total_estudiantes' => 0,
-            'empleados_f'       => 0,
-            'empleados_m'       => 0,
-            'total_empleados'   => 0,
-            'apoyos'            => 0,
-            'gran_total'        => 0,
+            'empleados_f' => 0,
+            'empleados_m' => 0,
+            'total_empleados' => 0,
+            'apoyos' => 0,
+            'gran_total' => 0,
         ];
 
         foreach ($semanasInfo as $s) {
@@ -468,41 +468,41 @@ class ReporteComedorService
             $entradasSemana = $query->get();
             $desglose = self::procesarDesglose($entradasSemana);
 
-            $semanas->push((object)[
-                'numero'           => $s['numero'],
-                'desde'            => $s['desde'],
-                'hasta'            => $s['hasta'],
-                'desde_label'      => $s['desde_label'],
-                'hasta_label'      => $s['hasta_label'],
-                'estudiantes_f'    => $desglose['estudiantes_f'],
-                'estudiantes_m'    => $desglose['estudiantes_m'],
-                'total_estudiantes'=> $desglose['total_estudiantes'],
-                'empleados_f'      => $desglose['empleados_f'],
-                'empleados_m'      => $desglose['empleados_m'],
-                'total_empleados'  => $desglose['total_empleados'],
-                'apoyos'           => $desglose['total_apoyos_otros'],
-                'total'            => $desglose['total_comidas'],
+            $semanas->push((object) [
+                'numero' => $s['numero'],
+                'desde' => $s['desde'],
+                'hasta' => $s['hasta'],
+                'desde_label' => $s['desde_label'],
+                'hasta_label' => $s['hasta_label'],
+                'estudiantes_f' => $desglose['estudiantes_f'],
+                'estudiantes_m' => $desglose['estudiantes_m'],
+                'total_estudiantes' => $desglose['total_estudiantes'],
+                'empleados_f' => $desglose['empleados_f'],
+                'empleados_m' => $desglose['empleados_m'],
+                'total_empleados' => $desglose['total_empleados'],
+                'apoyos' => $desglose['total_apoyos_otros'],
+                'total' => $desglose['total_comidas'],
             ]);
 
-            $totales['estudiantes_f']     += $desglose['estudiantes_f'];
-            $totales['estudiantes_m']     += $desglose['estudiantes_m'];
+            $totales['estudiantes_f'] += $desglose['estudiantes_f'];
+            $totales['estudiantes_m'] += $desglose['estudiantes_m'];
             $totales['total_estudiantes'] += $desglose['total_estudiantes'];
-            $totales['empleados_f']       += $desglose['empleados_f'];
-            $totales['empleados_m']       += $desglose['empleados_m'];
-            $totales['total_empleados']   += $desglose['total_empleados'];
-            $totales['apoyos']            += $desglose['total_apoyos_otros'];
-            $totales['gran_total']        += $desglose['total_comidas'];
+            $totales['empleados_f'] += $desglose['empleados_f'];
+            $totales['empleados_m'] += $desglose['empleados_m'];
+            $totales['total_empleados'] += $desglose['total_empleados'];
+            $totales['apoyos'] += $desglose['total_apoyos_otros'];
+            $totales['gran_total'] += $desglose['total_comidas'];
         }
 
         return [
-            'mes'                  => self::getMesNombre($mes),
-            'mesNumero'            => $mes,
-            'anio'                 => $anio,
-            'semanas'              => $semanas,
-            'totales'              => (object) $totales,
-            'granTotal'            => $totales['gran_total'],
+            'mes' => self::getMesNombre($mes),
+            'mesNumero' => $mes,
+            'anio' => $anio,
+            'semanas' => $semanas,
+            'totales' => (object) $totales,
+            'granTotal' => $totales['gran_total'],
             'servicioSeleccionado' => $servicio && $servicio !== '0' ? $servicio : 'TODOS',
-            'tipoSeleccionado'     => $tipo ?: 'TODOS',
+            'tipoSeleccionado' => $tipo ?: 'TODOS',
         ];
     }
 }

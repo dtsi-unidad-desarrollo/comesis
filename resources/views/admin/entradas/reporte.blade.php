@@ -188,10 +188,11 @@
             <tr>
                 <td style="width: 18%; text-align: left;">
                     <img src="{{ public_path('assets/img/logo.png') }}" alt="Logo UNELLEZ" style="height: 80px;"
-                         onerror="this.style.display='none'">
+                        onerror="this.style.display='none'">
                 </td>
                 <td style="width: 54%; text-align: center;">
-                    <div class="title-main">Universidad Nacional Experimental<br>de los Llanos Occidentales Ezequiel Zamora</div>
+                    <div class="title-main">Universidad Nacional Experimental<br>de los Llanos Occidentales Ezequiel
+                        Zamora</div>
                     <div class="subtitle">VICERRECTORADO DE PLANIFICACIÓN Y DESARROLLO SOCIAL — SEDE BARINAS</div>
                     <div class="subtitle" style="font-weight: bold; color: #0d6efd; margin-top: 4px;">
                         REPORTE DIARIO DE COMEDOR (CONTROL DE BANDEJAS)
@@ -244,7 +245,8 @@
                     </td>
                     <td class="text-center">{{ number_format($estudiantes_f) }}</td>
                     <td class="text-center">{{ number_format($estudiantes_m) }}</td>
-                    <td class="text-center" style="font-weight: bold; background: #f8fafc;">{{ number_format($total_estudiantes) }}</td>
+                    <td class="text-center" style="font-weight: bold; background: #f8fafc;">
+                        {{ number_format($total_estudiantes) }}</td>
                 </tr>
 
                 <!-- Empleados -->
@@ -255,7 +257,8 @@
                     </td>
                     <td class="text-center">{{ number_format($empleados_f) }}</td>
                     <td class="text-center">{{ number_format($empleados_m) }}</td>
-                    <td class="text-center" style="font-weight: bold; background: #f8fafc;">{{ number_format($total_empleados) }}</td>
+                    <td class="text-center" style="font-weight: bold; background: #f8fafc;">
+                        {{ number_format($total_empleados) }}</td>
                 </tr>
 
                 <!-- Apoyos Institucionales -->
@@ -266,18 +269,20 @@
                     </td>
                     <td class="text-center" style="color: #777;">—</td>
                     <td class="text-center" style="color: #777;">—</td>
-                    <td class="text-center" style="font-weight: bold; background: #f8fafc;">{{ number_format($apoyos) }}</td>
+                    <td class="text-center" style="font-weight: bold; background: #f8fafc;">{{ number_format($apoyos) }}
+                    </td>
                 </tr>
 
                 @if(($eventuales + $otros) > 0)
-                <tr>
-                    <td class="text-start">
-                        <strong>INVITADOS / EVENTUALES</strong>
-                    </td>
-                    <td class="text-center" style="color: #777;">—</td>
-                    <td class="text-center" style="color: #777;">—</td>
-                    <td class="text-center" style="font-weight: bold; background: #f8fafc;">{{ number_format($eventuales + $otros) }}</td>
-                </tr>
+                    <tr>
+                        <td class="text-start">
+                            <strong>INVITADOS / EVENTUALES</strong>
+                        </td>
+                        <td class="text-center" style="color: #777;">—</td>
+                        <td class="text-center" style="color: #777;">—</td>
+                        <td class="text-center" style="font-weight: bold; background: #f8fafc;">
+                            {{ number_format($eventuales + $otros) }}</td>
+                    </tr>
                 @endif
 
                 <!-- Fila de Totales de Entradas -->
@@ -285,7 +290,8 @@
                     <td class="text-start"><strong>TOTAL BANDEJAS ENTREGADAS</strong></td>
                     <td class="text-center"><strong>{{ number_format($total_femenino) }}</strong></td>
                     <td class="text-center"><strong>{{ number_format($total_masculino) }}</strong></td>
-                    <td class="text-center" style="font-size: 13px; color: #0d6efd;"><strong>{{ number_format($total_comidas) }}</strong></td>
+                    <td class="text-center" style="font-size: 13px; color: #0d6efd;">
+                        <strong>{{ number_format($total_comidas) }}</strong></td>
                 </tr>
 
                 <!-- Fila de Balance Matemático -->
@@ -294,8 +300,10 @@
                     <td class="text-center"><strong>{{ number_format($capacidadDiaria) }}</strong></td>
                 </tr>
                 <tr class="row-balance">
-                    <td colspan="3" class="text-end" style="color: #991b1b;">BANDEJAS SIN ENTREGAR (CAPACIDAD − ENTREGADAS):</td>
-                    <td class="text-center" style="color: #991b1b;"><strong>{{ number_format($bandejasSinEntregar) }}</strong></td>
+                    <td colspan="3" class="text-end" style="color: #991b1b;">BANDEJAS SIN ENTREGAR (CAPACIDAD −
+                        ENTREGADAS):</td>
+                    <td class="text-center" style="color: #991b1b;">
+                        <strong>{{ number_format($bandejasSinEntregar) }}</strong></td>
                 </tr>
             </tbody>
         </table>
@@ -305,12 +313,14 @@
             <tr>
                 <td>
                     <span class="sign-line"></span>
-                    <div><strong>Por la Universidad (UNELLEZ)</strong><br>Coordinación de Comedor / VPDS<br>Firma y Sello</div>
+                    <div><strong>Por la Universidad (UNELLEZ)</strong><br>Coordinación de Comedor / VPDS<br>Firma y
+                        Sello</div>
                     <span class="stamp-box">Sello Oficial</span>
                 </td>
                 <td>
                     <span class="sign-line"></span>
-                    <div><strong>Por la Empresa Prestadora de Servicio</strong><br>Administración / Concesionario<br>Firma y Sello</div>
+                    <div><strong>Por la Empresa Prestadora de Servicio</strong><br>Administración /
+                        Concesionario<br>Firma y Sello</div>
                     <span class="stamp-box">Sello Oficial</span>
                 </td>
             </tr>

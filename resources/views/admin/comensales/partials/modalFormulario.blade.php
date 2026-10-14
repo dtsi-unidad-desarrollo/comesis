@@ -134,12 +134,7 @@
                                 <select name="tipo_comensal" class="form-select border-secondary-subtle" id="tipo_comensal_crear" required>
                                     <option value="">Seleccione tipo...</option>
                                     <option value="ESTUDIANTE" {{ old('tipo_comensal', $request->tipo_comensal ?? '') == 'ESTUDIANTE' ? 'selected' : '' }}>ESTUDIANTE</option>
-                                    <option value="ESTUDIANTE FORANEO" {{ old('tipo_comensal', $request->tipo_comensal ?? '') == 'ESTUDIANTE FORANEO' ? 'selected' : '' }}>ESTUDIANTE FORANEO</option>
-                                    <option value="PROFESOR" {{ old('tipo_comensal', $request->tipo_comensal ?? '') == 'PROFESOR' ? 'selected' : '' }}>PROFESOR</option>
-                                    <option value="ADMINISTRATIVO" {{ old('tipo_comensal', $request->tipo_comensal ?? '') == 'ADMINISTRATIVO' ? 'selected' : '' }}>ADMINISTRATIVO</option>
-                                    <option value="OBRERO" {{ old('tipo_comensal', $request->tipo_comensal ?? '') == 'OBRERO' ? 'selected' : '' }}>OBRERO</option>
                                     <option value="EMPLEADO" {{ old('tipo_comensal', $request->tipo_comensal ?? '') == 'EMPLEADO' ? 'selected' : '' }}>EMPLEADO</option>
-                                    <option value="EVENTUAL" {{ old('tipo_comensal', $request->tipo_comensal ?? '') == 'EVENTUAL' ? 'selected' : '' }}>EVENTUAL</option>
                                 </select>
                                 <div class="invalid-feedback">Por favor, seleccione el tipo de comensal.</div>
                             </div>
