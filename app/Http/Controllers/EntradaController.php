@@ -37,34 +37,34 @@ class EntradaController extends Controller
      */
     public function getTiposDisponibles(): array
     {
-        $base = [
+        return $base = [
             "ESTUDIANTE",
             "EMPLEADO",
             "APOYO"
         ];
 
-        try {
-            $dbEntradas = Entrada::distinct()
-                ->whereNotNull('tipo_comensal')
-                ->where('tipo_comensal', '!=', '')
-                ->pluck('tipo_comensal')
-                ->toArray();
+        // try {
+        //     $dbEntradas = Entrada::distinct()
+        //         ->whereNotNull('tipo_comensal')
+        //         ->where('tipo_comensal', '!=', '')
+        //         ->pluck('tipo_comensal')
+        //         ->toArray();
 
-            $dbComensales = \App\Models\Comensale::distinct()
-                ->whereNotNull('tipo_comensal')
-                ->where('tipo_comensal', '!=', '')
-                ->pluck('tipo_comensal')
-                ->toArray();
+        //     $dbComensales = \App\Models\Comensale::distinct()
+        //         ->whereNotNull('tipo_comensal')
+        //         ->where('tipo_comensal', '!=', '')
+        //         ->pluck('tipo_comensal')
+        //         ->toArray();
 
-            return collect(array_merge($base, $dbEntradas, $dbComensales))
-                ->map(fn($t) => strtoupper(trim($t)))
-                ->unique()
-                ->filter()
-                ->values()
-                ->all();
-        } catch (\Throwable $th) {
-            return $base;
-        }
+        //     return collect(array_merge($base, $dbEntradas, $dbComensales))
+        //         ->map(fn($t) => strtoupper(trim($t)))
+        //         ->unique()
+        //         ->filter()
+        //         ->values()
+        //         ->all();
+        // } catch (\Throwable $th) {
+        //     return $base;
+        // }
     }
 
     /**
