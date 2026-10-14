@@ -39,12 +39,7 @@ class EntradaController extends Controller
     {
         $base = [
             "ESTUDIANTE",
-            "ESTUDIANTE FORANEO",
             "EMPLEADO",
-            "PROFESOR",
-            "ADMINISTRATIVO",
-            "OBRERO",
-            "EVENTUAL",
             "APOYO"
         ];
 
@@ -106,11 +101,11 @@ class EntradaController extends Controller
                     $tipo = trim($request->tipo);
                     $query->where(function ($q) use ($tipo) {
                         $q->where('tipo_comensal', $tipo)
-                          ->orWhere('sub_tipo', $tipo)
-                          ->orWhereHas('comensal', function ($qc) use ($tipo) {
-                              $qc->where('tipo_comensal', $tipo)
-                                 ->orWhere('sub_tipo', $tipo);
-                          });
+                            ->orWhere('sub_tipo', $tipo)
+                            ->orWhereHas('comensal', function ($qc) use ($tipo) {
+                                $qc->where('tipo_comensal', $tipo)
+                                    ->orWhere('sub_tipo', $tipo);
+                            });
                     });
                 }
 
@@ -118,13 +113,13 @@ class EntradaController extends Controller
                     $filtro = trim($request->filtro);
                     $query->where(function ($q) use ($filtro) {
                         $q->where('cedula', 'LIKE', "%{$filtro}%")
-                          ->orWhere('nombres', 'LIKE', "%{$filtro}%")
-                          ->orWhere('apellidos', 'LIKE', "%{$filtro}%")
-                          ->orWhere('sub_tipo', 'LIKE', "%{$filtro}%")
-                          ->orWhere('carrera', 'LIKE', "%{$filtro}%")
-                          ->orWhereHas('comensal', function ($qc) use ($filtro) {
-                              $qc->where('sub_tipo', 'LIKE', "%{$filtro}%");
-                          });
+                            ->orWhere('nombres', 'LIKE', "%{$filtro}%")
+                            ->orWhere('apellidos', 'LIKE', "%{$filtro}%")
+                            ->orWhere('sub_tipo', 'LIKE', "%{$filtro}%")
+                            ->orWhere('carrera', 'LIKE', "%{$filtro}%")
+                            ->orWhereHas('comensal', function ($qc) use ($filtro) {
+                                $qc->where('sub_tipo', 'LIKE', "%{$filtro}%");
+                            });
                     });
                 }
 
@@ -136,15 +131,15 @@ class EntradaController extends Controller
             // Estadísticas rápidas de hoy
             $hoy = Carbon::now()->format('Y-m-d');
             $statsHoy = [
-                'total'       => Entrada::whereDate('fecha', $hoy)->count(),
+                'total' => Entrada::whereDate('fecha', $hoy)->count(),
                 'estudiantes' => Entrada::whereDate('fecha', $hoy)->whereIn('tipo_comensal', ['ESTUDIANTE', 'ESTUDIANTE FORANEO'])->count(),
-                'empleados'   => Entrada::whereDate('fecha', $hoy)->where(function ($q) {
+                'empleados' => Entrada::whereDate('fecha', $hoy)->where(function ($q) {
                     $q->where('tipo_comensal', 'EMPLEADO')
-                      ->orWhere('tipo_comensal', 'PROFESOR')
-                      ->orWhere('tipo_comensal', 'ADMINISTRATIVO')
-                      ->orWhere('tipo_comensal', 'OBRERO');
+                        ->orWhere('tipo_comensal', 'PROFESOR')
+                        ->orWhere('tipo_comensal', 'ADMINISTRATIVO')
+                        ->orWhere('tipo_comensal', 'OBRERO');
                 })->count(),
-                'apoyos'      => Entrada::whereDate('fecha', $hoy)->where('tipo_comensal', 'APOYO')->count(),
+                'apoyos' => Entrada::whereDate('fecha', $hoy)->where('tipo_comensal', 'APOYO')->count(),
             ];
 
             $respuesta = $this->data->respuesta;
