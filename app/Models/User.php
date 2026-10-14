@@ -56,11 +56,11 @@ class User extends Authenticatable
 
     public function hasPermiso(string $nombre): bool
     {
-        if ($this->rol === 1) {
+        if ($this->isRoot()) {
             return true;
         }
 
-        $role = $this->role;
+        $role = ($this->rol instanceof Role) ? $this->rol : $this->role;
         if (! $role) {
             return false;
         }
@@ -70,15 +70,35 @@ class User extends Authenticatable
 
     public function hasAnyPermiso(array $nombres): bool
     {
-        if ($this->rol === 1) {
+        if ($this->isRoot()) {
             return true;
         }
 
-        $role = $this->role;
+        $role = ($this->rol instanceof Role) ? $this->rol : $this->role;
         if (! $role) {
             return false;
         }
 
         return $role->permisos()->whereIn('nombre', $nombres)->exists();
+    }
+
+    public function isRoot(): bool
+    {
+        if ($this->rol instanceof Role) {
+            return (int)$this->rol->id === 1 || strtoupper($this->rol->nombre ?? '') === 'ROOT';
+        }
+
+        $rolId = is_numeric($this->rol) ? (int)$this->rol : 0;
+        return $rolId === 1 || strtoupper($this->role?->nombre ?? '') === 'ROOT';
+    }
+
+    public function isAdmin(): bool
+    {
+        if ($this->rol instanceof Role) {
+            return (int)$this->rol->id === 2 || strtoupper($this->rol->nombre ?? '') === 'ADMINISTRADOR';
+        }
+
+        $rolId = is_numeric($this->rol) ? (int)$this->rol : 0;
+        return $rolId === 2 || strtoupper($this->role?->nombre ?? '') === 'ADMINISTRADOR';
     }
 }

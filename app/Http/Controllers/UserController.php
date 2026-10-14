@@ -39,7 +39,11 @@ class UserController extends Controller
     public function create()
     {
         try {
-            $roles = Role::where('estatus', 1)->where('nombre', '!=', 'ROOT')->get();
+            $rolesQuery = Role::where('estatus', 1);
+            if (!auth()->check() || !auth()->user()->isRoot()) {
+                $rolesQuery->where('id', '!=', 1)->whereRaw('UPPER(nombre) != ?', ['ROOT']);
+            }
+            $roles = $rolesQuery->get();
             return view('admin.usuarios.crear', compact('roles'));
         } catch (\Throwable $th) {
             $errorInfo = Helpers::getMensajeError($th, "Error al Consultar datos de usuarios en el metodo create,");
@@ -51,7 +55,13 @@ class UserController extends Controller
     public function store(StoreUserRequest $request)
     {
         try {
-
+            // Protección: Si el usuario autenticado no es ROOT, no puede asignar el rol ROOT
+            if (!auth()->check() || !auth()->user()->isRoot()) {
+                $rolTarget = Role::find($request->rol);
+                if ((int)$request->rol === 1 || ($rolTarget && strtoupper($rolTarget->nombre) === 'ROOT')) {
+                    abort(403, 'No tienes permisos para asignar el rol ROOT.');
+                }
+            }
 
             // Seteamos la foto
             if (isset($request->file)) {
@@ -82,10 +92,18 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-
         try {
+            // Protección: Si el usuario a editar es ROOT y el usuario autenticado no es ROOT, denegar acceso
+            if ($user->isRoot() && (!auth()->check() || !auth()->user()->isRoot())) {
+                abort(403, 'No tienes permisos para visualizar o editar este usuario.');
+            }
+
             $usuario = $user;
-            $roles = Role::where('estatus', 1)->where('nombre', '!=', 'ROOT')->get();
+            $rolesQuery = Role::where('estatus', 1);
+            if (!auth()->check() || !auth()->user()->isRoot()) {
+                $rolesQuery->where('id', '!=', 1)->whereRaw('UPPER(nombre) != ?', ['ROOT']);
+            }
+            $roles = $rolesQuery->get();
             return view('admin.usuarios.editar', compact('usuario', 'roles'));
         } catch (\Throwable $th) {
             $errorInfo = Helpers::getMensajeError($th, "Error de consula,");
@@ -96,6 +114,19 @@ class UserController extends Controller
     public function update(UpdateUserRequest $request, User $user)
     {
         try {
+            // Protección: No permitir editar usuario ROOT si no se es ROOT
+            if ($user->isRoot() && (!auth()->check() || !auth()->user()->isRoot())) {
+                abort(403, 'No tienes permisos para modificar este usuario.');
+            }
+
+            // Protección: No permitir asignar rol ROOT si no se es ROOT
+            if ((!auth()->check() || !auth()->user()->isRoot()) && isset($request->rol)) {
+                $rolTarget = Role::find($request->rol);
+                if ((int)$request->rol === 1 || ($rolTarget && strtoupper($rolTarget->nombre) === 'ROOT')) {
+                    abort(403, 'No tienes permisos para asignar el rol ROOT.');
+                }
+            }
+
             if ($user->email != $request->email) {
                 $userExits =  User::where('email', $request->email)->first();
                 if ($userExits) {
@@ -145,6 +176,13 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         try {
+            if ($user->isRoot()) {
+                abort(403, 'El usuario ROOT no puede ser eliminado.');
+            }
+            if ($user->id === auth()->id()) {
+                abort(403, 'No puedes eliminar tu propia cuenta.');
+            }
+
             $user->delete();
             AuditLogger::log('delete_user', 'user', $user->id, [
                 'message' => 'Se eliminó un usuario',

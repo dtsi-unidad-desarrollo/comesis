@@ -64,6 +64,7 @@ Route::middleware(['auth', 'validarRol', 'handleAtm', 'checkAllowedIp'])->group(
     /** Control de servicios */
     Route::resource('/servicios', ServicioController::class)->names('admin.servicios');
     /** Control de ATMs */
+    Route::post('/atms/{atm}/release', [AtmController::class, 'release'])->name('admin.atms.release');
     Route::resource('/atms', AtmController::class)->names('admin.atms');
     Route::post('/atms/{atm}/open', [AtmController::class, 'open'])->name('admin.atms.open');
 
@@ -78,9 +79,12 @@ Route::middleware(['auth', 'validarRol', 'handleAtm', 'checkAllowedIp'])->group(
     Route::resource('/users', UserController::class)->names('admin.users');
     Route::get('/perfil', [ProfileController::class, 'index'])->name('admin.perfil.index');
     Route::put('/perfil', [ProfileController::class, 'update'])->name('admin.perfil.update');
+    Route::post('/perfil/revoke-other-sessions', [ProfileController::class, 'revokeOtherSessions'])->name('admin.perfil.revokeOtherSessions');
     Route::get('/auditoria', [AuditLogController::class, 'index'])->name('admin.auditoria.index');
+    Route::post('/auditoria/sessions/{id}/revoke', [AuditLogController::class, 'revokeSession'])->name('admin.auditoria.revokeSession');
     Route::get('/auditoria/export-excel', [AuditLogController::class, 'exportExcel'])->name('admin.auditoria.export.excel');
     Route::get('/auditoria/export-pdf', [AuditLogController::class, 'exportPdf'])->name('admin.auditoria.export.pdf');
+    Route::post('/session/keepalive', [LoginController::class, 'keepalive'])->name('session.keepalive');
     Route::resource('/allowed-ips', AllowedIpController::class)->names('admin.allowed-ips');
     
     /** Rutas de Comensales */

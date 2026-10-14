@@ -20,9 +20,13 @@ Estas reglas se aplican automáticamente a todo el desarrollo realizado en este 
   - Tablas de Base de Datos y Columnas: `snake_case` (tablas en plural, columnas en singular).
 - **Tipado**: Especificar los tipos de retorno de los métodos y los tipos de los argumentos de las funciones donde sea posible.
 
-## 3. Frontend (Blade & Mix)
+## 3. Frontend (Blade & Mix) y Patrones de Diseño UI
 - Mantener las vistas Blade ordenadas y usar componentes (`<x-component>`) o includes (`@include`) para secciones repetitivas.
 - Usar `Laravel Mix` (`webpack.mix.js`) para compilar los assets (CSS/JS). No colocar lógica compleja de JS directamente en las plantillas Blade, usar archivos JS modulares y compilarlos.
+- **Regla Estricta de Contraste y Legibilidad (UI/UX)**:
+  - **NUNCA agregar letras o textos blancos sobre un fondo blanco** (ni sobre fondos claros/grises pálidos).
+  - Todo elemento sobre fondo blanco o claro debe usar tipografía oscura o con contraste alto (`text-dark`, `text-secondary`, `text-muted`, etc.).
+  - Las clases de texto blanco (`text-white`, `text-light`) quedan reservadas única y exclusivamente para contenedores con fondos oscuros, degradados intensos (ej. azul institucional) o elementos con contrastes debidamente validados.
 
 ## 4. Dependencias Clave
 - **Generación de PDFs**: Utilizar la dependencia instalada `barryvdh/laravel-dompdf`.

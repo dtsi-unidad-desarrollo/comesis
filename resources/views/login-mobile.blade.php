@@ -1,119 +1,169 @@
 @extends('layouts.index')
 
-@section('title', 'COMESIS - Login')
+@section('title', 'COMESIS - Iniciar Sesión')
 
 @section('content')
-    <section class="section min-vh-100 d-flex align-items-center justify-content-center position-relative overflow-hidden" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-        <div class="container py-5 position-relative">
-            <div class="row justify-content-center">
-                <div class="col-12 col-sm-10 col-md-8 col-lg-7 col-xl-6">
-                    <div class="card border-0 rounded-5 shadow-xl overflow-hidden" style="backdrop-filter: blur(8px); background: rgba(255, 255, 255, 0.95);">
-                        <div class="row g-0">
-                            <div class="col-12 bg-white p-4 p-sm-5 d-flex flex-column justify-content-center">
-                                <div class="text-center mb-4 mb-sm-5">
-                                    <img src="{{ asset('assets/img/logo.png') }}" alt="logo" class="img-fluid mb-3" style="max-width: 92px;">
-                                    <h3 class="fw-bold mb-2">Iniciar Sesión</h3>
-                                    <p class="text-muted mb-0">Ingresa tus credenciales para acceder al portal de COMESIS.</p>
-                                </div>
+    <section class="section min-vh-100 d-flex flex-column align-items-center justify-content-center position-relative overflow-hidden py-4 px-3"
+        style="background: linear-gradient(145deg, #0b347b 0%, #05193d 100%);">
 
-                                <form action="{{ route('login.store') }}" method="post" class="row g-4 needs-validation" novalidate>
-                                    @csrf
-                                    @method('post')
+        <!-- Destellos sutiles de fondo -->
+        <div class="position-absolute top-0 start-0 w-100 h-100 pointer-events-none"
+            style="background: radial-gradient(circle at 50% 20%, rgba(13, 110, 253, 0.3) 0%, transparent 65%);">
+        </div>
 
-                                    <div class="col-12">
-                                        <label for="yourUsername" class="form-label fw-semibold">Correo Electrónico</label>
-                                        <div class="input-group rounded-3 shadow-sm border-0" style="overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
-                                            <span class="input-group-text bg-light border-0" id="inputGroupPrepend">
-                                                <i class="bi bi-envelope text-primary"></i>
-                                            </span>
-                                            <input type="text" name="email" class="form-control form-control-lg border-0 ps-0" id="yourUsername" placeholder="usuario@dominio.com" autocomplete="username" required autofocus>
-                                            <div class="invalid-feedback">Por favor, ingrese su correo electrónico.</div>
-                                        </div>
-                                        @error('email')
-                                            <div class="form-text text-danger">{{ $message }}</div>
-                                        @enderror
-                                    </div>
+        <div class="container position-relative z-index-1" style="max-width: 460px;">
+            <!-- Cabecera Móvil: Logo y Palabra COMESIS al lado -->
+            <div class="d-flex align-items-center justify-content-center gap-3 mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center p-2 rounded-4 flex-shrink-0"
+                    style="background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.16); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);">
+                    <img src="{{ asset('assets/img/logo.png') }}" alt="Logo COMESIS" class="img-fluid"
+                        style="height: 56px; width: auto; object-fit: contain; filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.4));">
+                </div>
+                <div>
+                    <h1 class="h3 fw-bold text-white mb-1" style="letter-spacing: -0.5px; line-height: 1.1;">COMESIS</h1>
+                    <span class="badge bg-white bg-opacity-20 text-white border border-white border-opacity-25 rounded-pill px-2.5 py-1 text-uppercase" style="letter-spacing: 0.6px; font-size: 10px;">
+                        <i class="bi bi-shield-check me-1"></i> Control de Comedor
+                    </span>
+                </div>
+            </div>
 
-                                    <div class="col-12">
-                                        <label for="yourPassword" class="form-label fw-semibold">Contraseña</label>
-                                        <div class="input-group rounded-3 shadow-sm border-0" style="overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
-                                            <span class="input-group-text bg-light border-0" id="passwordPrepend">
-                                                <i class="bi bi-lock text-primary"></i>
-                                            </span>
-                                            <input type="password" name="password" class="form-control form-control-lg border-0 ps-0" id="yourPassword" placeholder="••••••••" autocomplete="current-password" required>
-                                            <button class="btn btn-outline-secondary border-0" type="button" id="togglePassword">
-                                                <i class="bi bi-eye"></i>
-                                            </button>
-                                            <div class="invalid-feedback">Por favor, ingrese su contraseña.</div>
-                                        </div>
-                                        @error('password')
-                                            <div class="form-text text-danger">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-
-                                    <div class="col-12">
-                                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" name="rememberMe" value="true" id="rememberMe">
-                                                <label class="form-check-label text-muted" for="rememberMe">Recordar sesión</label>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-12 mt-3">
-                                        <button class="btn btn-primary btn-lg w-100 rounded-3 fw-semibold" type="submit" style="padding: 13px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
-                                            <i class="bi bi-box-arrow-in-right me-2"></i>
-                                            Acceder al Sistema
-                                        </button>
-                                    </div>
-                                </form>
-
-                                <div class="text-center mt-4">
-                                    <small class="text-muted">
-                                        <i class="bi bi-info-circle me-1"></i>
-                                        Para soporte técnico contacta al administrador del sistema.
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
+            <!-- Tarjeta de Acceso -->
+            <div class="card border-0 rounded-5 overflow-hidden"
+                style="backdrop-filter: blur(16px); background: rgba(255, 255, 255, 0.98); box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.65), 0 0 35px rgba(13, 110, 253, 0.25); border: 1px solid rgba(255, 255, 255, 0.15) !important;">
+                <div class="card-body p-4 p-sm-5">
+                    <div class="text-center mb-4">
+                        <h2 class="h4 fw-bold text-dark mb-1">Iniciar Sesión</h2>
+                        <p class="text-muted small mb-0">Ingresa tus credenciales para acceder al sistema</p>
                     </div>
 
+                    {{-- Alerta de expiración de sesión por inactividad --}}
+                    @if(request()->has('expired'))
+                        <div class="alert alert-warning border border-warning-subtle rounded-4 shadow-sm mb-3 py-2 px-3 small d-flex align-items-center" role="alert">
+                            <i class="bi bi-clock-history fs-4 me-2 text-warning flex-shrink-0"></i>
+                            <div>
+                                <strong>Sesión expirada:</strong> Tu sesión finalizó por inactividad. Inicia sesión nuevamente.
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Alerta de error de credenciales / acceso --}}
                     @error('mensaje')
-                        <div class="alert alert-danger bg-danger text-light border-0 alert-dismissible fade show mt-4 rounded-3 shadow-sm" role="alert">
-                            <i class="bi bi-exclamation-triangle me-2"></i>
-                            {{ $message }}
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                        <div class="alert alert-danger bg-danger-subtle text-danger border border-danger-subtle rounded-4 shadow-sm mb-3 py-2 px-3 small d-flex align-items-center" role="alert">
+                            <i class="bi bi-exclamation-octagon-fill fs-5 me-2 flex-shrink-0"></i>
+                            <div>{{ $message }}</div>
                         </div>
                     @enderror
+
+                    <form action="{{ route('login.store') }}" method="POST" class="row g-3 needs-validation" novalidate>
+                        @csrf
+
+                        {{-- Campo Usuario / Email --}}
+                        <div class="col-12">
+                            <label for="yourUsername" class="form-label fw-semibold text-secondary small mb-1">
+                                Usuario o Correo Electrónico
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-secondary-subtle text-primary">
+                                    <i class="bi bi-person-fill"></i>
+                                </span>
+                                <input type="text" name="email"
+                                    class="form-control form-control-lg border-secondary-subtle fs-6" id="yourUsername"
+                                    placeholder="usuario / correo@unellez.edu.ve" value="{{ old('email') }}"
+                                    autocomplete="username" required autofocus inputmode="email">
+                                <div class="invalid-feedback">Por favor, ingrese su usuario o correo.</div>
+                            </div>
+                            @error('email')
+                                <div class="form-text text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        {{-- Campo Contraseña --}}
+                        <div class="col-12">
+                            <label for="yourPassword" class="form-label fw-semibold text-secondary small mb-1">
+                                Contraseña
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-secondary-subtle text-primary">
+                                    <i class="bi bi-lock-fill"></i>
+                                </span>
+                                <input type="password" name="password"
+                                    class="form-control form-control-lg border-secondary-subtle fs-6" id="yourPassword"
+                                    placeholder="••••••••" autocomplete="current-password" required>
+                                <button class="btn btn-light border border-secondary-subtle border-start-0 text-secondary"
+                                    type="button" id="togglePassword" title="Mostrar/Ocultar contraseña" aria-label="Mostrar u ocultar contraseña">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <div class="invalid-feedback">Por favor, ingrese su contraseña.</div>
+                            </div>
+                            @error('password')
+                                <div class="form-text text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        {{-- Recordar sesión --}}
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="rememberMe" value="true" id="rememberMe">
+                                <label class="form-check-label text-muted small" for="rememberMe">
+                                    Mantener sesión iniciada
+                                </label>
+                            </div>
+                        </div>
+
+                        {{-- Botón de Acceso Principal --}}
+                        <div class="col-12 mt-3">
+                            <button class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center py-3"
+                                type="submit"
+                                style="background: linear-gradient(135deg, #0d6efd 0%, #0a47a3 100%); border: none; box-shadow: 0 8px 20px rgba(13, 110, 253, 0.35); transition: all 0.2s ease;">
+                                <i class="bi bi-box-arrow-in-right me-2 fs-5"></i>
+                                Acceder al Sistema
+                            </button>
+                        </div>
+                    </form>
+
+                    {{-- Pie del Formulario Móvil con raya finita y sutil --}}
+                    <div class="text-center mt-4 pt-3" style="border-top: 1px solid rgba(0, 0, 0, 0.06);">
+                        <small class="text-muted d-block mb-1">
+                            <i class="bi bi-shield-check text-primary me-1"></i>
+                            Acceso restringido &bull; UNELLEZ
+                        </small>
+                        <small class="text-muted" style="font-size: 11px;">
+                            DTSI &bull; Versión 2.5
+                        </small>
+                    </div>
                 </div>
             </div>
         </div>
 
         <style>
-            .shadow-xl {
-                box-shadow: 0 20px 40px rgba(0,0,0,0.1) !important;
+            .pointer-events-none {
+                pointer-events: none;
             }
+
+            .z-index-1 {
+                z-index: 1;
+            }
+
             .form-control:focus {
-                box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-                border-color: #667eea;
+                border-color: #0d6efd !important;
+                box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15) !important;
             }
-            .input-group-text {
-                background: #f8f9fa !important;
-                border: none !important;
-            }
+
+            .btn-primary:active,
             .btn-primary:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+                transform: translateY(-2px);
+                box-shadow: 0 12px 25px rgba(13, 110, 253, 0.45) !important;
             }
         </style>
 
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                var toggle = document.getElementById('togglePassword');
+                const toggle = document.getElementById('togglePassword');
                 if (toggle) {
                     toggle.addEventListener('click', function() {
-                        var passwordInput = document.getElementById('yourPassword');
-                        var icon = this.querySelector('i');
+                        const passwordInput = document.getElementById('yourPassword');
+                        const icon = this.querySelector('i');
+
                         if (passwordInput.type === 'password') {
                             passwordInput.type = 'text';
                             icon.classList.remove('bi-eye');

@@ -207,6 +207,9 @@
             document.addEventListener('keydown', function(event) {
                 if (event.key === 'Enter') {
                     event.preventDefault();
+                    if (window.ComesisPreloader) {
+                        window.ComesisPreloader.show('Punto de Control', 'Preparando siguiente registro...');
+                    }
                     window.location.href = "{{ route('admin.recepcion.index') }}";
                 }
             });

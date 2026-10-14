@@ -7,9 +7,23 @@
 <meta content="" name="description">
 <meta content="" name="keywords">
 
-<!-- Favicons -->
-<link href="{{ asset('assets/img/logo-img-circulo.png') }}" rel="icon">
-<link href="{{ asset('assets/img/logo-img-circulo.png') }}" rel="apple-touch-icon">
+<!-- Favicons & App Icons -->
+<link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+<link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/img/icons/favicon-16x16.png') }}">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/img/icons/favicon-32x32.png') }}">
+<link rel="icon" type="image/png" sizes="48x48" href="{{ asset('assets/img/icons/favicon-48x48.png') }}">
+<link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/img/icons/apple-touch-icon.png') }}">
+
+<!-- Web App / PWA & Desktop Installation -->
+<link rel="manifest" href="{{ asset('manifest.json') }}">
+<meta name="theme-color" content="#2563eb">
+<meta name="application-name" content="COMESIS">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="COMESIS">
+<meta name="msapplication-TileColor" content="#2563eb">
+<meta name="msapplication-TileImage" content="{{ asset('assets/img/icons/icon-192x192.png') }}">
 
 <!-- Google Fonts -->
 {{-- <link href="https://fonts.gstatic.com" rel="preconnect"> --}}
@@ -39,6 +53,17 @@
 <script src="{{ asset('js/jquery.min.js') }}" defer></script>
 <script src="{{ asset('js/jquery-confirm.js') }}" defer></script>
 <script src="{{ asset('js/chart.js') }}" defer></script>
+
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('{{ asset('sw.js') }}').catch(function(err) {
+                console.log('SW registration error:', err);
+            });
+        });
+    }
+</script>
+
 
 
 

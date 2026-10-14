@@ -7,6 +7,7 @@ use App\Models\Torniquete;
 use App\Http\Requests\StoreAtmRequest;
 use App\Http\Requests\UpdateAtmRequest;
 use App\Models\Helpers;
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http as HttpClient;
 use Illuminate\Http\Response;
@@ -20,7 +21,7 @@ class AtmController extends Controller
      */
     public function index()
     {
-        $atms = Atm::with('torniquete')->orderBy('id','desc')->paginate(20);
+        $atms = Atm::with(['torniquete', 'user'])->orderBy('id', 'desc')->paginate(20);
         if (request()->wantsJson()) return response()->json($atms);
         return view('admin.atm.index', compact('atms'));
     }
@@ -141,5 +142,24 @@ class AtmController extends Controller
         } catch (\Throwable $th) {
             return response()->json(['message' => 'Error sending open command', 'error' => $th->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    /**
+     * Libera la asignación de turno/operador de la taquilla.
+     */
+    public function release(Atm $atm)
+    {
+        $operadorNombre = $atm->user ? $atm->user->nombre : ($atm->user_id ? 'Usuario #' . $atm->user_id : 'Sin operador');
+        $atm->release();
+
+        AuditLogger::log('atm_manual_release', 'atm', $atm->id, [
+            'message' => "Se liberó manualmente la taquilla '{$atm->nombre}' que estaba ocupada por '{$operadorNombre}'.",
+            'atm' => $atm->nombre,
+            'operador' => $operadorNombre,
+        ]);
+
+        return redirect()->route('admin.atms.index')
+            ->with('mensaje', "La taquilla '{$atm->nombre}' ha sido liberada exitosamente. Ya se encuentra disponible para otros operadores.")
+            ->with('estatus', Response::HTTP_OK);
     }
 }

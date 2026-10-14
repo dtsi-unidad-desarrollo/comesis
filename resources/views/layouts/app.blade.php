@@ -6,6 +6,7 @@
 </head>
 
 <body>
+  @include('partials.preloader')
   @include('partials.header')
   @include('partials.sidebar')
   
@@ -21,6 +22,7 @@
   {{-- <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a> --}}
 
  @include('partials.footer')
+ @include('partials.idle-timeout')
 
  @yield('scripts')
 </body>

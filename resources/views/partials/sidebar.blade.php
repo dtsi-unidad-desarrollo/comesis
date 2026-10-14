@@ -1,10 +1,10 @@
 @php
     $isComensalesActive = request()->routeIs('admin.comensales.*') || request()->routeIs('admin.apoyos.*') || request()->routeIs('admin.entradas.*');
-    $isConfigActive = request()->routeIs('admin.servicios.*') || request()->routeIs('admin.users.*') || 
-                      request()->routeIs('admin.roles.*') || request()->routeIs('admin.permisos.*') || 
-                      request()->routeIs('admin.torniquetes.*') || request()->routeIs('admin.atms.*') || 
-                      request()->routeIs('admin.auditoria.*') || request()->routeIs('admin.allowed-ips.*') || 
-                      request()->routeIs('admin.sincronizar.*');
+    $isConfigActive = request()->routeIs('admin.servicios.*') || request()->routeIs('admin.users.*') ||
+        request()->routeIs('admin.roles.*') || request()->routeIs('admin.permisos.*') ||
+        request()->routeIs('admin.torniquetes.*') || request()->routeIs('admin.atms.*') ||
+        request()->routeIs('admin.auditoria.*') || request()->routeIs('admin.allowed-ips.*') ||
+        request()->routeIs('admin.sincronizar.*');
     $isUsersActive = request()->routeIs('admin.users.*');
 @endphp
 
@@ -48,19 +48,17 @@
                 <li class="nav-heading mt-3">Gestión de Comedor</li>
 
                 <li class="nav-item">
-                    <a class="nav-link {{ $isComensalesActive ? '' : 'collapsed' }}"
-                        data-bs-target="#nav-comensales" data-bs-toggle="collapse" href="#"
-                        aria-expanded="{{ $isComensalesActive ? 'true' : 'false' }}">
+                    <a class="nav-link {{ $isComensalesActive ? '' : 'collapsed' }}" data-bs-target="#nav-comensales"
+                        data-bs-toggle="collapse" href="#" aria-expanded="{{ $isComensalesActive ? 'true' : 'false' }}">
                         <span class="nav-icon-wrap">
                             <i class="bi bi-people-fill"></i>
                         </span>
                         <span>Comensales</span>
                         <i class="bi bi-chevron-down"></i>
                     </a>
-                    <ul id="nav-comensales"
-                        class="nav-content collapse {{ $isComensalesActive ? 'show' : '' }}"
+                    <ul id="nav-comensales" class="nav-content collapse {{ $isComensalesActive ? 'show' : '' }}"
                         data-bs-parent="#sidebar-nav">
-                        
+
                         @if (Auth::user()->hasPermiso('comensales'))
                             <li>
                                 <a class="{{ request()->routeIs('admin.comensales.*') ? 'active' : '' }}"
@@ -96,17 +94,15 @@
                 <li class="nav-heading mt-3">Sistema</li>
 
                 <li class="nav-item">
-                    <a class="nav-link {{ $isConfigActive ? '' : 'collapsed' }}"
-                        data-bs-target="#nav-configuracion" data-bs-toggle="collapse" href="#"
-                        aria-expanded="{{ $isConfigActive ? 'true' : 'false' }}">
+                    <a class="nav-link {{ $isConfigActive ? '' : 'collapsed' }}" data-bs-target="#nav-configuracion"
+                        data-bs-toggle="collapse" href="#" aria-expanded="{{ $isConfigActive ? 'true' : 'false' }}">
                         <span class="nav-icon-wrap">
                             <i class="bi bi-gear-wide-connected"></i>
                         </span>
                         <span>Configuración</span>
                         <i class="bi bi-chevron-down"></i>
                     </a>
-                    <ul id="nav-configuracion"
-                        class="nav-content collapse {{ $isConfigActive ? 'show' : '' }}"
+                    <ul id="nav-configuracion" class="nav-content collapse {{ $isConfigActive ? 'show' : '' }}"
                         data-bs-parent="#sidebar-nav">
 
                         <!-- Servicios -->
@@ -184,6 +180,9 @@
                                     <span>Registro de Auditoría</span>
                                 </a>
                             </li>
+                        @endif
+
+                        @if (Auth::user()->hasPermiso('allowed-ips'))
                             <li>
                                 <a class="{{ request()->routeIs('admin.allowed-ips.*') ? 'active' : '' }}"
                                     href="{{ route('admin.allowed-ips.index') }}">
@@ -194,7 +193,7 @@
                         @endif
 
                         <!-- Sincronización DUX / Terepaima -->
-                        @if (Auth::user()->hasAnyPermiso(['configuracion', 'comensales']))
+                        @if (Auth::user()->hasPermiso('sincronizarData'))
                             <li>
                                 <a class="{{ request()->routeIs('admin.sincronizar.*') ? 'active' : '' }}"
                                     href="{{ route('admin.sincronizar.data.index') }}">
@@ -218,7 +217,8 @@
                 <span class="badge bg-primary-subtle text-primary fw-semibold" style="font-size: 10px;">
                     COMESIS v2.5
                 </span>
-                <span class="badge bg-success-subtle text-success d-inline-flex align-items-center" style="font-size: 10px;">
+                <span class="badge bg-success-subtle text-success d-inline-flex align-items-center"
+                    style="font-size: 10px;">
                     <span class="rounded-circle bg-success me-1" style="width: 6px; height: 6px;"></span> Activo
                 </span>
             </div>

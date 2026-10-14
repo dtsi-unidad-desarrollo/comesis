@@ -6,6 +6,7 @@
 </head>
 
 <body>
+  @include('partials.preloader')
 
   <main>
     <div class="container">

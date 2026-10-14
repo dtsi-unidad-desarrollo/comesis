@@ -168,7 +168,17 @@ class Helpers extends Model
 
     public static function getUsuarios()
     {
-        $usuarios = User::where('rol', '!=', 1)->get();
+        $query = User::query();
+
+        // Si el usuario autenticado NO es ROOT, nunca mostrar usuarios con rol ROOT
+        if (!auth()->check() || !auth()->user()->isRoot()) {
+            $query->where('rol', '!=', 1)
+                  ->whereDoesntHave('role', function ($q) {
+                      $q->whereRaw('UPPER(nombre) = ?', ['ROOT']);
+                  });
+        }
+
+        $usuarios = $query->get();
         foreach ($usuarios as $key => $usuario) {
             $usuarios[$key] = self::getUsuario($usuario->id);
         }

@@ -75,6 +75,7 @@
                                 <tr>
                                     <th scope="col" class="ps-4">Taquilla / Terminal</th>
                                     <th scope="col">Torniquete Vinculado</th>
+                                    <th scope="col">Estado / Turno</th>
                                     <th scope="col" class="text-center">Prueba de Apertura</th>
                                     <th scope="col" class="text-center pe-4">Acciones</th>
                                 </tr>
@@ -113,6 +114,29 @@
                                             @endif
                                         </td>
 
+                                        {{-- Estado de Turno / Operador --}}
+                                        <td>
+                                            @if ($atm->en_uso)
+                                                <div class="d-flex flex-column align-items-start gap-1">
+                                                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-1 fw-bold">
+                                                        <i class="bi bi-person-workspace text-warning me-1"></i>EN USO
+                                                    </span>
+                                                    <div class="small fw-semibold text-dark">
+                                                        <i class="bi bi-person-fill text-primary me-1"></i>{{ $atm->user->nombre ?? 'Usuario #' . $atm->user_id }}
+                                                    </div>
+                                                    @if ($atm->last_active_at)
+                                                        <small class="text-muted" style="font-size: 11px;">
+                                                            <i class="bi bi-clock-history me-1"></i>Activo {{ $atm->last_active_at->diffForHumans() }}
+                                                        </small>
+                                                    @endif
+                                                </div>
+                                            @else
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 fw-semibold">
+                                                    <i class="bi bi-check-circle-fill me-1"></i> DISPONIBLE
+                                                </span>
+                                            @endif
+                                        </td>
+
                                         {{-- Prueba de Apertura --}}
                                         <td class="text-center">
                                             @if($atm->torniquete && $atm->torniquete->endpoint_url)
@@ -128,6 +152,26 @@
                                         {{-- Acciones --}}
                                         <td class="text-center pe-4">
                                             <div class="d-inline-flex gap-1 align-items-center justify-content-center">
+                                                {{-- Botón Liberar Selección / Turno Huérfano --}}
+                                                @if ($atm->en_uso)
+                                                    <button type="button" 
+                                                            class="btn btn-sm btn-outline-primary rounded-circle shadow-sm p-0 d-inline-flex align-items-center justify-content-center" 
+                                                            style="width: 32px; height: 32px;" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#modalLiberarAtm{{ $atm->id }}" 
+                                                            title="Liberar taquilla (Cerrar turno huérfano)">
+                                                        <i class="bi bi-unlock-fill"></i>
+                                                    </button>
+                                                @else
+                                                    <button type="button" 
+                                                            class="btn btn-sm btn-light text-muted rounded-circle p-0 d-inline-flex align-items-center justify-content-center border" 
+                                                            style="width: 32px; height: 32px; opacity: 0.45; cursor: not-allowed;" 
+                                                            disabled 
+                                                            title="La taquilla no tiene turno activo">
+                                                        <i class="bi bi-unlock"></i>
+                                                    </button>
+                                                @endif
+
                                                 {{-- Editar --}}
                                                 <a href="{{ route('admin.atms.edit', $atm->id) }}" 
                                                    class="btn btn-sm btn-outline-warning rounded-circle shadow-sm p-0 d-inline-flex align-items-center justify-content-center" 
@@ -146,6 +190,53 @@
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </div>
+
+                                            {{-- Modal de Confirmación de Liberación de Turno --}}
+                                            @if ($atm->en_uso)
+                                                <div class="modal fade text-start" id="modalLiberarAtm{{ $atm->id }}" tabindex="-1" aria-hidden="true">
+                                                    <div class="modal-dialog modal-dialog-centered">
+                                                        <div class="modal-content border-0 shadow rounded-4">
+                                                            <div class="modal-header text-white py-3" style="background: linear-gradient(135deg, #0d6efd 0%, #0a47a3 100%);">
+                                                                <h5 class="modal-title fw-bold">
+                                                                    <i class="bi bi-unlock-fill me-2"></i>Liberar Taquilla
+                                                                </h5>
+                                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body p-4">
+                                                                <p class="mb-2">
+                                                                    ¿Desea forzar la liberación de la taquilla <strong class="text-dark">{{ $atm->nombre }}</strong>?
+                                                                </p>
+                                                                <div class="alert alert-light border rounded-3 p-3 my-3 small">
+                                                                    <div class="d-flex align-items-center mb-1">
+                                                                        <i class="bi bi-person-circle text-primary fs-5 me-2"></i>
+                                                                        <div>
+                                                                            <span class="text-muted">Operador asignado:</span>
+                                                                            <strong class="text-dark d-block">{{ $atm->user->nombre ?? 'Usuario #' . $atm->user_id }}</strong>
+                                                                        </div>
+                                                                    </div>
+                                                                    @if ($atm->last_active_at)
+                                                                        <div class="text-muted mt-2 pt-2 border-top">
+                                                                            <i class="bi bi-clock me-1"></i><strong>Última actividad:</strong> {{ $atm->last_active_at->format('d/m/Y h:i A') }} ({{ $atm->last_active_at->diffForHumans() }})
+                                                                        </div>
+                                                                    @endif
+                                                                </div>
+                                                                <p class="small text-muted mb-0">
+                                                                    <i class="bi bi-info-circle me-1 text-primary"></i> Esta acción cerrará la selección del operador huérfano para que otro cajero pueda usarla de inmediato.
+                                                                </p>
+                                                            </div>
+                                                            <div class="modal-footer border-0 pt-0">
+                                                                <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">Cancelar</button>
+                                                                <form action="{{ route('admin.atms.release', $atm->id) }}" method="POST" class="m-0">
+                                                                    @csrf
+                                                                    <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm fw-semibold">
+                                                                        <i class="bi bi-unlock-fill me-1"></i> Sí, Liberar Taquilla
+                                                                    </button>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endif
 
                                             {{-- Modal de Confirmación de Eliminación --}}
                                             <div class="modal fade text-start" id="modalEliminarAtm{{ $atm->id }}" tabindex="-1" aria-hidden="true">
@@ -177,7 +268,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="text-center py-5">
+                                        <td colspan="5" class="text-center py-5">
                                             <div class="py-4">
                                                 <i class="bi bi-cpu text-muted opacity-50" style="font-size: 3.5rem;"></i>
                                                 <h5 class="fw-bold text-secondary mt-3 mb-1">No hay taquillas registradas</h5>

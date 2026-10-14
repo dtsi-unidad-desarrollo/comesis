@@ -136,15 +136,17 @@
                                                     <i class="bi bi-pencil"></i>
                                                 </a>
 
-                                                {{-- Eliminar --}}
-                                                <button type="button" 
-                                                        class="btn btn-sm btn-outline-danger rounded-circle shadow-sm p-0 d-inline-flex align-items-center justify-content-center" 
-                                                        style="width: 32px; height: 32px;" 
-                                                        data-bs-toggle="modal" 
-                                                        data-bs-target="#modalEliminarRol{{ $role->id }}" 
-                                                        title="Eliminar rol">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
+                                                {{-- Eliminar (Protegido para ROOT) --}}
+                                                @if ($role->id !== 1 && strtoupper($role->nombre) !== 'ROOT')
+                                                    <button type="button" 
+                                                            class="btn btn-sm btn-outline-danger rounded-circle shadow-sm p-0 d-inline-flex align-items-center justify-content-center" 
+                                                            style="width: 32px; height: 32px;" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#modalEliminarRol{{ $role->id }}" 
+                                                            title="Eliminar rol">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                @endif
                                             </div>
 
                                             {{-- Modal de Confirmación de Eliminación --}}

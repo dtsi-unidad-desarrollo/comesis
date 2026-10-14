@@ -61,7 +61,7 @@
                             {{ Str::limit(Auth::user()->nombre ?? 'Usuario', 18) }}
                         </span>
                         <small class="text-muted" style="font-size: 11px;">
-                            {{ Auth::user()->rol == 1 ? 'Administrador' : 'Asistente' }}
+                            {{ Auth::user()->isRoot() ? 'Super Admin' : (Auth::user()->isAdmin() ? 'Administrador' : (Auth::user()->role->nombre ?? 'Asistente')) }}
                         </small>
                     </div>
 
@@ -84,8 +84,8 @@
                                 <h6 class="fw-bold mb-0 text-dark text-truncate" style="font-size: 14px;">
                                     {{ Auth::user()->nombre ?? 'Usuario' }}
                                 </h6>
-                                <span class="badge {{ Auth::user()->rol == 1 ? 'bg-primary-subtle text-primary border border-primary-subtle' : 'bg-info-subtle text-info border border-info-subtle' }} px-2 py-0 mt-1" style="font-size: 10px;">
-                                    {{ Auth::user()->rol == 1 ? 'Administrador' : 'Asistente' }}
+                                <span class="badge {{ Auth::user()->isRoot() || Auth::user()->isAdmin() ? 'bg-primary-subtle text-primary border border-primary-subtle' : 'bg-info-subtle text-info border border-info-subtle' }} px-2 py-0 mt-1" style="font-size: 10px;">
+                                    {{ Auth::user()->isRoot() ? 'Super Admin' : (Auth::user()->isAdmin() ? 'Administrador' : (Auth::user()->role->nombre ?? 'Asistente')) }}
                                 </span>
                             </div>
                         </div>

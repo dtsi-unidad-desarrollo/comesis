@@ -159,7 +159,7 @@
 
                                         {{-- Disponibilidad --}}
                                         <td class="text-center">
-                                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-3 py-1 fw-bold fs-7">
+                                            <span class="badge bg-info-subtle text-primary border border-info-subtle px-3 py-1 fw-bold fs-7">
                                                 {{ number_format($servicio->disponibilidad, 0, ',', '.') }} Bandejas
                                             </span>
                                         </td>

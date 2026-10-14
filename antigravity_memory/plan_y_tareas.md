@@ -75,11 +75,48 @@ Este documento mantiene el estado de las tareas actuales, el roadmap a corto/med
   8. **Lista Blanca de IPs (`admin.allowed-ips.index`):** Banner, formulario de registro rápido en card lateral/superior, tabla con IP monoespaciada, toggles visuales de estado y modales de confirmación.
   9. **Sincronización Remota (`admin.sincronizar.data.index`):** Banner institucional, tarjetas DUX y TEREPAIMA con estado de conexión, contadores de padrón y tabla de programación de Cron Jobs estilizada.
 - [x] Diagnóstico integral de gestión de sesiones de usuario y ejecución de mejoras de seguridad y resiliencia (`plan_mejora_sesiones.md`):
-  - Migración exitosa de `SESSION_DRIVER=file` a `SESSION_DRIVER=database` con creación de la tabla `sessions` en MySQL.
-  - Implementación de rastreo de usuario y actividad en taquillas (`atms`: `user_id`, `last_active_at`), eliminando el bloqueo huérfano de ATMs cuando un usuario cierra el navegador o expira su sesión.
-  - Sincronización automática y auto-liberación de taquillas inactivas (>20-30 min) en `RecepcionController.php`, `HandleAtm.php` y `LoginController.php`.
-  - Optimización de alto rendimiento en el middleware `ValidarRol.php`: ahora consulta `session('user_permisos_map')` con lookup O(1) en vez de consultar `Role::find()` a MySQL en cada petición HTTP.
-  - Auditoría de intentos fallidos de autenticación (`login_failed`) en `AuditLogger.php` y protección de fuerza bruta con rate limiting (`throttle:5,1`) en la ruta de inicio de sesión.
+  - **Fase 1 (Resiliencia Operativa):**
+    - Migración de `SESSION_DRIVER=file` a `SESSION_DRIVER=database` con creación de la tabla `sessions` en MySQL.
+    - Implementación de rastreo de usuario y actividad en taquillas (`atms`: `user_id`, `last_active_at`), eliminando el bloqueo huérfano de ATMs cuando un usuario cierra el navegador o expira su sesión.
+    - Sincronización automática y auto-liberación de taquillas inactivas (>20-30 min) en `RecepcionController.php`, `HandleAtm.php` y `LoginController.php`.
+    - Optimización de alto rendimiento en el middleware `ValidarRol.php`: ahora consulta `session('user_permisos_map')` con lookup O(1) en vez de consultar `Role::find()` a MySQL en cada petición HTTP.
+  - **Fase 2 (Control y Auditoría de Sesiones):**
+    - Auditoría de intentos fallidos de autenticación (`login_failed`) en `AuditLogger.php` y protección contra fuerza bruta con rate limiting (`throttle:5,1`) en la ruta de inicio de sesión.
+    - Monitor de sesiones en vivo en `admin/auditoria/index.blade.php`: pestaña dedicada para visualizar usuarios conectados en tiempo real, dispositivo, IP, taquilla asociada y botón para revocar/desconectar sesiones sospechosas.
+  - **Fase 3 (UX y Prevención de Desconexiones):**
+    - Modal global de aviso de inactividad (`resources/views/partials/idle-timeout.blade.php`): contador regresivo de 60 segundos tras 15 minutos sin interacción y botón de "Mantener Sesión Activa" vía endpoint `/session/keepalive`.
+    - Interceptor global para error 419 (Page Expired) con redirección limpia a `/login?expired=1` y alertas estilizadas en login desktop y mobile.
+    - Gestión de sesiones y dispositivos conectados en el perfil del usuario (`admin/perfil/index.blade.php`): visualización de la sesión actual y botón para revocar sesiones en otros dispositivos (`revokeOtherSessions`), con revocación automática al cambiar la contraseña.
+- [x] Configuración de Icono del Sistema, Favicons Multi-resolución y Soporte PWA para Instalación de Escritorio:
+  - Generación de suite completa de iconos cuadrados transparentes de alta resolución basados en el nuevo logo 3D "C" (`public/assets/img/icons/`): `favicon-16x16.png`, `favicon-32x32.png`, `favicon-48x48.png`, `apple-touch-icon.png` (180x180), `icon-192x192.png`, `icon-512x512.png` e `icon-maskable-512x512.png`.
+  - Creación del archivo binario estándar `public/favicon.ico` con soporte embebido multi-tamaño (16x16, 32x32, 48x48) y actualización de `public/favicon.png` y `public/assets/img/logo-img-circulo.png`.
+  - Configuración del manifiesto de aplicación web (`public/manifest.json`) y etiquetas `<meta>` para PWA / accesos directos de escritorio (`resources/views/partials/head.blade.php`).
+  - Creación de Service Worker (`public/sw.js`) con estrategia network-first para habilitar la instalación nativa de la app en navegadores Chromium (Chrome, Edge) en Windows Desktop y dispositivos móviles, mostrando el logo oficial en el escritorio, barra de tareas y ventana independiente.
+- [x] Modernización integral y depuración de las Vistas de Login (`resources/views/`):
+  - **Eliminación de archivo obsoleto:** Se eliminó definitivamente el archivo en desuso `resources/views/login.blade.php` (no estaba referenciado por ningún controlador ni ruta).
+  - **Coherencia visual con el nuevo logo 3D ("C" azul/zafiro):** Se reemplazó el esquema antiguo de degradados morados/violetas (`#667eea`, `#764ba2`) por la paleta institucional profunda de azul zafiro, azul marino y degradados radiales oscuros con iluminación sutil.
+  - **Modernización de `login-desktop.blade.php`:**
+    - Panel lateral institucional con halo lumínico de fondo, tarjeta translúcida del logo 3D, títulos limpios, badge de la UNELLEZ, pilares del sistema con iconos temáticos y pie de versión institucional.
+    - Panel de formulario estilizado con inputs modernos, iconos alineados, toggle interactivo para ver/ocultar contraseña, y alertas estilizadas de expiración de sesión por inactividad (`?expired=1`) y errores de credenciales.
+    - **Alineación y estilo:** Fondo exterior unificado con el azul institucional de la tarjeta (`linear-gradient(145deg, #0b347b 0%, #05193d 100%)`), nombre COMESIS dispuesto horizontalmente al lado del logo, línea divisoria ultrafina y sutil (`1px solid rgba(255,255,255,0.08)`), y cajas de iconos coloridas y temáticas para cada característica del sistema.
+  - **Modernización de `login-mobile.blade.php`:**
+    - Encabezado móvil con vitrina translúcida del logo 3D alineado junto a COMESIS, badge institucional y tipografía optimizada para pantallas pequeñas.
+    - Fondo armonizado con el mismo degradado azul de la tarjeta, divisores sutiles, tarjeta centrada con inputs amplios (`inputmode="email"`, autofoco, password toggle) y botón de acceso principal ergonómico con degradado azul y sombras suaves.
+    - Soporte integrado de alertas de expiración de sesión y credenciales inválidas.
+- [x] Restricción de Seguridad y Aislamiento del Rol ROOT en Gestión de Usuarios y Roles:
+  - **Aislamiento en Listados (`Helpers::getUsuarios()`):** Cuando un usuario con rol de Administrador (o cualquier rol que no sea ROOT) inicia sesión, el usuario ROOT no es consultado ni listado en la tabla de usuarios.
+  - **Aislamiento en Asignación de Roles (`UserController`):**
+    - En la vista de creación y edición (`crear.blade.php` y `editar.blade.php`), el select de roles omite completamente el rol ROOT para administradores.
+    - Validación y protección a nivel de controlador (`store` y `update`) impidiendo que un administrador pueda asignar el rol ROOT (`abort(403)`).
+  - **Protección de Edición y Eliminación:** Se bloquea el acceso de administradores a la edición o eliminación de cuentas con rol ROOT por URL o formulario, y se previene que cualquier usuario pueda eliminar su propia cuenta o al superusuario ROOT.
+  - **Aislamiento en Roles de Usuario (`RoleController` y vista `admin/roles/index.blade.php`):** El rol ROOT queda oculto en el listado para administradores y protegido contra edición y eliminación en backend y frontend.
+- [x] Gestión y Liberación Manual de Taquillas / ATMs Huérfanos (`admin/atm/index.blade.php`, `AtmController.php`):
+  - **Indicador de Estado en Tiempo Real:** Columna dedicada *Estado / Turno* que muestra si la taquilla está `DISPONIBLE` o `EN USO`, con el nombre del cajero u operador asignado y el tiempo de su última actividad registrada.
+  - **Botón de Desvinculación de Turno:** Botón circular interactivo con icono de desbloqueo (`bi-unlock-fill`) visible en la fila de cada taquilla ocupada (deshabilitado si está libre).
+  - **Modal de Confirmación y Seguridad:** Ventana modal de confirmación con detalles del operador antes de forzar el cierre del turno huérfano.
+  - **Backend y Auditoría:** Endpoint `POST /atms/{atm}/release` (`admin.atms.release`) ejecutando `$atm->release()` y registrando el evento en `AuditLogger` con el nombre del operador y taquilla liberada.
+
+
 
 
 

@@ -339,7 +339,7 @@ class RecepcionController extends Controller
         // Si ya está en uso por OTRO usuario y NO está obsoleta
         if ($selectedAtm->en_uso && $selectedAtm->user_id && $selectedAtm->user_id != $user->id && !$selectedAtm->isStale(15)) {
             // Si el usuario es administrador o se solicita forzar
-            if ($request->boolean('force') && ($user->rol == 1 || $user->rol == 2)) {
+            if ($request->boolean('force') && ($user->isRoot() || $user->isAdmin())) {
                 $selectedAtm->release();
                 AuditLogger::log('atm_force_release', 'atm', $selectedAtm->id, [
                     'message' => 'Desbloqueo forzado de taquilla por administrador',

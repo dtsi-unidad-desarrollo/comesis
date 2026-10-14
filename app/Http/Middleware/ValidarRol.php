@@ -54,7 +54,7 @@ class ValidarRol
                     return $next($request);
                 }
 
-                if ($request->route() && $request->route()->getName() === 'admin.auditoria.index' && $user->rol == 1) {
+                if ($request->route() && $request->route()->getName() === 'admin.auditoria.index' && $user->isRoot()) {
                     return $next($request);
                 }
 

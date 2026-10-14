@@ -17,7 +17,7 @@ El proyecto contiene un directorio llamado `antigravity_memory` en la raíz, el 
 ## 2. Cumplimiento Estricto de Patrones de Diseño
 Debes aplicar y respetar los patrones y reglas de desarrollo específicos de Laravel que se definieron para este proyecto.
 - Si no estás seguro de las reglas, **LEE INMEDIATAMENTE** el archivo `.agents/rules/laravel_rules.md`.
-- No propongas patrones que contradigan las reglas establecidas (ej. no pongas lógica pesada en los controladores, usa Services/Actions y validaciones en FormRequests).
+- No propongas patrones que contradigan las reglas establecidas (ej. no pongas lógica pesada en los controladores, usa Services/Actions, validaciones en FormRequests, y **nunca agregues letras blancas sobre fondo blanco**).
 
 ## 3. Actualización Continua de la Memoria
 Tu deber también es mantener el sistema actualizado:

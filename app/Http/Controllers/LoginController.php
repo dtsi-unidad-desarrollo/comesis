@@ -89,7 +89,7 @@ class LoginController extends Controller
                 'message' => 'Inicio de sesión del usuario',
             ]);
 
-            if ($user->rol == 1 || $user->rol == 2) {
+            if ($user->isRoot() || $user->isAdmin()) {
                 return redirect()->route('admin.panel.index');
             }
 
@@ -158,5 +158,27 @@ class LoginController extends Controller
         }
 
         return false;
+    }
+
+    /**
+     * Endpoint para mantener activa la sesión vía AJAX y refrescar actividad de taquilla.
+     */
+    public function keepalive(Request $request)
+    {
+        if (Auth::check()) {
+            if (session()->has('selectedAtm.id')) {
+                $atm = Atm::find(session('selectedAtm.id'));
+                if ($atm && $atm->en_uso) {
+                    $atm->touchActivity();
+                }
+            }
+
+            return response()->json([
+                'status' => 'ok',
+                'timestamp' => now()->toIso8601String(),
+            ]);
+        }
+
+        return response()->json(['status' => 'unauthenticated'], 401);
     }
 }

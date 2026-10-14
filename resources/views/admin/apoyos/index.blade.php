@@ -247,14 +247,14 @@
 
                                         {{-- Habilitadas --}}
                                         <td class="text-center">
-                                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2 py-1 fw-bold">
+                                            <span class="badge bg-info-subtle text-primary border border-info-subtle px-2 py-1 fw-bold">
                                                 {{ number_format($apoyo->cantidad_habilitada) }}
                                             </span>
                                         </td>
 
                                         {{-- Consumidas --}}
                                         <td class="text-center">
-                                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1 fw-bold">
+                                            <span class="badge bg-warning-subtle text-primary border border-warning-subtle px-2 py-1 fw-bold">
                                                 {{ number_format($apoyo->cantidad_consumida) }}
                                             </span>
                                         </td>

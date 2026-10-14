@@ -198,15 +198,17 @@
                                                     <i class="bi bi-pencil"></i>
                                                 </a>
 
-                                                {{-- Eliminar con Modal --}}
-                                                <button type="button" 
-                                                        class="btn btn-sm btn-outline-danger rounded-circle shadow-sm p-0 d-inline-flex align-items-center justify-content-center" 
-                                                        style="width: 32px; height: 32px;" 
-                                                        data-bs-toggle="modal" 
-                                                        data-bs-target="#modalEliminarUsuario{{ $usuario->id }}" 
-                                                        title="Eliminar usuario">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
+                                                {{-- Eliminar con Modal (Protegido para ROOT y cuenta propia) --}}
+                                                @if (!$usuario->isRoot() && $usuario->id !== auth()->id())
+                                                    <button type="button" 
+                                                            class="btn btn-sm btn-outline-danger rounded-circle shadow-sm p-0 d-inline-flex align-items-center justify-content-center" 
+                                                            style="width: 32px; height: 32px;" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#modalEliminarUsuario{{ $usuario->id }}" 
+                                                            title="Eliminar usuario">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                @endif
                                             </div>
 
                                             {{-- Modal de Confirmación de Eliminación --}}

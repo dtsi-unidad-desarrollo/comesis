@@ -130,7 +130,8 @@
                                     <option value="" disabled>Seleccione un rol...</option>
                                     @foreach ($roles as $rol)
                                         @php
-                                            $selected = (old('rol') == $rol->id) || (!old('rol') && isset($usuario->rol) && $usuario->rol == $rol->id);
+                                            $userRolId = is_object($usuario->rol) ? ($usuario->rol->id ?? 0) : (int)$usuario->rol;
+                                            $selected = (old('rol') == $rol->id) || (!old('rol') && $userRolId == $rol->id);
                                         @endphp
                                         <option value="{{ $rol->id }}" {{ $selected ? 'selected' : '' }}>
                                             {{ $rol->nombre }}
