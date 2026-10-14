@@ -25,13 +25,13 @@ class StoreComensaleRequest extends FormRequest
     {
         return [
             "cedula"        => "required | numeric | unique:comensales",
-            "file"          => "max:2048 | mimes:jpg,bmp,png",
-            "nombres"       => "max:255  | required", 
-            "apellidos"     => "max:255  | required", 
-            "nacionalidad"  => "required", 
-            "sexo"          => "required", 
-            "observacion"   => "min:10", 
-            
+            "file"          => "nullable | max:2048 | mimes:jpg,bmp,png",
+            "nombres"       => "required | string | max:255", 
+            "apellidos"     => "required | string | max:255", 
+            "nacionalidad"  => "required | string", 
+            "sexo"          => "required | string", 
+            "tipo_comensal" => "required | string",
+            "observacion"   => "nullable | string | max:500", 
         ];
     }
 }

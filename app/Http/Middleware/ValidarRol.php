@@ -22,13 +22,27 @@ class ValidarRol
     public function handle(Request $request, Closure $next)
     {
        
-        if (Auth::user()->rol != 1) {
-            if (Auth::user()->rol) {
-                $role = Role::find(Auth::user()->rol);
+        $user = Auth::user();
+        if (!$user) {
+            return $next($request);
+        }
 
-                $permisos = [];
-                if ($role) {
-                    $permisos = $role->permisos()->pluck('nombre')->toArray();
+        if ($user->rol != 1) {
+            if ($user->rol) {
+                // Obtener permisos de la sesión si existen, o cargarlos y cachearlos en la sesión
+                $permisosMap = session('user_permisos_map');
+
+                if (is_null($permisosMap)) {
+                    $role = Role::find($user->rol);
+                    $permisos = [];
+                    if ($role) {
+                        $permisos = $role->permisos()->pluck('nombre')->toArray();
+                    }
+                    $permisosMap = array_flip($permisos);
+                    session([
+                        'user_permisos' => $permisos,
+                        'user_permisos_map' => $permisosMap,
+                    ]);
                 }
 
                 $path = $request->path();
@@ -40,12 +54,12 @@ class ValidarRol
                     return $next($request);
                 }
 
-                if ($request->route() && $request->route()->getName() === 'admin.auditoria.index' && Auth::user()->rol == 1) {
+                if ($request->route() && $request->route()->getName() === 'admin.auditoria.index' && $user->rol == 1) {
                     return $next($request);
                 }
 
-                if (!in_array($pathBase, $permisos)) {
-                    // If the user is already on recepcion, avoid redirect loop
+                if (!isset($permisosMap[$pathBase])) {
+                    // Evitar bucle si ya está en recepcion
                     if ($request->route() && $request->route()->getName() === 'admin.recepcion.index') {
                         return $next($request);
                     }

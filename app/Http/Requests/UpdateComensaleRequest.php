@@ -25,11 +25,13 @@ class UpdateComensaleRequest extends FormRequest
     {
         return [
             "cedula"        => "numeric",
-            "file"          => "max:2048 | mimes:jpg,bmp,png",
-            "nombres"       => "max:255  | required", 
-            "apellidos"     => "max:255  | required", 
-            "nacionalidad"  => "required", 
-            "sexo"          => "required"
+            "file"          => "nullable | max:2048 | mimes:jpg,bmp,png",
+            "nombres"       => "required | string | max:255", 
+            "apellidos"     => "required | string | max:255", 
+            "nacionalidad"  => "required | string", 
+            "sexo"          => "required | string",
+            "tipo_comensal" => "nullable | string",
+            "observacion"   => "nullable | string | max:500",
         ];
     }
 }

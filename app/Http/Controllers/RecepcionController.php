@@ -41,9 +41,47 @@ class RecepcionController extends Controller
                 $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre);
             }
 
-            $atms = Atm::with('torniquete')->where('en_uso', false)->get();
             $user = Auth::user();
+
+            // Auto-liberar taquillas inactivas por más de 30 minutos
+            Atm::where('en_uso', true)
+                ->whereNotNull('last_active_at')
+                ->where('last_active_at', '<', Carbon::now()->subMinutes(30))
+                ->update(['en_uso' => false, 'user_id' => null, 'last_active_at' => null]);
+
             $selectedAtm = session('selectedAtm');
+
+            // Verificar y sincronizar el ATM de la sesión actual
+            if ($selectedAtm) {
+                $atmDb = Atm::with('torniquete')->find($selectedAtm->id ?? null);
+                if ($atmDb && $atmDb->en_uso && ($atmDb->user_id == $user->id || is_null($atmDb->user_id))) {
+                    $atmDb->touchActivity();
+                    $selectedAtm = $atmDb;
+                    session(['selectedAtm' => $atmDb]);
+                } else {
+                    session()->forget('selectedAtm');
+                    $selectedAtm = null;
+                }
+            } elseif ($user) {
+                // Reconexión automática si el usuario ya tenía una taquilla asignada activa
+                $userAtm = Atm::with('torniquete')
+                    ->where('user_id', $user->id)
+                    ->where('en_uso', true)
+                    ->first();
+                if ($userAtm && !$userAtm->isStale(30)) {
+                    $userAtm->touchActivity();
+                    session(['selectedAtm' => $userAtm]);
+                    $selectedAtm = $userAtm;
+                }
+            }
+
+            // Listar taquillas disponibles (no en uso o asignadas a este mismo usuario)
+            $atms = Atm::with('torniquete')
+                ->where(function ($query) use ($user) {
+                    $query->where('en_uso', false)
+                          ->orWhere('user_id', $user->id ?? 0);
+                })
+                ->get();
 
             if ($request->filled('cedula')) {
                 $resultado = $this->procesarIngreso(
@@ -264,30 +302,56 @@ class RecepcionController extends Controller
     }
 
     /**
-     * Maneja la selección y liberación de ATM/Torniquetes.
+     * Maneja la selección y liberación de ATM/Torniquetes de forma resiliente.
      */
     public function selectAtm(Request $request)
     {
+        $user = Auth::user();
+
         if ($request->input('change', false) === 'true') {
-            Atm::where('id', session('selectedAtm.id'))->update(['en_uso' => false]);
+            $atmId = session('selectedAtm.id');
+            if ($atmId) {
+                $atm = Atm::find($atmId);
+                if ($atm) {
+                    $atm->release();
+                }
+            }
+            if ($user) {
+                Atm::where('user_id', $user->id)->update([
+                    'en_uso' => false,
+                    'user_id' => null,
+                    'last_active_at' => null,
+                ]);
+            }
             session()->forget('selectedAtm');
             return back()->with([
-                'mensaje' => 'ATM/Torniquete deseleccionado.',
+                'mensaje' => 'ATM/Torniquete deseleccionado y liberado.',
                 'estatus' => Response::HTTP_OK
             ]);
         }
 
-        $selectedAtm = Atm::with('torniquete')->find($request->atm_id);
+        $selectedAtm = Atm::with('torniquete', 'user')->find($request->atm_id);
 
         if (!$selectedAtm) {
             return back()->with('error', 'ATM no encontrada');
         }
 
-        if ($selectedAtm->en_uso) {
-            return back()->with([
-                'mensaje' => "ATM/Torniquete {$selectedAtm->nombre} ya está en uso. Por favor seleccione otro.",
-                'estatus' => Response::HTTP_NOT_FOUND
-            ]);
+        // Si ya está en uso por OTRO usuario y NO está obsoleta
+        if ($selectedAtm->en_uso && $selectedAtm->user_id && $selectedAtm->user_id != $user->id && !$selectedAtm->isStale(15)) {
+            // Si el usuario es administrador o se solicita forzar
+            if ($request->boolean('force') && ($user->rol == 1 || $user->rol == 2)) {
+                $selectedAtm->release();
+                AuditLogger::log('atm_force_release', 'atm', $selectedAtm->id, [
+                    'message' => 'Desbloqueo forzado de taquilla por administrador',
+                    'atm' => $selectedAtm->nombre,
+                ]);
+            } else {
+                $nombreOperador = $selectedAtm->user ? $selectedAtm->user->nombre : 'otro operador';
+                return back()->with([
+                    'mensaje' => "El ATM/Torniquete {$selectedAtm->nombre} está asignado a {$nombreOperador}. Si la sesión quedó inactiva, un administrador puede forzar la liberación.",
+                    'estatus' => Response::HTTP_NOT_FOUND
+                ]);
+            }
         }
 
         $servicio = Helpers::getServicio(Carbon::now());
@@ -298,7 +362,8 @@ class RecepcionController extends Controller
             ]);
         }
 
-        $selectedAtm->update(['en_uso' => true]);
+        // Asignar al usuario actual y registrar actividad
+        $selectedAtm->assignTo($user->id);
         session(['selectedAtm' => $selectedAtm]);
 
         return back()->with([

@@ -74,6 +74,17 @@ class LoginController extends Controller
             $request->session()->put('user_permisos', $permisos);
             $request->session()->put('user_permisos_map', array_flip($permisos));
 
+            // Si el usuario tenía un ATM asignado previamente que no esté obsoleto, reconectarlo
+            $existingAtm = Atm::with('torniquete')
+                ->where('user_id', $user->id)
+                ->where('en_uso', true)
+                ->first();
+
+            if ($existingAtm && !$existingAtm->isStale(30)) {
+                $existingAtm->touchActivity();
+                $request->session()->put('selectedAtm', $existingAtm);
+            }
+
             AuditLogger::log('login', 'user', $user->id, [
                 'message' => 'Inicio de sesión del usuario',
             ]);
@@ -84,6 +95,12 @@ class LoginController extends Controller
 
             return redirect()->route('admin.recepcion.index');
         }
+
+        // Registrar intento fallido de autenticación en la auditoría
+        AuditLogger::log('login_failed', 'auth', null, [
+            'attempted_email' => $request->input('email'),
+            'message' => 'Credenciales de acceso no válidas',
+        ]);
 
         return back()->withErrors([
             'mensaje' => 'Credenciales de acceso no validas.',
@@ -102,15 +119,30 @@ class LoginController extends Controller
 
         $user = Auth::user();
 
-        // Eliminamos la session
-        Auth::logout();
         if ($user) {
             AuditLogger::log('logout', 'user', $user->id, [
                 'message' => 'Cierre de sesión del usuario',
             ]);
+            // Liberar taquillas/ATMs asignadas a este usuario
+            Atm::where('user_id', $user->id)->update([
+                'en_uso' => false,
+                'user_id' => null,
+                'last_active_at' => null,
+            ]);
         }
-        Atm::where('id', session('selectedAtm.id'))->update(['en_uso' => false]);
-        session()->forget('selectedAtm');
+
+        // Liberar taquilla guardada en sesión si aún estuviera referenciada
+        if (session()->has('selectedAtm.id')) {
+            Atm::where('id', session('selectedAtm.id'))->update([
+                'en_uso' => false,
+                'user_id' => null,
+                'last_active_at' => null,
+            ]);
+            session()->forget('selectedAtm');
+        }
+
+        // Eliminamos la session
+        Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

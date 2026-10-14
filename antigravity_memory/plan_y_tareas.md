@@ -43,6 +43,8 @@ Este documento mantiene el estado de las tareas actuales, el roadmap a corto/med
   - Filtros avanzados: búsqueda textual (cédula, nombres o apellidos), filtro por tipo de comensal (Estudiante, Profesor, Administrativo, Obrero, Empleado, etc.) y filtro por estatus (Activo/Inactivo).
   - Modal estilizado para importación masiva desde Excel (`.xlsx, .xls, .csv`) y menú dropdown ordenado para herramientas de Excel (Exportar, Importar, Plantilla).
   - Tabla de comensales estilizada con avatares (con foto o inicial por tipo), badges de género (F/M), badges semánticos de tipo y estatus, y botones circulares de acción rápida (Ver ficha, Editar, Desactivar/Eliminar).
+  - Modernización estética de los modales de Registro y Edición de Comensales (`modalFormulario.blade.php` y `modalFormularioEditar.blade.php`) con diseño centrado (`modal-dialog-centered modal-lg`), esquinas redondeadas, cabeceras institucionales, campos con iconos armonizados y pie con botones tipo pill.
+  - Flexibilización del campo **Observación**: configurado como opcional (`nullable|string|max:500`) tanto en frontend (textarea completo sin restricción `minlength`) como en backend (`StoreComensaleRequest.php` y `UpdateComensaleRequest.php`).
 - [x] Modernización integral del Menú Superior (Header) y Menú Lateral (Sidebar):
   - **Header Superior (`header.blade.php` y `style.css`):**
     - Dimensionamiento óptimo y nítido del logo COMESIS con badge institucional UNELLEZ.
@@ -72,6 +74,12 @@ Este documento mantiene el estado de las tareas actuales, el roadmap a corto/med
   7. **Registro de Auditoría (`admin.auditoria.index`):** Banner institucional con exportación a Excel y PDF, panel de filtros colapsable con búsqueda y selectores, tabla estilizada con badges semánticos por acción (Crear, Editar, Eliminar, Iniciar Sesión) y detalle de IP/agente.
   8. **Lista Blanca de IPs (`admin.allowed-ips.index`):** Banner, formulario de registro rápido en card lateral/superior, tabla con IP monoespaciada, toggles visuales de estado y modales de confirmación.
   9. **Sincronización Remota (`admin.sincronizar.data.index`):** Banner institucional, tarjetas DUX y TEREPAIMA con estado de conexión, contadores de padrón y tabla de programación de Cron Jobs estilizada.
+- [x] Diagnóstico integral de gestión de sesiones de usuario y ejecución de mejoras de seguridad y resiliencia (`plan_mejora_sesiones.md`):
+  - Migración exitosa de `SESSION_DRIVER=file` a `SESSION_DRIVER=database` con creación de la tabla `sessions` en MySQL.
+  - Implementación de rastreo de usuario y actividad en taquillas (`atms`: `user_id`, `last_active_at`), eliminando el bloqueo huérfano de ATMs cuando un usuario cierra el navegador o expira su sesión.
+  - Sincronización automática y auto-liberación de taquillas inactivas (>20-30 min) en `RecepcionController.php`, `HandleAtm.php` y `LoginController.php`.
+  - Optimización de alto rendimiento en el middleware `ValidarRol.php`: ahora consulta `session('user_permisos_map')` con lookup O(1) en vez de consultar `Role::find()` a MySQL en cada petición HTTP.
+  - Auditoría de intentos fallidos de autenticación (`login_failed`) en `AuditLogger.php` y protección de fuerza bruta con rate limiting (`throttle:5,1`) en la ruta de inicio de sesión.
 
 
 
