@@ -305,8 +305,14 @@
             // Si el submit fue cancelado por validación client-side
             if (e.defaultPrevented) return;
 
-            // Ignorar formularios con apertura en nueva ventana o con bypass explícito
+            // Ignorar formularios con apertura en nueva ventana, bypass explícito o módulo de recepción (punto de control)
             if (form.target === '_blank' || form.hasAttribute('data-no-preload') || form.classList.contains('no-preload')) {
+                return;
+            }
+
+            var action = (form.getAttribute('action') || '').toLowerCase();
+            // Bypass completo para Punto de Control / Recepción (acceso ultrarrápido y continuo sin bloqueos visuales)
+            if (action.includes('recepcion') || form.querySelector('#cedula') || window.location.pathname.includes('recepcion')) {
                 return;
             }
 
@@ -316,13 +322,11 @@
             }
 
             var submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
-            var action = (form.getAttribute('action') || '').toLowerCase();
             var method = (form.getAttribute('method') || 'GET').toUpperCase();
             var isDelete = form.querySelector('input[name="_method"][value="DELETE"]') || form.querySelector('input[name="_method"][value="delete"]');
 
             var isLogin = action.includes('login') || form.id === 'loginForm' || document.getElementById('yourUsername');
             var isLogout = action.includes('logout');
-            var isRecepcion = action.includes('recepcion') || form.querySelector('#cedula');
             var isSync = action.includes('sincronizar') || action.includes('sync');
             var isGetSearch = method === 'GET';
 
@@ -338,10 +342,6 @@
                 title = 'Cerrando sesión...';
                 subtitle = 'Finalizando la sesión de forma segura';
                 btnText = 'Saliendo...';
-            } else if (isRecepcion) {
-                title = 'Consultando comensal...';
-                subtitle = 'Verificando datos y servicio en vivo';
-                btnText = 'Consultando...';
             } else if (isSync) {
                 title = 'Sincronizando información...';
                 subtitle = 'Conectando con bases de datos UNELLEZ';
@@ -390,8 +390,13 @@
                 // Si es la misma página exacta con un hash interno
                 if (url.pathname === window.location.pathname && url.search === window.location.search && url.hash) return;
 
-                // Ignorar descargas de documentos o backups
+                // Bypass de preloader para Punto de Control / Recepción (máxima velocidad)
                 var path = url.pathname.toLowerCase();
+                if (path.indexOf('recepcion') !== -1 || window.location.pathname.indexOf('recepcion') !== -1) {
+                    return;
+                }
+
+                // Ignorar descargas de documentos o backups
                 if (path.endsWith('.pdf') || path.endsWith('.xlsx') || path.endsWith('.xls') || path.endsWith('.csv') || path.endsWith('.sql') || path.endsWith('.zip')) {
                     return;
                 }
@@ -399,10 +404,7 @@
                 var title = 'Cargando sección...';
                 var subtitle = 'Preparando la vista del sistema';
 
-                if (path.indexOf('recepcion') !== -1) {
-                    title = 'Punto de Control';
-                    subtitle = 'Accediendo a taquilla y torniquetes';
-                } else if (path.indexOf('panel') !== -1 || path.indexOf('dashboard') !== -1) {
+                if (path.indexOf('panel') !== -1 || path.indexOf('dashboard') !== -1) {
                     title = 'Panel de Control';
                     subtitle = 'Cargando métricas y estadísticas';
                 } else if (path.indexOf('comensales') !== -1) {

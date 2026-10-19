@@ -119,7 +119,13 @@ Este documento mantiene el estado de las tareas actuales, el roadmap a corto/med
 - [x] Filtro por Tipo de Comensal y Visualización de Subtipo en Historial de Entradas (`admin/entradas/index.blade.php`, `EntradaController.php`, `Entrada.php`):
   - **Filtro dinámico por Tipo:** Selector con todos los tipos disponibles en el sistema (Estudiante, Empleado, Estudiante Foráneo, Profesor, Administrativo, Obrero, Eventual, Apoyo y tipos registrados dinámicamente en BD).
   - **Columna de Subtipo Registrado:** Nueva columna en la tabla principal de entradas y en el modal de detalles que muestra el subtipo del comensal (`sub_tipo_display`, con fallback a relación Eloquent `comensal->sub_tipo` o `CONVENIO` para apoyos).
-  - **Migración y Persistencia:** Migración `add_sub_tipo_to_entradas_table` con backfill automático desde `comensales`, e inclusión de `sub_tipo` al registrar accesos en `Helpers::setEntradaComedor`, `RecepcionController` y `EntradaController`.
+- [x] Optimización de Alta Velocidad y Retiro de Precarga en Punto de Control / Recepción (`RecepcionController.php`, `index.blade.php`, `preloader.blade.php`, `Helpers.php`):
+  - **Eliminación del Preloader Visual:** Se removió la animación y bloqueo visual del `ComesisPreloader` para todas las interacciones de Punto de Control (envío de formulario por escáner de código de barras, pulsación de Enter tras registrar comensal y enlaces de continuar o selección de ATM), logrando una respuesta de interfaz instantánea y continua.
+  - **Optimización de Consultas y Precarga Eloquent:** 
+    - Se eliminó la consulta y precarga innecesaria de ATMs/Torniquetes (`Atm::with('torniquete')`) en cada escaneo cuando el operador ya tiene una taquilla asignada.
+    - Se limitó la limpieza periódica de taquillas inactivas para evitar transacciones repetitivas de escritura `UPDATE` en cada consulta.
+    - Se optimizó el conteo de bandejas entregadas (`$cantidadDeEntradas + 1`) evitando consultas `COUNT(*)` redundantes sobre la tabla de entradas.
+    - En `Helpers::openAtmDoor`, se evitó la recarga duplicada de la relación `torniquete` y se configuró un timeout de 2 segundos en el cliente HTTP para evitar bloqueos si el hardware del torniquete no responde.
 
 
 

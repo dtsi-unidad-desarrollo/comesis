@@ -104,7 +104,9 @@ class Helpers extends Model
         try {
             if (!$atm) return ['ok' => false, 'message' => 'ATM not found'];
 
-            $atm->load('torniquete');
+            if (!$atm->relationLoaded('torniquete')) {
+                $atm->load('torniquete');
+            }
             if (! $atm->torniquete) return ['ok' => false, 'message' => 'No torniquete assigned'];
 
             $endpoint = $atm->torniquete->endpoint_url;
@@ -117,7 +119,7 @@ class Helpers extends Model
                 'doorId' => $atm->torniquete->id,
             ];
 
-            $resp = HttpClient::withHeaders([
+            $resp = HttpClient::timeout(2)->connectTimeout(1)->withHeaders([
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
             ])->post($endpoint, $body);

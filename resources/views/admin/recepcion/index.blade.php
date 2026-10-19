@@ -17,7 +17,7 @@
                     <div class="card mb-4 border-success shadow-sm">
                         <div class="card-header bg-success text-white d-flex justify-content-between align-items-center py-2">
                             <span class="fs-5 fw-bold"><i class="bi bi-check-circle-fill me-1"></i> Acceso Permitido</span>
-                            <a id="btnContinuarTop" class="btn btn-light btn-sm fw-bold text-success shadow-sm" href="{{ route('admin.recepcion.index') }}">
+                            <a id="btnContinuarTop" class="btn btn-light btn-sm fw-bold text-success shadow-sm" data-no-preload="true" href="{{ route('admin.recepcion.index') }}">
                                 <i class="bi bi-arrow-repeat me-1"></i> Continuar (Enter ↵)
                             </a>
                         </div>
@@ -52,7 +52,7 @@
                             </div>
 
                             <div class="d-grid mt-3">
-                                <a id="btnContinuar" class="btn btn-success btn-lg fw-bold shadow-sm" href="{{ route('admin.recepcion.index') }}" autofocus>
+                                <a id="btnContinuar" class="btn btn-success btn-lg fw-bold shadow-sm" data-no-preload="true" href="{{ route('admin.recepcion.index') }}" autofocus>
                                     <i class="bi bi-arrow-right-circle me-1"></i> Continuar (Presione Enter ↵)
                                 </a>
                             </div>
@@ -82,7 +82,7 @@
                                     @foreach ($atms as $atm)
                                     <div class="col-md-6 my-2 text-center">
                                         <a href="{{ route('admin.recepcion.selectAtm') }}?atm_id={{ $atm->id }}"
-                                            class="btn btn-outline-primary w-100 p-3 shadow-sm">
+                                            class="btn btn-outline-primary w-100 p-3 shadow-sm" data-no-preload="true">
                                             <img src="{{ asset('assets/img/torniquete.png') }}" alt="ATM Icon" width="100" height="100"
                                             class="mb-2 d-block mx-auto">
                                             <strong>{{ $atm->nombre }}</strong>
@@ -92,8 +92,8 @@
                                 </div>
                             @else
                                 {{-- Formulario de búsqueda --}}
-                                <form action="{{ route('admin.recepcion.index') }}" class="row g-3 needs-validation"
-                                    method="get" novalidate>
+                                <form action="{{ route('admin.recepcion.index') }}" class="row g-3 needs-validation no-preload"
+                                    method="get" novalidate data-no-preload="true">
 
                                     <label for="cedula" class="form-label text-dark fw-bold mb-1">
                                         <i class="bi bi-upc-scan me-1"></i> Cédula de Identidad o Código de Apoyo
@@ -140,7 +140,7 @@
                                 @if ($selectedAtm)
                                     <div class="mt-3 text-end">
                                         <a href="{{ route('admin.recepcion.selectAtm') }}?change=true"
-                                            class="btn btn-sm btn-outline-danger">
+                                            class="btn btn-sm btn-outline-danger" data-no-preload="true">
                                             <i class="bi bi-x-circle me-1"></i> Deseleccionar {{ $selectedAtm->nombre }}
                                         </a>
                                     </div>
@@ -207,9 +207,6 @@
             document.addEventListener('keydown', function(event) {
                 if (event.key === 'Enter') {
                     event.preventDefault();
-                    if (window.ComesisPreloader) {
-                        window.ComesisPreloader.show('Punto de Control', 'Preparando siguiente registro...');
-                    }
                     window.location.href = "{{ route('admin.recepcion.index') }}";
                 }
             });

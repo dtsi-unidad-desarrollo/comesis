@@ -43,13 +43,16 @@ class RecepcionController extends Controller
 
             $user = Auth::user();
 
-            // Auto-liberar taquillas inactivas por más de 30 minutos
-            Atm::where('en_uso', true)
-                ->whereNotNull('last_active_at')
-                ->where('last_active_at', '<', Carbon::now()->subMinutes(30))
-                ->update(['en_uso' => false, 'user_id' => null, 'last_active_at' => null]);
-
             $selectedAtm = session('selectedAtm');
+
+            // Auto-liberar taquillas inactivas por más de 30 minutos (solo si no hay ATM seleccionada o periódicamente cada 5 min)
+            if (!$selectedAtm || !session()->has('last_atm_cleanup') || Carbon::now()->diffInMinutes(session('last_atm_cleanup')) >= 5) {
+                Atm::where('en_uso', true)
+                    ->whereNotNull('last_active_at')
+                    ->where('last_active_at', '<', Carbon::now()->subMinutes(30))
+                    ->update(['en_uso' => false, 'user_id' => null, 'last_active_at' => null]);
+                session(['last_atm_cleanup' => Carbon::now()]);
+            }
 
             // Verificar y sincronizar el ATM de la sesión actual
             if ($selectedAtm) {
@@ -75,8 +78,8 @@ class RecepcionController extends Controller
                 }
             }
 
-            // Listar taquillas disponibles (no en uso o asignadas a este mismo usuario)
-            $atms = Atm::with('torniquete')
+            // Solo listar taquillas disponibles si no hay una taquilla activa asignada (elimina precarga innecesaria)
+            $atms = $selectedAtm ? collect() : Atm::with('torniquete')
                 ->where(function ($query) use ($user) {
                     $query->where('en_uso', false)
                           ->orWhere('user_id', $user->id ?? 0);
@@ -144,7 +147,7 @@ class RecepcionController extends Controller
         // 1. Verificar si el código ingresado corresponde a un Apoyo Institucional
         $apoyo = Apoyo::where('codigo', $identificador)->first();
         if ($apoyo) {
-            return $this->procesarApoyo($apoyo, $servicio, $selectedAtm, $user, $date);
+            return $this->procesarApoyo($apoyo, $servicio, $selectedAtm, $user, $date, $cantidadDeEntradas);
         }
 
         // 2. Verificar si corresponde a un Comensal regular
@@ -158,13 +161,13 @@ class RecepcionController extends Controller
             ];
         }
 
-        return $this->procesarComensal($comensal, $servicio, $selectedAtm, $user, $date);
+        return $this->procesarComensal($comensal, $servicio, $selectedAtm, $user, $date, $cantidadDeEntradas);
     }
 
     /**
      * Procesa y valida el acceso de un Apoyo Institucional.
      */
-    private function procesarApoyo(Apoyo $apoyo, $servicio, $selectedAtm, $user, Carbon $date)
+    private function procesarApoyo(Apoyo $apoyo, $servicio, $selectedAtm, $user, Carbon $date, int $cantidadDeEntradas)
     {
         if (!$apoyo->estatus) {
             return back()->with([
@@ -201,7 +204,7 @@ class RecepcionController extends Controller
         ]);
 
         $mensaje_torniquete = $this->abrirTorniquete($selectedAtm, $apoyo->codigo, $apoyo->institucion);
-        $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre);
+        $cantidadDeEntradas = $cantidadDeEntradas + 1;
         $restantes = $apoyo->cantidad_habilitada - $apoyo->cantidad_consumida;
 
         // Adaptar objeto para vista de recepción
@@ -228,7 +231,7 @@ class RecepcionController extends Controller
     /**
      * Procesa y valida el acceso de un Comensal regular.
      */
-    private function procesarComensal(Comensale $comensal, $servicio, $selectedAtm, $user, Carbon $date)
+    private function procesarComensal(Comensale $comensal, $servicio, $selectedAtm, $user, Carbon $date, int $cantidadDeEntradas)
     {
         if ($comensal->estatus == 0) {
             return back()->with([
@@ -253,7 +256,7 @@ class RecepcionController extends Controller
                     "Ya consumió el servicio: {$servicio->nombre}<br>" .
                     "Hora de entrada: " . $entradas->first()->hora . '.',
                 'mensaje_torniquete' => 'Cerrado',
-                'cantidadDeEntradas' => Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre),
+                'cantidadDeEntradas' => $cantidadDeEntradas,
             ];
         }
 
@@ -266,7 +269,7 @@ class RecepcionController extends Controller
             "{$comensal->nombres} {$comensal->apellidos}"
         );
 
-        $cantidadDeEntradas = Helpers::getTotalEntradas($date->format('Y-m-d'), $servicio->nombre);
+        $cantidadDeEntradas = $cantidadDeEntradas + 1;
 
         if (empty($comensal->foto)) {
             $comensal->foto = asset('assets/img/avatar.png');
