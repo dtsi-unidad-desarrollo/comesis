@@ -80,10 +80,19 @@ if ! command -v composer &> /dev/null; then
 fi
 composer --version
 
-echo "=== 7. Configurando permisos de directorios ==="
+echo "=== 7. Configurando permisos y Git para el servidor ==="
 PROJECT_DIR=$(pwd)
-sudo chown -R www-data:www-data "$PROJECT_DIR/storage" "$PROJECT_DIR/bootstrap/cache"
-sudo chmod -R 775 "$PROJECT_DIR/storage" "$PROJECT_DIR/bootstrap/cache"
+# Evitar que Git marque archivos como modificados por cambios de permisos en Linux
+git config core.filemode false
+
+# Asignar propietario a www-data (servidor web) y al usuario actual
+CURRENT_USER=$(whoami)
+sudo chown -R "$CURRENT_USER":www-data "$PROJECT_DIR"
+sudo chmod -R g+s "$PROJECT_DIR/storage" "$PROJECT_DIR/bootstrap/cache"
+
+# Permisos: 775 para directorios y 664 para archivos en storage y cache
+sudo find "$PROJECT_DIR/storage" "$PROJECT_DIR/bootstrap/cache" -type d -exec chmod 775 {} +
+sudo find "$PROJECT_DIR/storage" "$PROJECT_DIR/bootstrap/cache" -type f -exec chmod 664 {} +
 
 echo "=== 8. Instalando dependencias del proyecto ==="
 export COMPOSER_ALLOW_SUPERUSER=1
