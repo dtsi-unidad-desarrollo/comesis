@@ -133,11 +133,25 @@ Este documento mantiene el estado de las tareas actuales, el roadmap a corto/med
 
 ## Roadmap / Próximos Pasos
 
-### Migración Mayor del Framework (Laravel 8 a Laravel 12 / 13)
-- [x] **Fase 0**: Rama Git `migration/laravel-modern` y backup completo de BD (`php artisan db:backup`).
-- [x] **Fase 1**: Actualización de `composer.json` (PHP ^8.2|^8.3, Laravel 12.71, reemplazo de `fruitcake/laravel-cors` y `facade/ignition`, upgrade de `sanctum 4.3`, `ui 4.6`, `excel 3.1.70`, `dompdf 3.1.2`, `spatie/laravel-ignition 2.12`).
-- [x] **Fase 2**: Reestructuración y compatibilidad de arquitectura (unificación en `routes/console.php` para cron jobs y `db:backup`, compatibilidad de middleware `ValidarRol`, `HandleAtm`, `CheckAllowedIp`).
-- [x] **Fase 3**: Compatibilidad de Modelos Eloquent (`$casts`), validación de servicios y controladores.
-- [x] **Fase 4**: Validación del pipeline de frontend (assets precompilados en `public/`, estilos y plantillas Blade intactos).
-- [x] **Fase 5**: Batería de pruebas funcionales (PHPUnit 11 con 5/5 tests aprobados, verificación de generación de PDFs DomPDF 3, resolución de Excel, ruteo de 120 endpoints, simulación de `/login` con HTTP 200).
-- [ ] **Fase 6**: Merge a `dev`, actualización final de notas de versión y puesta en marcha.
+- [x] **Migración Mayor del Framework (Laravel 8 a Laravel 12 / 13)**:
+  - **Fase 0**: Respaldo completo de base de datos MySQL (`php artisan db:backup` -> `backup_comesis_2026-11-05_12-25-09.sql`) y rama de trabajo `migration/laravel-modern`.
+  - **Fase 1**: Actualización de dependencias (`composer.json` y `composer.lock`):
+    - `laravel/framework` elevado de `8.83.29` a `12.71.0` (compatible con PHP 8.3.16 de Laragon).
+    - Eliminación de paquetes obsoletos (`fruitcake/laravel-cors` y `facade/ignition`).
+    - Instalación de `spatie/laravel-ignition: ^2.12` para depuración moderna de errores.
+    - Actualización de paquetes satélites: `laravel/sanctum` (^4.3), `laravel/ui` (^4.6), `maatwebsite/excel` (^3.1.70), `barryvdh/laravel-dompdf` (^3.1.2 DomPDF 3), `nunomaduro/collision` (^8.9) y `phpunit/phpunit` (11.5).
+  - **Fase 2**: Arquitectura y Tareas Programadas:
+    - Registro de tareas programadas (`ProcessSyncEmpleados`, `ProcessSyncEstudiantes`, y `db:backup`) en `routes/console.php` mediante la facade `Schedule`.
+    - Adaptación de middleware (`ValidarRol`, `HandleAtm`, `CheckAllowedIp`) y `config/filesystems.php` (Flysystem 3.x `FILESYSTEM_DISK`).
+  - **Fase 3**: Corrección de Tipado en Carbon 3:
+    - Adaptación en `app/Models/Helpers.php` (`getServicio`) con casteo explícito a entero de partes de tiempo y uso de `setTime()` y `$ahora->between()`.
+  - **Fase 4**: Pipeline de Frontend:
+    - Validación de assets precompilados en `public/`, compatibilidad total de plantillas Blade y estilos institucionales.
+  - **Fase 5**: Batería de Pruebas:
+    - 120 rutas compiladas sin advertencias (`route:list`).
+    - Suite de pruebas de PHPUnit 11 con 5/5 tests aprobados (10 assertions, 0 fallos).
+    - Verificación funcional de generación de PDF con DomPDF 3 y resolución de Excel.
+  - **Fase 6**: Merge final a la rama principal `dev`.
+
+## Roadmap / Próximos Pasos
+- [ ] Monitoreo en producción / pruebas operativas con usuarios finales en los puntos de recepción y taquillas.
