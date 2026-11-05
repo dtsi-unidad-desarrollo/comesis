@@ -12,7 +12,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10",
         "laravel/ui": "^4.6",
-        "maatwebsite/excel": "^3.1.58",
+        "maatwebsite/excel": "^3.1.58 || ^4.0",
         "nesbot/carbon": "^3.0"
     },
     "require-dev": {

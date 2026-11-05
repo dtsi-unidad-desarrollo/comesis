@@ -86,7 +86,8 @@ sudo chown -R www-data:www-data "$PROJECT_DIR/storage" "$PROJECT_DIR/bootstrap/c
 sudo chmod -R 775 "$PROJECT_DIR/storage" "$PROJECT_DIR/bootstrap/cache"
 
 echo "=== 8. Instalando dependencias del proyecto ==="
-composer install --no-dev --optimize-autoloader
+export COMPOSER_ALLOW_SUPERUSER=1
+composer install --no-dev --optimize-autoloader --no-interaction
 
 echo "=== 9. Optimizando caché de Laravel ==="
 $PHP_BIN artisan config:cache
