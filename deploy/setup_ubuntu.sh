@@ -53,3 +53,4 @@ php8.5 artisan route:cache
 php8.5 artisan view:cache
 
 echo "=== ¡Aprovisionamiento completado con éxito para Ubuntu 26 y PHP 8.5! ==="
+
