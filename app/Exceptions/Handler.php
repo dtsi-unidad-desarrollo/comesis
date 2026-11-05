@@ -22,7 +22,7 @@ use App\Exceptions\PageExpiredException;
 use Illuminate\Database\QueryException;
 use Illuminate\Session\TokenMismatchException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Facade\Ignition\Exceptions\ViewException;
+use Illuminate\View\ViewException;
 use Throwable;
 
 class Handler extends ExceptionHandler

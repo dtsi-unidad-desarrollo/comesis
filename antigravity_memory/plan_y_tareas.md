@@ -133,14 +133,11 @@ Este documento mantiene el estado de las tareas actuales, el roadmap a corto/med
 
 ## Roadmap / Próximos Pasos
 
-### Fase 1: Base de Datos y Modelos
-1. Definir los modelos principales basados en la estructura del sistema (ej: `Comensal`, `Sede`, `Asistencia`/`Comida`).
-2. Configurar relaciones en Eloquent.
-
-### Fase 2: Autenticación y Autorización
-1. Configurar roles y permisos (ej: Administrador del comedor, Lector/Reportería, Empleado/Comensal).
-
-### Fase 3: Módulos Principales
-1. **Módulo de Comensales:** CRUD de personas y sincronización/carga masiva de datos (usando Excel/JSON).
-2. **Módulo de Registro:** Lógica para registrar cuando un comensal recibe comida.
-3. **Módulo de Reportes:** Exportación de PDF y Excel con métricas mediante Chart.js.
+### Migración Mayor del Framework (Laravel 8 a Laravel 12 / 13)
+- [x] **Fase 0**: Rama Git `migration/laravel-modern` y backup completo de BD (`php artisan db:backup`).
+- [x] **Fase 1**: Actualización de `composer.json` (PHP ^8.2|^8.3, Laravel 12.71, reemplazo de `fruitcake/laravel-cors` y `facade/ignition`, upgrade de `sanctum 4.3`, `ui 4.6`, `excel 3.1.70`, `dompdf 3.1.2`, `spatie/laravel-ignition 2.12`).
+- [x] **Fase 2**: Reestructuración y compatibilidad de arquitectura (unificación en `routes/console.php` para cron jobs y `db:backup`, compatibilidad de middleware `ValidarRol`, `HandleAtm`, `CheckAllowedIp`).
+- [x] **Fase 3**: Compatibilidad de Modelos Eloquent (`$casts`), validación de servicios y controladores.
+- [x] **Fase 4**: Validación del pipeline de frontend (assets precompilados en `public/`, estilos y plantillas Blade intactos).
+- [x] **Fase 5**: Batería de pruebas funcionales (PHPUnit 11 con 5/5 tests aprobados, verificación de generación de PDFs DomPDF 3, resolución de Excel, ruteo de 120 endpoints, simulación de `/login` con HTTP 200).
+- [ ] **Fase 6**: Merge a `dev`, actualización final de notas de versión y puesta en marcha.

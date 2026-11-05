@@ -17,14 +17,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // Empleados
-        $schedule->job(new ProcessSyncEmpleados)->dailyAt('14:45');
-        
-        // Estudiantes
-        $schedule->job(new ProcessSyncEstudiantes)->dailyAt('15:45');
-
-        // Respaldo de Base de Datos cada 3 meses
-        $schedule->command('db:backup')->quarterly();
+        // Las tareas programadas ahora se configuran en routes/console.php según el estándar moderno de Laravel.
     }
 
     /**
