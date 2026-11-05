@@ -94,11 +94,25 @@ sudo chmod -R g+s "$PROJECT_DIR/storage" "$PROJECT_DIR/bootstrap/cache"
 sudo find "$PROJECT_DIR/storage" "$PROJECT_DIR/bootstrap/cache" -type d -exec chmod 775 {} +
 sudo find "$PROJECT_DIR/storage" "$PROJECT_DIR/bootstrap/cache" -type f -exec chmod 664 {} +
 
-echo "=== 8. Instalando dependencias del proyecto ==="
+echo "=== 8. Verificando archivo de entorno (.env) ==="
+if [ ! -f "$PROJECT_DIR/.env" ]; then
+    echo "Creando archivo .env a partir de .env.example..."
+    if [ -f "$PROJECT_DIR/.env.example" ]; then
+        cp "$PROJECT_DIR/.env.example" "$PROJECT_DIR/.env"
+    elif [ -f "$PROJECT_DIR/.env-example" ]; then
+        cp "$PROJECT_DIR/.env-example" "$PROJECT_DIR/.env"
+    fi
+    $PHP_BIN artisan key:generate --force || true
+fi
+
+echo "=== 9. Instalando dependencias del proyecto ==="
 export COMPOSER_ALLOW_SUPERUSER=1
 composer install --no-dev --optimize-autoloader --no-interaction
 
-echo "=== 9. Optimizando caché de Laravel ==="
+echo "=== 10. Limpiando y optimizando caché de Laravel ==="
+$PHP_BIN artisan config:clear
+$PHP_BIN artisan route:clear
+$PHP_BIN artisan view:clear
 $PHP_BIN artisan config:cache
 $PHP_BIN artisan route:cache
 $PHP_BIN artisan view:cache
