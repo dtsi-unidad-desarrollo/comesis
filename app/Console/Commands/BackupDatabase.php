@@ -15,14 +15,17 @@ class BackupDatabase extends Command
      *
      * @var string
      */
-    protected $signature = 'db:backup {--connection=mysql : Conexión de base de datos a respaldar}';
+    protected $signature = 'db:backup 
+                            {--connection= : Conexión de base de datos a respaldar (por defecto la conexión activa)}
+                            {--compress : Comprime el archivo de respaldo en formato .sql.gz para ahorrar espacio}
+                            {--keep= : Número máximo de respaldos recientes a conservar (elimina los más antiguos)}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Genera un respaldo (backup) SQL de la base de datos identificado con la fecha actual';
+    protected $description = 'Genera un respaldo (backup) SQL de la base de datos con opciones de compresión y retención';
 
     /**
      * Execute the console command.
@@ -120,10 +123,34 @@ class BackupDatabase extends Command
             fwrite($fileHandle, "-- FIN DEL BACKUP\n");
             fclose($fileHandle);
 
+            // Manejo de compresión si se solicita
+            if ($this->option('compress')) {
+                $gzPath = $fullPath . '.gz';
+                $gzFileName = $fileName . '.gz';
+
+                $this->line("Comprimiendo respaldo a formato GZIP...");
+                $sourceContent = file_get_contents($fullPath);
+                $compressedContent = gzencode($sourceContent, 9);
+
+                if ($compressedContent !== false && file_put_contents($gzPath, $compressedContent) !== false) {
+                    unlink($fullPath); // Elimina el archivo .sql sin comprimir
+                    $fullPath = $gzPath;
+                    $fileName = $gzFileName;
+                } else {
+                    $this->warn("No se pudo comprimir el archivo. Se mantendrá el respaldo en formato .sql plano.");
+                }
+            }
+
             $fileSize = round(filesize($fullPath) / 1024, 2);
             $successMsg = "Respaldo completado exitosamente: {$fileName} ({$fileSize} KB)";
             $this->info($successMsg);
             Log::info("Backup de base de datos generado: {$fullPath} ({$fileSize} KB)");
+
+            // Política de retención si se especifica --keep
+            $keep = $this->option('keep');
+            if ($keep && is_numeric($keep) && (int) $keep > 0) {
+                $this->applyRetentionPolicy($backupPath, $databaseName, (int) $keep);
+            }
 
             return 0;
         } catch (\Throwable $e) {
@@ -131,6 +158,38 @@ class BackupDatabase extends Command
             $this->error($errorMsg);
             Log::error($errorMsg, ['exception' => $e]);
             return 1;
+        }
+    }
+
+    /**
+     * Aplica la política de retención eliminando los respaldos más antiguos.
+     */
+    protected function applyRetentionPolicy(string $backupPath, string $databaseName, int $keep): void
+    {
+        $pattern = $backupPath . DIRECTORY_SEPARATOR . "backup_{$databaseName}_*";
+        $files = glob($pattern);
+
+        if (!$files || count($files) <= $keep) {
+            return;
+        }
+
+        // Ordenar archivos por fecha de modificación descendente (más nuevos primero)
+        usort($files, function ($a, $b) {
+            return filemtime($b) <=> filemtime($a);
+        });
+
+        // Eliminar los que excedan el límite $keep
+        $filesToDelete = array_slice($files, $keep);
+        $deletedCount = 0;
+
+        foreach ($filesToDelete as $file) {
+            if (File::exists($file) && unlink($file)) {
+                $deletedCount++;
+            }
+        }
+
+        if ($deletedCount > 0) {
+            $this->info("Política de retención aplicada: Se conservaron los {$keep} respaldos más recientes y se eliminaron {$deletedCount} respaldos antiguos.");
         }
     }
 }
