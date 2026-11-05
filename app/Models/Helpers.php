@@ -30,17 +30,19 @@ class Helpers extends Model
         foreach ( $servicios as $key => $servicio ) {
             $hora_inicio = explode(':', $servicio->hora_inicio );
             $hora_cierre = explode(':', $servicio->hora_cierre );
-            /** Configuracion de rango de tiempo de comida ALMUERZO */
-            $almuerzoInferior = Carbon::now()
-              ->startOfDay()
-              ->addHours($hora_inicio[0])
-              ->addMinute($hora_inicio[1]);
-    
-            $almuerzoSuperior = $almuerzoInferior->copy()
-                ->addHours($hora_cierre[0] - $hora_inicio[0])
-                ->addMinute($hora_cierre[1]);
+
+            $hInicio = (int) ($hora_inicio[0] ?? 0);
+            $mInicio = (int) ($hora_inicio[1] ?? 0);
+            $sInicio = (int) ($hora_inicio[2] ?? 0);
+
+            $hCierre = (int) ($hora_cierre[0] ?? 0);
+            $mCierre = (int) ($hora_cierre[1] ?? 0);
+            $sCierre = (int) ($hora_cierre[2] ?? 0);
+
+            $servicioInferior = Carbon::now()->setTime($hInicio, $mInicio, $sInicio);
+            $servicioSuperior = Carbon::now()->setTime($hCierre, $mCierre, $sCierre);
             
-            if($ahora->lessThan($almuerzoSuperior) == true && $ahora->greaterThan($almuerzoInferior) == true){
+            if ($ahora->between($servicioInferior, $servicioSuperior)) {
                 return $servicio;
             }
             
