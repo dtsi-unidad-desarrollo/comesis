@@ -4,8 +4,9 @@
 El proyecto "comedor" (COMESIS) es una aplicación web basada en PHP y el framework Laravel 12 (modernizado desde Laravel 8). 
 
 ## Stack Tecnológico
-- **Backend**: PHP (^8.2|^8.3, entorno Laragon PHP 8.3.16), Laravel Framework (^12.71)
+- **Backend**: PHP (^8.2 || ^8.3 || ^8.4 || ^8.5, soporte para PHP 8.5.4 en Ubuntu 26 / Laragon PHP 8.3 local), Laravel Framework (^12.71 / ^13.0)
 - **Frontend**: Blade Templates, Assets precompilados en public/, Laravel Mix, Axios, Chart.js (^4.5.1)
+- **Servidor y Despliegue**: Ubuntu 26, Nginx, PHP 8.5-FPM, Supervisor para colas y Cron para scheduler. Scripts de despliegue en `deploy/`.
 - **Reportes/Exportación**: 
   - `barryvdh/laravel-dompdf` (^3.1) para generación de PDFs.
   - `maatwebsite/excel` (^3.1.70) para importación/exportación de Excel.

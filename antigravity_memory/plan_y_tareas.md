@@ -153,5 +153,15 @@ Este documento mantiene el estado de las tareas actuales, el roadmap a corto/med
     - Verificación funcional de generación de PDF con DomPDF 3 y resolución de Excel.
   - **Fase 6**: Merge final a la rama principal `dev`.
 
+- [x] **Configuración y Preparación para Ubuntu 26 con PHP 8.5.4**:
+  - Actualización de `composer.json` para permitir explícitamente PHP 8.5 (`^8.2 || ^8.3 || ^8.4 || ^8.5`).
+  - Creación de suite de aprovisionamiento en `deploy/`:
+    - `deploy/setup_ubuntu.sh`: Script automatizado con PPA Ondřej Surý para instalación de PHP 8.5, extensiones requeridas y Composer.
+    - `deploy/nginx.conf`: Configuración del bloque de servidor con FastCGI socket `php8.5-fpm.sock`.
+    - `deploy/supervisor.conf`: Configuración de trabajadores de cola en background.
+    - `deploy/comedor-cron`: Configuración del cron scheduler.
+  - Creación de guía detallada de despliegue en servidor.
+
 ## Roadmap / Próximos Pasos
+- [ ] Ejecutar despliegue en servidor Ubuntu 26 y validación de conectividad.
 - [ ] Monitoreo en producción / pruebas operativas con usuarios finales en los puntos de recepción y taquillas.
