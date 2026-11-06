@@ -92,3 +92,4 @@ class CheckAllowedIpTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
     }
 }
+

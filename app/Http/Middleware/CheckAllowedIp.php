@@ -17,15 +17,15 @@ class CheckAllowedIp
 
         $user = Auth::user();
 
-        // Al usuario administrador o ROOT (Super Usuario) no se le valida la IP de conexión
-        if ($user && ($user->isRoot() || $user->isAdmin() || (int) $user->rol === 1)) {
+        // Al usuario-root) no se le valida la IP de conexión
+        if ((int) $user->rol === 1) {
             return $next($request);
         }
 
         $ip = $request->ip();
         $allowed = AllowedIp::where('status', true)->where('ip_address', $ip)->exists();
 
-        if (! $allowed) {
+        if (!$allowed) {
             abort(403, 'Tu IP no está autorizada para acceder a este sistema.');
         }
 
