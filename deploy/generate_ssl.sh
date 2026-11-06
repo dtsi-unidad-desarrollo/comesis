@@ -23,3 +23,4 @@ sudo chmod 644 "$SSL_DIR/comesis.crt"
 
 echo "=== Certificado generado exitosamente en: $SSL_DIR ==="
 ls -lh "$SSL_DIR"
+
