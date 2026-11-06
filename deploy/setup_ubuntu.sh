@@ -85,9 +85,10 @@ PROJECT_DIR=$(pwd)
 # Evitar que Git marque archivos como modificados por cambios de permisos en Linux
 git config core.filemode false
 
-# Asignar propietario a www-data (servidor web) y al usuario actual
-CURRENT_USER=$(whoami)
-sudo chown -R "$CURRENT_USER":www-data "$PROJECT_DIR"
+# Asignar propietario al usuario real (incluso si se ejecutó con sudo) y grupo a www-data
+REAL_USER=${SUDO_USER:-$(whoami)}
+git config --global --add safe.directory "$PROJECT_DIR" || true
+sudo chown -R "$REAL_USER":www-data "$PROJECT_DIR"
 sudo chmod -R g+s "$PROJECT_DIR/storage" "$PROJECT_DIR/bootstrap/cache"
 
 # Permisos: 775 para directorios y 664 para archivos en storage y cache
